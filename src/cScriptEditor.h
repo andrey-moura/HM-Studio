@@ -31,15 +31,16 @@ private:
 	void OnInputKeyDown(wxKeyEvent& event);
 	void OnPrevScriptClick(wxCommandEvent& event);
 	void OnProxScriptClick(wxCommandEvent& event);
+	void OnSaveTextClick(wxCommandEvent& event);
 	void OnPrevTextClick(wxCommandEvent& event);
 	void OnProxTextClick(wxCommandEvent& event);
 	void OnHorizontalModeCheck(wxCommandEvent& event);
 	void OnMenuGetTextFromScriptFile(wxCommandEvent& event);
 	void OnScriptNavOffsetMouseDown(wxMouseEvent& event);
 	void OnScriptNavOffsetMouseUP(wxMouseEvent& event);
-	void OnStringNavInputKeyDown(wxKeyEvent& event);
-	void OnSaveTextClick(wxMouseEvent& event);
-
+	void OnStringNavInputKeyDown(wxKeyEvent& event);	
+	void OnSaveScriptClick(wxCommandEvent& event);	
+	void OnInsertScriptClick(wxCommandEvent& event);
 //others
 private:
 	wxClipboard* clip_board = nullptr;
@@ -84,13 +85,13 @@ private:
 	wxMenuBar* menuBar = nullptr;
 	wxStatusBar* statusBar = nullptr;
 
-	wxMenu* menuFile = nullptr;
 	wxMenu* menuScript = nullptr;
+	wxMenu* menuString = nullptr;
 	wxMenu* menuExport = nullptr;
 	wxMenu* menuEdit = nullptr;
 	wxMenu* menuSearch = nullptr;
 	wxMenu* menuTools = nullptr;
-	wxMenu* menuOptions = nullptr;
+	wxMenu* menuOptions = nullptr;	
 
 	wxBoxSizer* global_sizer = nullptr;
 	wxBoxSizer* panel_left_sizer = nullptr;	
@@ -136,6 +137,9 @@ private:
 	enum ID {
 		ID_SCRIPT_NAV_INPUT = 10001,
 		ID_SCRIPT_NAV_PREV =  10002,
-		ID_SCRIPT_NAV_PROX =  10003
+		ID_SCRIPT_NAV_PROX =  10003,
+		ID_MENU_STRING_SAVE = 10004,
+		ID_MENU_STRING_PREV = 10005,
+		ID_MENU_STRING_PROX = 10006
 	};
 };

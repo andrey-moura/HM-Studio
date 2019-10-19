@@ -49,10 +49,9 @@ void cScriptEditor::OpenScript()
 }
 
 void cScriptEditor::SaveScript()
-{
+{	
 	std::vector<std::string> text = textTranslated;
-	std::string table = FileUtil::ReadAllText(romOriginal->GetTablePath());
-	Table::OutPutTable(table, text);
+	romTranslated->OutputTextWithVariables(text);
 	scriptTranslated->UpdateText(text);
 	FileUtil::WriteAllBytes(romTranslated->GetScriptFullPath(scriptNum), scriptTranslated->data);
 }
@@ -64,8 +63,9 @@ void cScriptEditor::UpdateScript()
 	textOriginal = scriptOriginal->GetText();
 	textTranslated = scriptTranslated->GetText();
 
-	std::string table = FileUtil::ReadAllText(romTranslated->GetTablePath());
-	Table::InputTable(table, textTranslated);
+	//StringUtil::Replace("Eu", "Você", textTranslated[0]);
+
+	romTranslated->InputTextWithVariables(textOriginal, textTranslated);	
 
 	uint32_t pointer = 0;
 	romTranslated->GetOffset(pointer, scriptNum);
@@ -106,7 +106,7 @@ void cScriptEditor::GetTextFromScriptFile()
 		return;
 	}
 
-	wxFileDialog openFile(this, _("Open Script File"), "", "", "All Suported Files |*.fsf;|*.msf;|*.dsf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	wxFileDialog openFile(this, _("Open Script File"), "", "", "All Suported Files |*.fsf;*.msf;*.dsf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);	
 
 	if (openFile.ShowModal() == wxID_CANCEL)
 		return;	
@@ -119,11 +119,13 @@ void cScriptEditor::GetTextFromScriptFile()
 		return;
 	}		
 	
-	textOriginal = script->GetText();
+	std::vector<std::string> text = script->GetText();
+	Table::InputTable(FileUtil::ReadAllText(romTranslated->GetTablePath()), text);
+	textTranslated = text;
 	index = 0;
 	UpdateText();
 
-	delete script;	
+	delete script;
 }
 
 void cScriptEditor::tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event)
@@ -286,9 +288,35 @@ void cScriptEditor::OnStringNavInputKeyDown(wxKeyEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnSaveTextClick(wxMouseEvent& event)
+void cScriptEditor::OnSaveTextClick(wxCommandEvent& event)
 {
 	SaveText();
+	event.Skip();
+}
+
+void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
+{
+	SaveScript();
+	event.Skip();
+}
+
+void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
+{
+	SaveScript();
+	switch (romTranslated->InsertScript(scriptNum, scriptTranslated->data))
+	{
+	case 0:
+		wxMessageBox(_("Script inserted with no changes."), "Yeah!", 5L, this);
+		break;
+	case 1:
+		wxMessageBox(_("Script inserted with empty bytes used."), "Yeah!", 5L, this);
+		break;
+	case -1:
+		wxMessageBox(_("The script is lenght is greater than the old. You have to move to another offset."), "Yeah!", 5L, this);
+		break;
+	default:
+		break;
+	}	
 }
 
 void cScriptEditor::PrevText()
@@ -333,18 +361,25 @@ void cScriptEditor::CreateGUIControls()
 {
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
-	//----------------------//
-	// Menu creation starts //
-	//----------------------//
+/******************************	
 
+	Menu creation starts
+
+*******************************/
 	menuBar = new wxMenuBar();
 
 	//wxSub
 
-	menuFile = new wxMenu();
-	menuFile->Append(wxID_SAVE, _("Save"), nullptr, _("Save the current script"));
-	menuFile->Append(wxID_OPEN, _("Get Text From Other Script"));
-	menuBar->Append(menuFile, _("File"));
+	menuScript = new wxMenu();
+	menuScript->Append(wxID_SAVE, _("Save\tCtrl-Shift-S"), nullptr, _("Save the current script"));
+	menuScript->Append(wxID_OPEN, _("Get Text From Other Script"));
+	menuBar->Append(menuScript, _("File"));
+
+	menuString = new wxMenu();
+	menuString->Append(ID_MENU_STRING_SAVE, _("Save\tCtrl-S"), nullptr, _("Save the current string"));
+	menuString->Append(ID_MENU_STRING_PREV, _("Prev\tAlt-Left"), nullptr, _("Save the current string"));
+	menuString->Append(ID_MENU_STRING_PROX, _("Next\tAlt-Right"), nullptr, _("Save the current string"));
+	menuBar->Append(menuString, _("String"));
 
 	menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, _("Move To"));
@@ -373,6 +408,11 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Append(menuOptions, "Options");
 
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuGetTextFromScriptFile, this, wxID_OPEN);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveScriptClick, this, wxID_SAVE);
+
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
 
 	SetMenuBar(menuBar);
 
@@ -401,6 +441,9 @@ void cScriptEditor::CreateGUIControls()
 	script_nav_prox->Bind(wxEVT_BUTTON, &cScriptEditor::OnProxScriptClick, this);
 	script_nav_prox->SetMinSize(*button_min_size);
 
+	script_nav_insert = new wxButton(this, wxID_ANY, _("Insert"));
+	script_nav_insert->Bind(wxEVT_BUTTON, &cScriptEditor::OnInsertScriptClick, this);
+
 	script_nav_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
 	script_nav_buttons_sizer->Add(script_nav_prev, 1, wxRIGHT | wxEXPAND, 0);
 	script_nav_buttons_sizer->AddSpacer(4);
@@ -416,8 +459,7 @@ void cScriptEditor::CreateGUIControls()
 	script_nav_offset_sizer = new wxBoxSizer(wxHORIZONTAL);
 	script_nav_offset_sizer->Add(script_nav_offset_0x, 0, wxALL, 0);
 	script_nav_offset_sizer->Add(script_nav_offset, 0, wxALL, 0);
-
-	//script_nav_insert = new wxButton(this, wxID_ANY, _("Insert"));
+	
 
 	script_nav_box = new wxStaticBox(this, wxID_ANY, "Script");
 
@@ -427,8 +469,8 @@ void cScriptEditor::CreateGUIControls()
 	script_nav_sizer->Add(script_nav_buttons_sizer, 0, wxALL | wxEXPAND, 0);
 	script_nav_sizer->AddSpacer(4);
 	script_nav_sizer->Add(script_nav_offset_sizer, 0, wxALL | wxEXPAND, 0);
-	//script_nav_sizer->AddSpacer(4);
-	//script_nav_sizer->Add(script_nav_insert, 0, wxALL | wxEXPAND, 0);
+	script_nav_sizer->AddSpacer(4);
+	script_nav_sizer->Add(script_nav_insert, 0, wxALL | wxEXPAND, 0);
 
 	string_nav_index_is = new wxStaticText(this, wxID_ANY, _("Index:"));
 	string_nav_index = new wxStaticText(this, wxID_ANY, "000/000");
@@ -486,7 +528,7 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
 
 	editor_save_text = new wxButton(this, wxID_ANY, "Save");
-	editor_save_text->Bind(wxEVT_LEFT_DOWN, &cScriptEditor::OnSaveTextClick, this);
+	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnSaveTextClick, this);
 	editor_prev_text = new wxButton(this, wxID_ANY, "<<");
 	editor_prev_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnPrevTextClick, this);
 	editor_prev_text->SetMinSize(*button_min_size);

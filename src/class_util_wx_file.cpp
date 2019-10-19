@@ -20,7 +20,7 @@ void FileUtil::WriteAllBytes(std::string path, std::vector<uint8_t> bytes)
 {
 	wxFile* file = new wxFile();
 	file->Create(path, true);
-	file->Open(path);
+	file->Open(path, wxFile::read_write);
 	file->Write(bytes.data(), bytes.size());
 	delete file;
 }
