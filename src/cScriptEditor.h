@@ -16,7 +16,7 @@
 class cScriptEditor : public wxFrame
 {
 public:
-	cScriptEditor();
+	cScriptEditor(id i);
 	~cScriptEditor();	
 
 //Events
@@ -41,6 +41,7 @@ private:
 	void OnStringNavInputKeyDown(wxKeyEvent& event);	
 	void OnSaveScriptClick(wxCommandEvent& event);	
 	void OnInsertScriptClick(wxCommandEvent& event);
+	void OnExportScript(wxCommandEvent& event);
 //others
 private:
 	wxClipboard* clip_board = nullptr;
@@ -49,6 +50,7 @@ private:
 private:
 	void OpenScript();
 	void SaveScript();
+	void ExportScript();
 	void UpdateScript();
 	void CheckAndGoScript(int index);
 	void GetTextFromScriptFile();
@@ -140,6 +142,7 @@ private:
 		ID_SCRIPT_NAV_PROX =  10003,
 		ID_MENU_STRING_SAVE = 10004,
 		ID_MENU_STRING_PREV = 10005,
-		ID_MENU_STRING_PROX = 10006
+		ID_MENU_STRING_PROX = 10006,
+		ID_MENU_EXPORT_SCRIPT = 10007
 	};
 };

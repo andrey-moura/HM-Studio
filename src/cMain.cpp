@@ -71,6 +71,7 @@ void cMain::CreateGUIControls()
 	currentChoice->Insert("FoMT", 0);
 	currentChoice->Insert("MFoMT", 1);
 	currentChoice->Insert("DS", 2);
+	currentChoice->SetSelection(0);
 	//currentChoice->Bind(wxEVT_CHOICE, &cMain::OnChoiceChanged, this);
 	currentDefault = new wxCheckBox(this, wxID_ANY, "Default");
 
@@ -117,7 +118,7 @@ void cMain::OnChoiceChanged(wxCommandEvent& event)
 
 void cMain::scriptEditor_onClick(wxCommandEvent& event)
 {
-	formScriptEditor = new cScriptEditor();
+	cScriptEditor* formScriptEditor = new cScriptEditor(GetCurrentId());
 	formScriptEditor->Show();
 
 	event.Skip();
@@ -133,8 +134,8 @@ void cMain::OnButtonTileEditor_Click(wxCommandEvent& event)
 
 void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
 {
-	Rom* rom = new Rom(id::MFoMT, console::GBA, true);
-	Rom* romOriginal = new Rom(id::MFoMT, console::GBA, false);
+	Rom* rom = new Rom(id::MFoMT, true);
+	Rom* romOriginal = new Rom(id::MFoMT, false);
 
 	std::vector<std::string> vec;
 	vec.push_back("Voc) #");
@@ -146,7 +147,7 @@ void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
 	
 	Table::InputTable(s, vec);
 
-	wxMessageBox(wxString() << vec[0] << vec[1]);	
+	wxMessageBox(rom->GetScriptExportedFullPath(4));	
 
 	//SpriteFile* script = new SpriteFile(FileUtil::ReadAllBytes(romOriginal->GetScriptFullPath(4)));
 	//SpriteFile* newScript = new SpriteFile(FileUtil::ReadAllBytes(rom->GetScriptFullPath(4)));	
@@ -169,7 +170,7 @@ void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
 
 void cMain::OnButtonDumpOriginal(wxCommandEvent& event)
 {	
-	Rom* rom = GetCurrentRom(false);
+	Rom* rom = new Rom(GetCurrentId(), true);
 	if (rom->IsOpened())
 	rom->Dump();
 	else
@@ -184,7 +185,7 @@ void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
 	if (wxMessageBox(_("Are you sure? It will erase your scripts if you already made changes..."), "Huh?", 5L, this) == wxID_CANCEL)
 	return;
 
-	Rom* rom = GetCurrentRom(true);
+	Rom* rom = new Rom(GetCurrentId(), true);
 	if (rom->IsOpened())
 		rom->Dump();
 	else
@@ -194,22 +195,22 @@ void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
 	event.Skip();
 }
 
-Rom* cMain::GetCurrentRom(bool translated)
+id cMain::GetCurrentId()
 {
 	switch (cur_choice)
 	{
 	case (int)id::FoMT:
-		return new Rom(id::FoMT, console::GBA, translated);
+		return id::FoMT;
 		break;
 	case (int)id::MFoMT:
-		return new Rom(id::MFoMT, console::GBA, translated);
+		return id::MFoMT;
 		break;
-	case (int)id::HMDS:
-		return new Rom(id::HMDS, console::DS, translated);
+	case (int)id::DS:
+		return id::DS;
 		break;
 	default:
 		wxMessageBox("This is not suposed to happen...", "Huh?", 5L, this);
-		return nullptr;
+		return (id)-1;
 		break;
 	}
 }

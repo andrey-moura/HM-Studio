@@ -7,11 +7,6 @@
 
 #include "BitConverter.h"
 
-#include "FoMT.h"
-#include "MFoMT.h"
-#include "HMDS.h"
-
-
 #include "class_util_string.hpp"
 #include "class_table.hpp"
 #include "class_util_wx_file.hpp"
@@ -24,7 +19,13 @@ enum class console {
 enum class id {
 	FoMT,
 	MFoMT,
-	HMDS
+	DS
+};
+
+struct offset {
+	
+	uint32_t Script_start_pointers = 0;
+	uint32_t Script_count = 0;	
 };
 
 //enum scriptCount {
@@ -36,7 +37,7 @@ enum class id {
 class Rom : public wxFile
 {
 public:
-	Rom(id i, console c, bool translated);
+	Rom(id i, bool translated);
 	~Rom();
 
 	id Id;
@@ -53,10 +54,15 @@ public:
 //script
 public:
 	char scriptName[30] = "Script_%s_%s.%s";
+
+	char scriptExportedName[23] = "Script_Exported_%i.txt";
+
 	std::string GetScriptFullName(int num);
 	std::string GetScriptFullPath(int num);
+	std::string GetScriptExportedFullPath(int num);
 
 	wxFileName* scriptPath = nullptr;
+	wxFileName* exportedScriptPath = nullptr;
 	
 	void GetOffset(std::vector<uint32_t>& vector);
 	void GetOffset(uint32_t& value, int number);
@@ -64,8 +70,7 @@ public:
 	void GetSize(uint32_t offset, uint32_t& output);
 	void Dump();
 
-	uint32_t ScriptStartPointers;
-	uint32_t ScriptCount;
+	offset Offset;
 
 //File
 public:
@@ -78,7 +83,7 @@ public:
 	bool VerifyEmptyBlock(size_t size);
 	int InsertScript(int number, std::vector<uint8_t>& bytes);
 private:
-	void SetScriptInformation();
+	void SetOffsets();
 
 };
 

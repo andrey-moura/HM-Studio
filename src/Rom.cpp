@@ -1,25 +1,27 @@
 #include "Rom.h"
 
-Rom::Rom(id i, console c, bool translated)
+Rom::Rom(id i, bool translated)
 {
 	State = translated ? "Translated" : "Original";	
 	std::string scriptExt = "";
-	Id = i;
-	Console = c;
+	Id = i;	
 
 	switch (i)
 	{
 	case id::FoMT:	
 		scriptExt = "fsf";
 		Name = "FoMT";
+		Console = console::GBA;
 		break;
 	case id::MFoMT:
 		scriptExt = "msf";
 		Name = "MFoMT";
+		Console = console::GBA;
 		break;
-	case id::HMDS:
+	case id::DS:
 		scriptExt = "dsf";
-		Name = "HMDS";
+		Name = "DS";
+		Console = console::DS;
 		break;
 	default:
 		break;
@@ -27,14 +29,16 @@ Rom::Rom(id i, console c, bool translated)
 
 	char buffer[30];
 	sprintf(buffer, scriptName, State.c_str(), "%i", scriptExt.c_str());
-	SetScriptInformation();
+	
+	Offset = offset();
+	SetOffsets();
 
 	memcpy(scriptName, buffer, 30);
 
 	wxFileName* path = new wxFileName(wxStandardPaths::Get().GetExecutablePath());
 	path->SetName("Rom_" + State);
 
-	switch (c)
+	switch (Console)
 	{
 	case console::GBA:
 		path->SetExt("gba");
@@ -60,6 +64,11 @@ Rom::Rom(id i, console c, bool translated)
 	scriptPath->AppendDir(Name);
 	scriptPath->AppendDir("Script");
 	scriptPath->AppendDir(State);
+
+	exportedScriptPath = new wxFileName(scriptPath->GetFullPath());
+	exportedScriptPath->RemoveLastDir();
+	exportedScriptPath->AppendDir("Exported");		
+	exportedScriptPath->SetExt("txt");
 
 	if (!scriptPath->DirExists())
 		scriptPath->Mkdir(511, wxPATH_MKDIR_FULL);
@@ -127,7 +136,10 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		StringUtil::Replace(rawFarm, farm, translated[i]);
 	}
 
-	Table::InputTable(FileUtil::ReadAllText(GetTablePath()), translated);
+	std::string table_path = GetTablePath();
+
+	if (wxFile::Exists(table_path))
+		Table::InputTable(FileUtil::ReadAllText(table_path), translated);
 
 	for (int i = 0; i < translated.size(); ++i)
 	{
@@ -220,6 +232,18 @@ std::string Rom::GetScriptFullPath(int num)
 {
 	scriptPath->SetFullName(GetScriptFullName(num));
 	return scriptPath->GetFullPath().ToStdString();
+}
+
+std::string Rom::GetScriptExportedFullPath(int num)
+{
+	std::string buffer;
+	buffer.resize(25);
+
+	sprintf((char*)buffer.data(), scriptExportedName, num);
+
+	exportedScriptPath->SetFullName(buffer);
+
+	return exportedScriptPath->GetFullPath().ToStdString();
 }
 
 void Rom::ReadInt32(uint32_t& value)
@@ -316,21 +340,21 @@ int Rom::InsertScript(int number, std::vector<uint8_t>& bytes)
 	return 0;
 }
 
-void Rom::SetScriptInformation()
+void Rom::SetOffsets()
 {
 	switch (Id)
 	{
 	case id::FoMT:
-		ScriptStartPointers = FOMT_SCRIPT_STARTPOINTERS;
-		ScriptCount = FOMT_SCRIPT_COUNT;
+		Offset.Script_start_pointers = 0xF89D8;		
+		Offset.Script_count = 1328;
 		break;
 	case id::MFoMT:
-		ScriptStartPointers = MFOMT_SCRIPT_STARTPOINTERS;
-		ScriptCount = MFOMT_SCRIPT_COUNT;
+		Offset.Script_start_pointers = 0x1014C0;
+		Offset.Script_count = 1415;
 		break;
-	case id::HMDS:
-		ScriptStartPointers = HMDS_SCRIPT_STARTPOINTERS;
-		ScriptCount = HMDS_SCRIPT_COUNT;
+	case id::DS:
+		Offset.Script_start_pointers = 0x24C2E04;
+		Offset.Script_count = 1296;
 		break;
 	default:
 		break;
@@ -340,20 +364,20 @@ void Rom::SetScriptInformation()
 void Rom::GetOffset(std::vector<uint32_t>& vector)
 {
 	std::vector<uint8_t> pointers;
-	pointers.resize(ScriptCount * 4, 0x00);
+	pointers.resize(Offset.Script_count * 4, 0x00);
 
-	this->Seek(ScriptStartPointers);
+	this->Seek(Offset.Script_start_pointers);
 
-	this->Read(pointers.data(), ScriptCount * 4);
+	this->Read(pointers.data(), Offset.Script_count * 4);
 
-	for (int i = 3; i < ScriptCount * 4; i += 4)
+	for (int i = 3; i < Offset.Script_count * 4; i += 4)
 	{
 		pointers[i] = 0x00;
 	}
 
-	vector.resize(ScriptCount, 0x00);	
+	vector.resize(Offset.Script_count, 0x00);
 
-	for (int i = 0; i < ScriptCount; ++i)
+	for (int i = 0; i < Offset.Script_count; ++i)
 	{
 		vector[i] = BitConverter::ToInt32(pointers.data(), i * 4);		
 	}
@@ -362,18 +386,18 @@ void Rom::GetOffset(std::vector<uint32_t>& vector)
 void Rom::GetOffset(uint32_t& value, int number)
 {
 	value = 0;
-	this->Seek(ScriptStartPointers + (number * 4));
+	this->Seek(Offset.Script_start_pointers + (number * 4));
 	ReadPointer32(value);
 }
 
 void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
 {
-	output.resize(ScriptCount, 0x00);
+	output.resize(Offset.Script_count, 0x00);
 	
 	uint32_t riff = 0x46464952;
 	uint32_t riff_in = 0;
 
-	for (int i = 0; i < ScriptCount; ++i)
+	for (int i = 0; i < Offset.Script_count; ++i)
 	{
 		this->Seek(offsets[i]);
 
@@ -399,7 +423,7 @@ void Rom::Dump()
 	std::vector<uint32_t> sizes;
 	GetSize(offsets, sizes);
 
-	for (int i = 0; i < ScriptCount; ++i)
+	for (int i = 0; i < Offset.Script_count; ++i)
 	{		
 		if (offsets[i] > 0 && sizes[i] > 0)
 		{

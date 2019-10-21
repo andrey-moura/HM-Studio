@@ -37,3 +37,12 @@ std::string FileUtil::ReadAllText(std::string path)
 
 	return outPut;
 }
+
+void FileUtil::WriteAllText(std::string path, std::string text)
+{
+	wxFile* file = new wxFile();
+	file->Create(path, true);
+	file->Open(path, wxFile::read_write);
+	file->Write(text.data(), text.size());
+	delete file;
+}

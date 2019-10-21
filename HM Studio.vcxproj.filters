@@ -27,9 +27,6 @@
     <ClCompile Include="src\cScriptEditor.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="src\FoMT.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
     <ClCompile Include="src\frame_tile_editor_canvas.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
@@ -37,12 +34,6 @@
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="src\frame_tile_editor_parent.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="src\HMDS.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MFoMT.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="src\Rom.cpp">
@@ -80,9 +71,6 @@
     <ClInclude Include="src\cScriptEditor.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="src\FoMT.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="src\frame_tile_editor_canvas.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
@@ -90,12 +78,6 @@
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\frame_tile_editor_parent.hpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="src\HMDS.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MFoMT.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\Rom.h">

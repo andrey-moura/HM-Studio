@@ -9,12 +9,12 @@ wxBEGIN_EVENT_TABLE(cScriptEditor, wxFrame)
 
 wxEND_EVENT_TABLE()
 
-cScriptEditor::cScriptEditor() : wxFrame(nullptr, wxID_ANY, "Script Editor")
+cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
 {
 	CreateGUIControls();	
 
-	romOriginal = new Rom(id::MFoMT, console::GBA, false);
-	romTranslated = new Rom(id::MFoMT, console::GBA, true);
+	romOriginal = new Rom(i, false);
+	romTranslated = new Rom(i, true);
 
 	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal->Name);
 
@@ -23,7 +23,11 @@ cScriptEditor::cScriptEditor() : wxFrame(nullptr, wxID_ANY, "Script Editor")
 
 cScriptEditor::~cScriptEditor()
 {
-
+	delete clip_board;
+	delete scriptOriginal;
+	delete scriptTranslated;
+	delete romOriginal;
+	delete romTranslated;
 }
 
 void cScriptEditor::OpenScript()
@@ -56,6 +60,19 @@ void cScriptEditor::SaveScript()
 	FileUtil::WriteAllBytes(romTranslated->GetScriptFullPath(scriptNum), scriptTranslated->data);
 }
 
+void cScriptEditor::ExportScript()
+{
+	std::string text;
+
+	for (int i = 0; i < textTranslated.size(); ++i)
+	{
+		text.append(textTranslated[i]);
+		text.append(std::string("\n---End text ").append(std::to_string(i).append("---\n")));
+	}
+
+	FileUtil::WriteAllText(romTranslated->GetScriptExportedFullPath(scriptNum), text);
+}
+
 void cScriptEditor::UpdateScript()
 {
 	index = 0;
@@ -78,12 +95,14 @@ void cScriptEditor::UpdateScript()
 
 	script_nav_offset->SetLabel(s_pointer);
 
+	this->SetTitle(wxString() << "Script Editor - " << romOriginal->Name << ": Script" << scriptNum);
+
 	UpdateText();
 }
 
 void cScriptEditor::CheckAndGoScript(int index)
 {
-	if (index >= 0 && index < romOriginal->ScriptCount)
+	if (index >= 0 && index < romOriginal->Offset.Script_count)
 	{
 		if (index != scriptNum)
 		{
@@ -94,7 +113,7 @@ void cScriptEditor::CheckAndGoScript(int index)
 	else
 	{
 		wxMessageBox(wxString("Index out of the range. Index have to be greater than or equal to 0 and less than ")
-							<< romOriginal->ScriptCount -1 << ".", "Huh?", 5L, this);
+							<< romOriginal->Offset.Script_count -1 << ".", "Huh?", 5L, this);
 	}
 }
 
@@ -176,12 +195,20 @@ void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
 
 void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 {
-	statusBar->SetStatusText("Ln: "  + std::to_string(tScriptTranslated->GetCurrentLine()), 2);
-	statusBar->SetStatusText("Sel: " + std::to_string(tScriptTranslated->GetSelectionEnd() - tScriptTranslated->GetSelectionStart()), 3);
+	statusBar->SetStatusText("Ln: " + std::to_string(tScriptTranslated->GetCurrentLine()), 2);
+
+	int end = tScriptTranslated->GetSelectionEnd();
+	int start = tScriptTranslated->GetSelectionStart();
+
+	int size = end - start;	
+
+	wxString s = tScriptTranslated->GetTextRange(start, end);
+	statusBar->SetStatusText(wxString("Sel: ") << s.size(), 3);	
+
 	statusBar->SetStatusText("Col: " + std::to_string(tScriptTranslated->GetColumn(tScriptTranslated->GetCurrentPos())), 4);
 
-	if(options_nav_scroll->IsChecked())
-	tScriptOriginal->ScrollToLine(tScriptTranslated->GetFirstVisibleLine());
+	if (options_nav_scroll->IsChecked())
+		tScriptOriginal->ScrollToLine(tScriptTranslated->GetFirstVisibleLine());
 
 	event.Skip();
 }
@@ -319,6 +346,12 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 	}	
 }
 
+void cScriptEditor::OnExportScript(wxCommandEvent& event)
+{
+	ExportScript();
+	event.Skip();
+}
+
 void cScriptEditor::PrevText()
 {
 	if (index > 0)
@@ -399,7 +432,7 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Append(menuTools, "Tools");
 
 	menuExport = new wxMenu();
-	menuExport->Append(wxID_ANY, "Export");
+	menuExport->Append(ID_MENU_EXPORT_SCRIPT, "Export\tCtrl-Shift-E");
 	menuExport->Append(wxID_ANY, "Export All");
 	menuBar->Append(menuExport, "Export");
 
@@ -413,6 +446,7 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnExportScript, this, ID_MENU_EXPORT_SCRIPT);
 
 	SetMenuBar(menuBar);
 
@@ -526,6 +560,8 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
 	tScriptTranslated->Bind(wxEVT_STC_MODIFIED, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
+	//tScriptTranslated->STYLESETC
+	//tScriptTranslated->SetCodePage(0);
 
 	editor_save_text = new wxButton(this, wxID_ANY, "Save");
 	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnSaveTextClick, this);

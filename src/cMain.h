@@ -36,10 +36,9 @@ private:
 	uint8_t cur_choice = 0;
 
 private:
-	Rom* GetCurrentRom(bool translated);
+	id GetCurrentId();
 
 //Form
-	cScriptEditor* formScriptEditor = nullptr;
 	TileEditorFrame* tileEditorFrame = nullptr;
 
 
