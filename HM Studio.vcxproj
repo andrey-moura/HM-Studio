@@ -20,34 +20,34 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="frame_save_editor.cpp" />
-    <ClCompile Include="src\App.cpp" />
-    <ClCompile Include="src\BitConverter.cpp" />
+    <ClCompile Include="src\class_app.cpp" />
     <ClCompile Include="src\class_table.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_util_wx_file.cpp" />
-    <ClCompile Include="src\cMain.cpp" />
-    <ClCompile Include="src\cScriptEditor.cpp" />
+    <ClCompile Include="src\frame_search_script.cpp" />
+    <ClCompile Include="src\frame_main.cpp" />
+    <ClCompile Include="src\frame_script_editor.cpp" />
     <ClCompile Include="src\frame_tile_editor_canvas.cpp" />
     <ClCompile Include="src\frame_tile_editor_child.cpp" />
     <ClCompile Include="src\frame_tile_editor_parent.cpp" />
-    <ClCompile Include="src\Rom.cpp" />
+    <ClCompile Include="src\class_rom.cpp" />
     <ClCompile Include="src\SpriteFile.cpp" />
     <ClCompile Include="src\Studio.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame_save_editor.hpp" />
-    <ClInclude Include="src\App.h" />
-    <ClInclude Include="src\BitConverter.h" />
+    <ClInclude Include="src\class_app.hpp" />
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_util_wx_file.hpp" />
-    <ClInclude Include="src\cMain.h" />
-    <ClInclude Include="src\cScriptEditor.h" />
+    <ClInclude Include="src\frame_search_script.hpp" />
+    <ClInclude Include="src\frame_main.hpp" />
+    <ClInclude Include="src\frame_script_editor.hpp" />
     <ClInclude Include="src\frame_tile_editor_canvas.hpp" />
     <ClInclude Include="src\frame_tile_editor_child.hpp" />
     <ClInclude Include="src\frame_tile_editor_parent.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
-    <ClInclude Include="src\Rom.h" />
+    <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\SpriteFile.hpp" />
     <ClInclude Include="src\Studio.h" />
   </ItemGroup>

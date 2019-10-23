@@ -1,10 +1,9 @@
 #pragma once
 
+#include <wx/app.h>
 
-#include "wx/wx.h"
-
-#include "cMain.h"
-#include "cScriptEditor.h"
+#include "frame_main.hpp"
+#include "frame_script_editor.hpp"
 
 class App : public wxApp
 {

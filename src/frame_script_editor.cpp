@@ -1,4 +1,4 @@
-#include "cScriptEditor.h"
+#include "frame_script_editor.hpp"
 
 wxBEGIN_EVENT_TABLE(cScriptEditor, wxFrame)
 //
@@ -16,9 +16,27 @@ cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
 	romOriginal = new Rom(i, false);
 	romTranslated = new Rom(i, true);
 
+	switch (romOriginal->Console)
+	{
+	case console::DS:
+		m_lineEnding = "\n";
+		m_lineLineEnding = "\\n";
+		tScriptTranslated->SetEOLMode(wxEOL_UNIX);
+		break;
+	case console::GBA:
+		m_lineEnding = "\r\n";
+		m_lineLineEnding = "\\n";
+		tScriptTranslated->SetEOLMode(wxEOL_DOS);
+		break;
+	default:
+		break;
+	}
+
+
+
 	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal->Name);
 
-	clip_board = new wxClipboard();	
+	clip_board = new wxClipboard();
 }
 
 cScriptEditor::~cScriptEditor()
@@ -76,6 +94,8 @@ void cScriptEditor::ExportScript()
 void cScriptEditor::UpdateScript()
 {
 	index = 0;
+
+	m_indexesString.clear();
 
 	textOriginal = scriptOriginal->GetText();
 	textTranslated = scriptTranslated->GetText();
@@ -145,6 +165,42 @@ void cScriptEditor::GetTextFromScriptFile()
 	UpdateText();
 
 	delete script;
+}
+
+void cScriptEditor::FindText()
+{
+	FrameSearchScript* search_text = new FrameSearchScript();
+
+	int result = search_text->ShowModal();
+
+	if (result == FrameSearchScript::SearchMode::Find)
+	{
+		m_indexesString.clear();
+		m_curIndexString = 0;
+		StringUtil::FindAllOccurances(textOriginal, search_text->find, m_indexesString);
+
+		UpdateText();
+	}
+	else if (result == FrameSearchScript::SearchMode::Replace || result == FrameSearchScript::SearchMode::ReplaceExtended)
+	{
+		if (result == FrameSearchScript::SearchMode::ReplaceExtended)
+		{
+			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text->find);
+			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text->replace);
+		}
+
+		for (int i = 0; i < textTranslated.size(); ++i)
+		{
+			m_indexesString.clear();
+			m_curIndexString = 0;
+			StringUtil::Replace(search_text->find, search_text->replace, textTranslated[i]);
+		}
+
+		UpdateText();
+	}
+
+	search_text->Destroy();
+	delete search_text;
 }
 
 void cScriptEditor::tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event)
@@ -352,6 +408,25 @@ void cScriptEditor::OnExportScript(wxCommandEvent& event)
 	event.Skip();
 }
 
+void cScriptEditor::EVT_MENU_FindText(wxCommandEvent& event)
+{
+	FindText();
+}
+
+void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
+{
+	if (m_curIndexString == m_indexesString.size())
+	{
+		index = 0;
+		UpdateText();
+	}
+	else {
+		index = m_indexesString[m_curIndexString];
+		m_curIndexString++;
+		UpdateText();
+	}
+}
+
 void cScriptEditor::PrevText()
 {
 	if (index > 0)
@@ -419,8 +494,8 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Append(menuEdit, _("Edit"));
 
 	menuSearch = new wxMenu();
-	menuSearch->Append(wxID_ANY, "Find Text");
-	menuSearch->Append(wxID_ANY, "Find Next Text");
+	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
+	menuSearch->Append(ID_MENU_FIND_NEXT, "Find Next Text\tF3");
 	menuSearch->Append(wxID_ANY, "Find Next Script");
 	menuBar->Append(menuSearch, "Search");
 
@@ -447,6 +522,8 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnExportScript, this, ID_MENU_EXPORT_SCRIPT);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindText, this, wxID_FIND);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindNextText, this, ID_MENU_FIND_NEXT);
 
 	SetMenuBar(menuBar);
 
@@ -548,10 +625,10 @@ void cScriptEditor::CreateGUIControls()
 	panel_left_sizer->Add(options_nav_sizer, 0, wxALL | wxEXPAND, 0);
 
 	tScriptTranslated = new wxStyledTextCtrl(this, wxID_ANY);
-	tScriptTranslated->StyleSetFont(0, wxFont(wxFontInfo(10).FaceName("Courier New")));
+	tScriptTranslated->StyleSetFont(0, Studio::GetDefaultFont());
 
 	int x, y;
-	GetTextExtent(_T("ABCDEabcde"), &x, &y, (int*)0, (int*)0, &wxFont(wxFontInfo(10).FaceName("Courier New")));
+	GetTextExtent(_T("ABCDEabcde"), &x, &y, (int*)0, (int*)0, &Studio::GetDefaultFont());
 	//Gets Width of string
 	tScriptTranslated->SetSizeHints(((x / 10) * (34 + 2)), -1);
 

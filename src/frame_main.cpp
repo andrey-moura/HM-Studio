@@ -1,4 +1,4 @@
-#include "cMain.h"
+#include "frame_main.hpp"
 
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 
@@ -182,7 +182,7 @@ void cMain::OnButtonDumpOriginal(wxCommandEvent& event)
 
 void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
 {
-	if (wxMessageBox(_("Are you sure? It will erase your scripts if you already made changes..."), "Huh?", 5L, this) == wxID_CANCEL)
+	if (wxMessageBox(_("Are you sure? It will erase your scripts if you already made changes..."), "Huh?", wxICON_QUESTION | wxYES_NO, this) == wxID_CANCEL)
 	return;
 
 	Rom* rom = new Rom(GetCurrentId(), true);

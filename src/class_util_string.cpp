@@ -4,22 +4,23 @@ void StringUtil::FindAllOccurances(std::string str, std::string toSearch, std::v
 {
 	size_t pos = str.find(toSearch);
 
+	int size = toSearch.size();
+
 	while (pos != std::string::npos)
 	{
 		output.push_back(pos);
-		pos = str.find(toSearch, pos + toSearch.size());
+		pos = str.find(toSearch, pos + size);
 	}
 }
 
 void StringUtil::FindAllOccurances(std::vector<std::string> str, std::string toSearch, std::vector<size_t> &output)
 {
-
 	for (int i = 0; i < str.size(); ++i)
 	{		
 		size_t pos = str[i].find(toSearch);
 
 		if (pos != std::string::npos)		
-			output.push_back(pos);
+			output.push_back(i);
 	}
 }
 
@@ -69,6 +70,7 @@ void StringUtil::Replace(std::string find, std::string replace, std::string& str
 		//int add = (int)replace.size() - (int)find.size();
 
 		size_t pos = str.find(find, 0);
+		int size = find.size();
 
 		while (pos != std::string::npos)
 		{
@@ -77,7 +79,7 @@ void StringUtil::Replace(std::string find, std::string replace, std::string& str
 
 			memcpy((void*)newString.data(), str.data(), pos);
 			newString.append(replace);
-			newString.append(str.substr(pos + find.size()));
+			newString.append(str.substr(pos + size));
 
 			str = newString;
 

@@ -5,8 +5,6 @@
 
 #include <vector>
 
-#include "BitConverter.h"
-
 #include "class_util_string.hpp"
 #include "class_table.hpp"
 #include "class_util_wx_file.hpp"

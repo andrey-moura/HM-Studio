@@ -7,19 +7,19 @@
 			<Cursor1 position="468" topLine="1" />
 		</Cursor>
 	</File>
+	<File name="HM_Studio_GUIMain.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5265" topLine="110" />
+		</Cursor>
+	</File>
 	<File name="HM_Studio_GUIMain.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="973" topLine="27" />
+			<Cursor1 position="1135" topLine="42" />
 		</Cursor>
 	</File>
 	<File name="NewFrame.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="636" topLine="6" />
-		</Cursor>
-	</File>
-	<File name="HM_Studio_GUIMain.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="785" topLine="29" />
+			<Cursor1 position="1170" topLine="19" />
 		</Cursor>
 	</File>
 	<File name="NewFrame.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">

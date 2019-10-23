@@ -1,4 +1,4 @@
-#include "Rom.h"
+#include "class_rom.hpp"
 
 Rom::Rom(id i, bool translated)
 {
@@ -379,7 +379,7 @@ void Rom::GetOffset(std::vector<uint32_t>& vector)
 
 	for (int i = 0; i < Offset.Script_count; ++i)
 	{
-		vector[i] = BitConverter::ToInt32(pointers.data(), i * 4);		
+		vector[i] = *((int*)pointers.data()) + (i * 4);
 	}
 }
 

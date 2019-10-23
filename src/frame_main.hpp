@@ -5,7 +5,7 @@
 #include "wx/listctrl.h"
 
 //Frames
-#include "cScriptEditor.h"
+#include "frame_script_editor.hpp"
 #include "frame_tile_editor_parent.hpp"
 
 //Static

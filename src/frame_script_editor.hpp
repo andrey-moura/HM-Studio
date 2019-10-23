@@ -6,12 +6,16 @@
 #include <wx/stc/stc.h>
 #include <wx/clipbrd.h>
 
-#include "Rom.h"
+#include "class_rom.hpp"
 #include "SpriteFile.hpp"
+
+#include "Studio.h"
 
 #include "class_util_wx_file.hpp"
 #include "class_util_string.hpp"
 #include "class_table.hpp"
+
+#include "frame_search_script.hpp"
 
 class cScriptEditor : public wxFrame
 {
@@ -42,6 +46,8 @@ private:
 	void OnSaveScriptClick(wxCommandEvent& event);	
 	void OnInsertScriptClick(wxCommandEvent& event);
 	void OnExportScript(wxCommandEvent& event);
+	void EVT_MENU_FindText(wxCommandEvent& event);
+	void EVT_MENU_FindNextText(wxCommandEvent& event);
 //others
 private:
 	wxClipboard* clip_board = nullptr;
@@ -54,6 +60,7 @@ private:
 	void UpdateScript();
 	void CheckAndGoScript(int index);
 	void GetTextFromScriptFile();
+	void FindText();
 
 	SpriteFile* scriptOriginal = nullptr;
 	SpriteFile* scriptTranslated = nullptr;
@@ -64,6 +71,9 @@ private:
 private:
 	Rom* romOriginal = nullptr;
 	Rom* romTranslated = nullptr;
+
+
+//Forms
 
 //Text manipulation
 private:
@@ -76,6 +86,12 @@ private:
 
 	std::vector<std::string> textOriginal;
 	std::vector<std::string> textTranslated;
+
+	std::vector<size_t> m_indexesString;
+	size_t m_curIndexString = 0;
+
+	std::string m_lineEnding;
+	std::string m_lineLineEnding;
 
 //UI
 private:
@@ -143,6 +159,7 @@ private:
 		ID_MENU_STRING_SAVE = 10004,
 		ID_MENU_STRING_PREV = 10005,
 		ID_MENU_STRING_PROX = 10006,
-		ID_MENU_EXPORT_SCRIPT = 10007
+		ID_MENU_EXPORT_SCRIPT = 10007,
+		ID_MENU_FIND_NEXT
 	};
 };

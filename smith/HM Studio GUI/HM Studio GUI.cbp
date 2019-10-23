@@ -80,6 +80,8 @@
 			<Add library="libshlwapi.a" />
 			<Add library="libversion.a" />
 		</Linker>
+		<Unit filename="FramseSearchScript.cpp" />
+		<Unit filename="FramseSearchScript.h" />
 		<Unit filename="HM_Studio_GUIApp.cpp" />
 		<Unit filename="HM_Studio_GUIApp.h" />
 		<Unit filename="HM_Studio_GUIMain.cpp" />
@@ -89,6 +91,7 @@
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="wxsmith/FramseSearchScript.wxs" />
 		<Unit filename="wxsmith/HM_Studio_GUIframe.wxs" />
 		<Unit filename="wxsmith/NewFrame.wxs" />
 		<Extensions>
@@ -101,6 +104,7 @@
 				<resources>
 					<wxFrame wxs="wxsmith/HM_Studio_GUIframe.wxs" src="HM_Studio_GUIMain.cpp" hdr="HM_Studio_GUIMain.h" fwddecl="0" i18n="1" name="HM_Studio_GUIFrame" language="CPP" />
 					<wxFrame wxs="wxsmith/NewFrame.wxs" src="NewFrame.cpp" hdr="NewFrame.h" fwddecl="0" i18n="1" name="NewFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/FramseSearchScript.wxs" src="FramseSearchScript.cpp" hdr="FramseSearchScript.h" fwddecl="0" i18n="1" name="FramseSearchScript" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
