@@ -48,6 +48,23 @@ cScriptEditor::~cScriptEditor()
 	delete romTranslated;
 }
 
+void cScriptEditor::BackupText()
+{
+	m_textSave = tScriptTranslated->GetText();
+	m_stringBackup = true;
+	m_indexBackup = index;
+	m_pMenuString_Restore->Enable(true);
+	log_text->SetForegroundColour(wxColour(255, 0, 0));
+	log_text->SetLabel(wxString("Text ") << m_indexBackup << " not saved. See String>Restore");		
+}
+
+void cScriptEditor::RestoreText()
+{
+	index = m_indexBackup;
+	UpdateText();
+	tScriptTranslated->SetText(m_textSave);
+}
+
 void cScriptEditor::OpenScript()
 {
 	SpriteFile* script = new SpriteFile(FileUtil::ReadAllBytes(romOriginal->GetScriptFullPath(scriptNum)));
@@ -244,7 +261,10 @@ void cScriptEditor::tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event)
 void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
 {
 	statusBar->SetStatusText("Size: " + std::to_string(tScriptTranslated->GetTextLength()), 0);
+
 	statusBar->SetStatusText("Lines: " + std::to_string(tScriptTranslated->GetLineCount()), 1);
+
+	m_stringChange = true;
 
 	event.Skip();
 }
@@ -395,7 +415,7 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 		wxMessageBox(_("Script inserted with empty bytes used."), "Yeah!", 5L, this);
 		break;
 	case -1:
-		wxMessageBox(_("The script is lenght is greater than the old. You have to move to another offset."), "Yeah!", 5L, this);
+		wxMessageBox(_("The script is lenght is greater than the old. You have to move to another offset."), "...", 5L, this);
 		break;
 	default:
 		break;
@@ -427,18 +447,34 @@ void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
 	}
 }
 
+void cScriptEditor::EVT_MENU_RestoreString(wxCommandEvent& event)
+{
+	RestoreText();
+	event.Skip();
+}
+
 void cScriptEditor::PrevText()
 {
 	if (index > 0)
 	{
+		if (!m_stringSaved && m_stringChange)
+			BackupText();
 		--index;
-		UpdateText();
+		UpdateText();		
 	}		
 }
 
 void cScriptEditor::ProxText()
 {
 	if (index < textOriginal.size() - 1){
+
+		/*if (m_stringChange && !m_stringSaved)
+		{
+			SetStatusText(_("String not saved. Ctrl-Alt-Z to reload. Ctrl+ESC to dimiss."), 0);
+		}*/
+
+		if (!m_stringSaved && m_stringChange)
+			BackupText();
 		++index;
 		UpdateText();		
 	}		
@@ -446,6 +482,11 @@ void cScriptEditor::ProxText()
 
 void cScriptEditor::SaveText()
 {
+	m_stringSaved = true;
+	m_pMenuString_Restore->Enable(false);
+	log_text->SetLabel("");
+	m_textSave.clear();
+
 	textTranslated[index] = tScriptTranslated->GetText().ToStdString();
 	ProxText();
 }
@@ -457,10 +498,13 @@ void cScriptEditor::UpdateText()
 		wxMessageBox("There is no script opened.", "Huh?", 5L, this);
 		index = 0;
 		return;
-	}
+	}	
 
 	tScriptOriginal->SetText(textOriginal[index]);
 	tScriptTranslated->SetText(textTranslated[index]);
+		
+	m_stringChange = false;
+	m_stringSaved = false;
 
 	string_nav_index->SetLabel(wxString("") << (index + 1) << "/" << textTranslated.size());	
 }
@@ -485,9 +529,12 @@ void cScriptEditor::CreateGUIControls()
 
 	menuString = new wxMenu();
 	menuString->Append(ID_MENU_STRING_SAVE, _("Save\tCtrl-S"), nullptr, _("Save the current string"));
-	menuString->Append(ID_MENU_STRING_PREV, _("Prev\tAlt-Left"), nullptr, _("Save the current string"));
-	menuString->Append(ID_MENU_STRING_PROX, _("Next\tAlt-Right"), nullptr, _("Save the current string"));
+	menuString->Append(ID_MENU_STRING_PREV, _("Prev\tAlt-Left"), nullptr, _("Loads the next string"));
+	menuString->Append(ID_MENU_STRING_PROX, _("Next\tAlt-Right"), nullptr, _("Loads the previous string"));
+	m_pMenuString_Restore = menuString->Append(ID_MENU_STRING_RESTORE, _("Restore\tAlt-Z"), nullptr, _("Restore a text not saved"));
 	menuBar->Append(menuString, _("String"));
+
+	m_pMenuString_Restore->Enable(false);
 
 	menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, _("Move To"));
@@ -524,6 +571,7 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnExportScript, this, ID_MENU_EXPORT_SCRIPT);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindText, this, wxID_FIND);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindNextText, this, ID_MENU_FIND_NEXT);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_RestoreString, this, ID_MENU_STRING_RESTORE);
 
 	SetMenuBar(menuBar);
 
@@ -535,6 +583,9 @@ void cScriptEditor::CreateGUIControls()
 	statusBar->SetStatusText("Sel: 0", 3);
 	statusBar->SetStatusText("Col: 0", 4);
 
+	int widths[5] = { -5, -1, -1, -1, -1};
+
+	statusBar->SetStatusWidths(statusBar->GetFieldsCount(), widths);
 
 	//--------------------//
 	// Menu creation ends //
@@ -635,7 +686,7 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->SetLexer(wxSTC_LEX_CONTAINER);
 	tScriptTranslated->StyleSetForeground(9, wxColor(0, 0, 255));
 	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
-	tScriptTranslated->Bind(wxEVT_STC_MODIFIED, &cScriptEditor::tScritpTranslatedOnModified, this);
+	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
 	//tScriptTranslated->STYLESETC
 	//tScriptTranslated->SetCodePage(0);
@@ -667,9 +718,16 @@ void cScriptEditor::CreateGUIControls()
 	editor_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
 	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
-	global_sizer = new wxBoxSizer(wxHORIZONTAL);
-	global_sizer->Add(panel_left_sizer, 0, wxALL | wxEXPAND, 5);
-	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 5);
+	horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
+	horizontal_sizer->Add(panel_left_sizer, 0, wxALL | wxEXPAND, 5);
+	horizontal_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 5);
+
+	log_text = new wxStaticText(this, wxID_ANY, "");
+
+	global_sizer = new wxBoxSizer(wxVERTICAL);
+	global_sizer->Add(horizontal_sizer, 1, wxALL | wxEXPAND, 0);
+	global_sizer->Add(log_text, 0, wxALL, 4);
+
 	SetSizer(global_sizer);
 	global_sizer->Fit(this);
 	global_sizer->SetSizeHints(this);

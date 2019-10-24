@@ -48,9 +48,24 @@ private:
 	void OnExportScript(wxCommandEvent& event);
 	void EVT_MENU_FindText(wxCommandEvent& event);
 	void EVT_MENU_FindNextText(wxCommandEvent& event);
+	void EVT_MENU_RestoreString(wxCommandEvent& event);
 //others
 private:
 	wxClipboard* clip_board = nullptr;
+
+	//bool m_stringChange = false;
+	//bool m_stringSaved = false;
+	//bool m_stringExitWithoutSave = false;
+
+//Text save
+private:
+	std::string m_textSave;
+	int m_indexBackup = 0;
+	bool m_stringSaved = false;
+	bool m_stringBackup = false;
+	bool m_stringChange = false;
+	void BackupText();
+	void RestoreText();
 
 //Script manipulation
 private:
@@ -105,6 +120,7 @@ private:
 
 	wxMenu* menuScript = nullptr;
 	wxMenu* menuString = nullptr;
+	wxMenuItem* m_pMenuString_Restore = nullptr;
 	wxMenu* menuExport = nullptr;
 	wxMenu* menuEdit = nullptr;
 	wxMenu* menuSearch = nullptr;
@@ -113,6 +129,7 @@ private:
 
 	wxBoxSizer* global_sizer = nullptr;
 	wxBoxSizer* panel_left_sizer = nullptr;	
+	wxBoxSizer* horizontal_sizer = nullptr;
 	
 	//Lateral bar, script navigation
 	wxTextCtrl* script_nav_input = nullptr;
@@ -152,14 +169,18 @@ private:
 	wxBoxSizer* editor_buttons_sizer = nullptr;
 	wxStyledTextCtrl* tScriptOriginal = nullptr;
 
+	//Log
+	wxStaticText* log_text = nullptr;
+
 	enum ID {
 		ID_SCRIPT_NAV_INPUT = 10001,
-		ID_SCRIPT_NAV_PREV =  10002,
-		ID_SCRIPT_NAV_PROX =  10003,
-		ID_MENU_STRING_SAVE = 10004,
-		ID_MENU_STRING_PREV = 10005,
-		ID_MENU_STRING_PROX = 10006,
-		ID_MENU_EXPORT_SCRIPT = 10007,
-		ID_MENU_FIND_NEXT
+		ID_SCRIPT_NAV_PREV,
+		ID_SCRIPT_NAV_PROX,
+		ID_MENU_STRING_SAVE,
+		ID_MENU_STRING_PREV,
+		ID_MENU_STRING_PROX,
+		ID_MENU_STRING_RESTORE,
+		ID_MENU_EXPORT_SCRIPT,
+		ID_MENU_FIND_NEXT,		
 	};
 };
