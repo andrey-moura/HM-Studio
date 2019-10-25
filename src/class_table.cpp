@@ -1,6 +1,6 @@
 #include "class_table.hpp"
 
-void Table::InputTable(std::string table, std::vector<std::string> &text)
+void Table::InputTable(const std::string &table, std::vector<std::string> &text)
 {	
 	std::vector<char> right_char;
 	std::vector<char> left_char;
@@ -9,7 +9,7 @@ void Table::InputTable(std::string table, std::vector<std::string> &text)
 	Replace(right_char, left_char, text);	
 }
 
-void Table::OutPutTable(std::string table, std::vector<std::string>& text)
+void Table::OutPutTable(const std::string& table, std::vector<std::string>& text)
 {
 	std::vector<char> right_char;
 	std::vector<char> left_char;
@@ -18,7 +18,7 @@ void Table::OutPutTable(std::string table, std::vector<std::string>& text)
 	Replace(left_char, right_char, text);
 }
 
-void Table::Split(std::vector<char>& right, std::vector<char>& left, std::string table)
+void Table::Split(std::vector<char>& right, std::vector<char>& left, const std::string &table)
 {
 	std::vector<std::string> lines;
 	StringUtil::SplitLines(table, lines);
@@ -40,7 +40,7 @@ void Table::Split(std::vector<char>& right, std::vector<char>& left, std::string
 	delete buf;
 }
 
-void Table::Replace(std::vector<char>& replace, std::vector<char>& search, std::vector<std::string>& text)
+void Table::Replace(const std::vector<char>& replace, const std::vector<char>& search, std::vector<std::string>& text)
 {
 	for (int z = 0; z < text.size(); ++z)
 	{

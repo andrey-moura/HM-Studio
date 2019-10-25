@@ -11,9 +11,9 @@ private:
 	~FileUtil();
 
 public:
-	static std::vector<uint8_t> ReadAllBytes(std::string path);
-	static void WriteAllBytes(std::string path, std::vector<uint8_t> bytes);
-	static std::string ReadAllText(std::string path);
-	static void WriteAllText(std::string path, std::string text);
+	static std::vector<uint8_t> ReadAllBytes(const std::string &path);
+	static void WriteAllBytes(const std::string &path, const std::vector<uint8_t> &bytes);
+	static std::string ReadAllText(const std::string &path);
+	static void WriteAllText(const std::string &path, const std::string &text);
 };
 

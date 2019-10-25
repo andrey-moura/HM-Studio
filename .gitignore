@@ -1,9 +1,5 @@
 
-.vs/HM Studio/v16/.suo
-.vs/HM Studio/v16/Browse.VC.db
-.vs/HM Studio/v16/ipch/AutoPCH/35325df11e940430/FRAME_SCRIPT_EDITOR.ipch
-.vs/HM Studio/v16/ipch/AutoPCH/89b319e70927d97b/FRAME_SCRIPT_EDITOR.ipch
-.vs/HM Studio/v16/ipch/AutoPCH/89b319e70927d97b/FRAME_SCRIPT_EDITOR.ipch
-.vs/HM Studio/v16/ipch/AutoPCH/59e148be031287b0/FRAME_SCRIPT_EDITOR.ipch
-.vs/HM Studio/v16/ipch/AutoPCH/9f53ce25858b974b/FRAME_SAVE_EDITOR.ipch
-.vs/HM Studio/v16/ipch/AutoPCH/e0ba5f5c3d505ba8/CLASS_APP.ipch
+.vs/
+Debug/
+Release/
+smith/

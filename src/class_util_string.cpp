@@ -1,6 +1,6 @@
 #include "class_util_string.hpp"
 
-void StringUtil::FindAllOccurances(std::string str, std::string toSearch, std::vector<size_t> &output)
+void StringUtil::FindAllOccurances(const std::string& str, const std::string& toSearch, std::vector<size_t>& output)
 {
 	size_t pos = str.find(toSearch);
 
@@ -13,23 +13,23 @@ void StringUtil::FindAllOccurances(std::string str, std::string toSearch, std::v
 	}
 }
 
-void StringUtil::FindAllOccurances(std::vector<std::string> str, std::string toSearch, std::vector<size_t> &output)
+void StringUtil::FindAllOccurances(const std::vector<std::string>& str, const std::string& toSearch, std::vector<size_t>& output)
 {
 	for (int i = 0; i < str.size(); ++i)
-	{		
+	{
 		size_t pos = str[i].find(toSearch);
 
-		if (pos != std::string::npos)		
+		if (pos != std::string::npos)
 			output.push_back(i);
 	}
 }
 
-void StringUtil::SplitLines(std::string s, std::vector<std::string>& output)
+void StringUtil::SplitLines(const std::string& s, std::vector<std::string>& output)
 {
 	std::string cur_line;
 
 	for (int i = 0; i < s.length(); ++i)
-	{		
+	{
 		if (i == 227)
 			std::string();
 
@@ -51,7 +51,7 @@ void StringUtil::SplitLines(std::string s, std::vector<std::string>& output)
 	output.push_back(cur_line);
 }
 
-void StringUtil::Replace(std::string find, std::string replace, std::string& str)
+void StringUtil::Replace(const std::string& find, const std::string& replace, std::string& str)
 {
 	if (find.size() == replace.size())
 	{

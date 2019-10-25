@@ -1,6 +1,6 @@
 #include "class_util_wx_file.hpp"
 
-std::vector<uint8_t> FileUtil::ReadAllBytes(std::string path)
+std::vector<uint8_t> FileUtil::ReadAllBytes(const std::string &path)
 {
 	std::vector<uint8_t> bytes;
 
@@ -16,7 +16,7 @@ std::vector<uint8_t> FileUtil::ReadAllBytes(std::string path)
 	return bytes;
 }
 
-void FileUtil::WriteAllBytes(std::string path, std::vector<uint8_t> bytes)
+void FileUtil::WriteAllBytes(const std::string& path, const std::vector<uint8_t>& bytes)
 {
 	wxFile* file = new wxFile();
 	file->Create(path, true);
@@ -25,7 +25,7 @@ void FileUtil::WriteAllBytes(std::string path, std::vector<uint8_t> bytes)
 	delete file;
 }
 
-std::string FileUtil::ReadAllText(std::string path)
+std::string FileUtil::ReadAllText(const std::string& path)
 {
 	std::string outPut;
 
@@ -38,7 +38,7 @@ std::string FileUtil::ReadAllText(std::string path)
 	return outPut;
 }
 
-void FileUtil::WriteAllText(std::string path, std::string text)
+void FileUtil::WriteAllText(const std::string& path, const std::string& text)
 {
 	wxFile* file = new wxFile();
 	file->Create(path, true);

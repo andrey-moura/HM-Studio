@@ -10,9 +10,9 @@ private:
 	~StringUtil();
 
 public:
-	static void FindAllOccurances(std::string str, std::string toSearch, std::vector<size_t> &output);
-	static void FindAllOccurances(std::vector<std::string> str, std::string toSearch, std::vector<size_t> &output);
-	static void SplitLines(std::string s, std::vector<std::string>& output);
-	static void Replace(std::string find, std::string replace, std::string &str);
+	static void FindAllOccurances(const std::string& str, const std::string& toSearch, std::vector<size_t>& output);
+	static void FindAllOccurances(const std::vector<std::string>& str, const std::string& toSearch, std::vector<size_t>& output);
+	static void SplitLines(const std::string& s, std::vector<std::string>& output);
+	static void Replace(const std::string& find, const std::string& replace, std::string& str);
 };
 
