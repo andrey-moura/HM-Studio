@@ -7,6 +7,7 @@
 //Frames
 #include "frame_script_editor.hpp"
 #include "frame_tile_editor_parent.hpp"
+#include "frame_item_editor.hpp"
 
 //Static
 #include "Studio.h"
@@ -31,6 +32,7 @@ private:
 	void OnButtonTeste1_Click(wxCommandEvent& event);
 	void OnButtonDumpOriginal(wxCommandEvent& event);
 	void OnButtonDumpTranslated(wxCommandEvent& event);
+	void EVT_BUTTON_ItemEditorClick(wxCommandEvent& event);
 
 private:
 	uint8_t cur_choice = 0;
@@ -77,6 +79,10 @@ private:
 	wxButton* teste_button_1 = nullptr;
 	wxStaticBox* teste_box = nullptr;
 	wxStaticBoxSizer* teste_sizer = nullptr;
+
+	wxButton* m_pGUI_openItemEditor = nullptr;
+	wxStaticBox* m_pGUI_boxItemEditor = nullptr;
+	wxStaticBoxSizer* m_pGUI_boxSizerItemEditor = nullptr;
 	//cScriptEditor* scriptEditor = nullptr;
 //id
 private:

@@ -31,6 +31,7 @@
     <ClCompile Include="src\frame_tile_editor_child.cpp" />
     <ClCompile Include="src\frame_tile_editor_parent.cpp" />
     <ClCompile Include="src\class_rom.cpp" />
+    <ClCompile Include="src\frame_item_editor.cpp" />
     <ClCompile Include="src\SpriteFile.cpp" />
     <ClCompile Include="src\Studio.cpp" />
   </ItemGroup>
@@ -46,6 +47,7 @@
     <ClInclude Include="src\frame_tile_editor_canvas.hpp" />
     <ClInclude Include="src\frame_tile_editor_child.hpp" />
     <ClInclude Include="src\frame_tile_editor_parent.hpp" />
+    <ClInclude Include="src\frame_item_editor.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
     <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\SpriteFile.hpp" />

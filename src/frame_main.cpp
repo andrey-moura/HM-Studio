@@ -92,6 +92,12 @@ void cMain::CreateGUIControls()
 	sizer1->AddSpacer(5);
 	sizer1->Add(currentSizer, 0, wxEXPAND, 0);
 
+	m_pGUI_openItemEditor = new wxButton(this, wxID_ANY, _("Item Editor"));
+	m_pGUI_openItemEditor->Bind(wxEVT_BUTTON, &cMain::EVT_BUTTON_ItemEditorClick, this);
+	m_pGUI_boxItemEditor = new wxStaticBox(this, wxID_ANY, _("Item"));
+	m_pGUI_boxSizerItemEditor = new wxStaticBoxSizer(m_pGUI_boxItemEditor, wxVERTICAL);
+	m_pGUI_boxSizerItemEditor->Add(m_pGUI_openItemEditor, 0, 4);
+
 	teste_button_1 = new wxButton(this, ID_teste1, "Teste 1");
 	teste_box = new wxStaticBox(this, wxID_ANY, "Teste");
 
@@ -101,6 +107,7 @@ void cMain::CreateGUIControls()
 	sizer2 = new wxBoxSizer(wxVERTICAL);
 	sizer2->AddSpacer(5);
 	sizer2->Add(teste_sizer, 0, wxEXPAND, 0);
+	sizer2->Add(m_pGUI_boxSizerItemEditor, 0, wxEXPAND, 0);
 
 	sizer0->AddSpacer(5);
 	sizer0->Add(sizer1);
@@ -192,6 +199,14 @@ void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
 		wxMessageBox(_("Cant dump the ROM because it's not opened... Maybe don't exists..."), "Huh?", 5L, this);
 	delete rom;
 
+	event.Skip();
+}
+
+void cMain::EVT_BUTTON_ItemEditorClick(wxCommandEvent& event)
+{
+	ItemEditorFrame* itemEditorFrame = new ItemEditorFrame();
+	itemEditorFrame->Show();
+	GetCurrentId();
 	event.Skip();
 }
 
