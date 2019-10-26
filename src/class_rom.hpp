@@ -59,8 +59,8 @@ public:
 	std::string GetScriptFullPath(int num);
 	std::string GetScriptExportedFullPath(int num);
 
-	wxFileName* scriptPath = nullptr;
-	wxFileName* exportedScriptPath = nullptr;
+	wxFileName scriptPath;
+	wxFileName exportedScriptPath;
 	
 	void GetOffset(std::vector<uint32_t>& vector);
 	void GetOffset(uint32_t& value, int number);

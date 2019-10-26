@@ -7,42 +7,38 @@ std::vector<uint8_t> FileUtil::ReadAllBytes(const std::string &path)
 	if (!wxFile::Exists(path))
 		return std::vector<uint8_t>();
 
-	wxFile* file = new wxFile();
-	file->Open(path);	
-	bytes.resize(file->Length());
-	file->Read(bytes.data(), file->Length());
-	file->Close();
-	delete file;
+	wxFile file;
+	file.Open(path);	
+	bytes.resize(file.Length());
+	file.Read(bytes.data(), file.Length());
+	file.Close();	
 	return bytes;
 }
 
 void FileUtil::WriteAllBytes(const std::string& path, const std::vector<uint8_t>& bytes)
 {
-	wxFile* file = new wxFile();
-	file->Create(path, true);
-	file->Open(path, wxFile::read_write);
-	file->Write(bytes.data(), bytes.size());
-	delete file;
+	wxFile file;
+	file.Create(path, true);
+	file.Open(path, wxFile::read_write);
+	file.Write(bytes.data(), bytes.size());	
 }
 
 std::string FileUtil::ReadAllText(const std::string& path)
 {
 	std::string outPut;
 
-	wxFile* file = new wxFile();
-	file->Open(path);
-	outPut.resize(file->Length());
-	file->Read((void*)outPut.data(), file->Length());
-	delete file;
+	wxFile file;
+	file.Open(path);
+	outPut.resize(file.Length());
+	file.Read((void*)outPut.data(), file.Length());	
 
 	return outPut;
 }
 
 void FileUtil::WriteAllText(const std::string& path, const std::string& text)
 {
-	wxFile* file = new wxFile();
-	file->Create(path, true);
-	file->Open(path, wxFile::read_write);
-	file->Write(text.data(), text.size());
-	delete file;
+	wxFile file;
+	file.Create(path, true);
+	file.Open(path, wxFile::read_write);
+	file.Write(text.data(), text.size());	
 }

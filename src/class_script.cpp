@@ -1,6 +1,6 @@
-#include "SpriteFile.hpp"
+#include "class_script.hpp"
 
-SpriteFile::SpriteFile(std::vector<uint8_t> bytes)
+Script::Script(std::vector<uint8_t>& bytes)
 {
 	data = bytes;
 	GetStrPosition();
@@ -8,37 +8,19 @@ SpriteFile::SpriteFile(std::vector<uint8_t> bytes)
 	GetTextOffset();
 }
 
-std::vector<uint8_t> SpriteFile::GetEmptyScript(int l_count)
-{	 
-	uint8_t script_template[56] = { 0x52, 0x49, 0x46, 0x46, 0x4F, 0x00, 0x00, 0x00, 0x53, 0x43,
-									0x52, 0x20, 0x43, 0x4F, 0x44, 0x45, 0x18, 0x00, 0x00, 0x00,
-									0x14, 0x00, 0x00, 0x00, 0x21, 0x1F, 0x00, 0x00, 0x00, 0x23,
-									0x00, 0x21, 0x22, 0x00, 0x00, 0x00, 0x21, 0x21, 0x00, 0x00,
-					 				0x00, 0x20, 0x00, 0x00, 0x53, 0x54, 0x52, 0x20, 0x1B, 0x00,
-									0x00, 0x00, 0x00, 0x00, 0x00, 0x00, };
+Script::Script()
+{
+	data = { 0x52, 0x49, 0x46, 0x46, 0x28, 0x00, 0x00, 0x00, 0x53, 0x43,
+			 0x52, 0x20, 0x43, 0x4F, 0x44, 0x45, 0x08, 0x00, 0x00, 0x00,
+			 0x04, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x53, 0x54,
+			 0x52, 0x20, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-	std::string default_text = "This script does not exist.\x5";
-	default_text.append(1, (char)0x00);
-
-	int text_size = default_text.size();
-
-	int riff_size = text_size + 56 + (l_count * 4);
-
-	int str_size = (l_count * 4) + 4 + text_size;
-
-	memcpy(script_template + 4, &riff_size, 4);
-	memcpy(script_template + 0x30, &str_size, 4);
-	memcpy(script_template + 0x34, &l_count, 4);	
-
-	std::vector<uint8_t> bytes;
-	bytes.resize(riff_size);
-	memcpy(bytes.data(), script_template, 56);
-	memcpy(bytes.data() + 0x38 + (l_count * 4), default_text.data(), text_size);
-
-	return bytes;
+	GetStrPosition();
+	GetStrCount();
+	GetTextOffset();
 }
 
-std::vector<std::string> SpriteFile::GetText()
+std::vector<std::string> Script::GetText()
 {
 	std::vector<std::string> text;	
 
@@ -64,7 +46,7 @@ std::vector<std::string> SpriteFile::GetText()
 	return text;
 }
 
-void SpriteFile::GetStrPosition()
+void Script::GetStrPosition()
 {
 	int index = 0;
 	for (int i = 0; i < data.size(); ++i)
@@ -108,7 +90,7 @@ void SpriteFile::GetStrPosition()
 	else str_offset = -1;
 }
 
-bool SpriteFile::HaveText()
+bool Script::HaveText()
 {
 	if (str_count > 0x00)
 		return true;
@@ -116,7 +98,7 @@ bool SpriteFile::HaveText()
 		return false;
 }
 
-uint32_t SpriteFile::GetStrLenght()
+uint32_t Script::GetStrLenght()
 {
 	uint32_t str_size = 0;
 
@@ -125,17 +107,17 @@ uint32_t SpriteFile::GetStrLenght()
 	return str_size;
 }
 
-void SpriteFile::SetStrLenght(uint32_t str_size)
+void Script::SetStrLenght(uint32_t str_size)
 {
 	memcpy(data.data() + str_offset + 4, &str_size, 4);
 }
 
-void SpriteFile::GetStrCount()
+void Script::GetStrCount()
 {
 	memcpy(&str_count, data.data() + str_offset + 8, 4);
 }
 
-std::vector<uint32_t> SpriteFile::GetPointers()
+std::vector<uint32_t> Script::GetPointers()
 {
 	std::vector<uint32_t> output;
 
@@ -149,7 +131,7 @@ std::vector<uint32_t> SpriteFile::GetPointers()
 	return output;
 }
 
-void SpriteFile::UpdateText(std::vector<std::string> text)
+void Script::UpdateText(std::vector<std::string> text)
 {
 	int text_size = 0;
 	std::string buffer;
@@ -173,7 +155,7 @@ void SpriteFile::UpdateText(std::vector<std::string> text)
 	memcpy(data.data() + 4, &riff_size, 4);
 }
 
-void SpriteFile::GetTextOffset()
+void Script::GetTextOffset()
 {
 	text_offset = str_offset + (str_count * 4) + 12;
 }

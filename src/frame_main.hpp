@@ -15,7 +15,7 @@
 #include "class_table.hpp"
 
 //Object
-#include "SpriteFile.hpp"
+#include "class_script.hpp"
 
 class cMain : public wxFrame
 {

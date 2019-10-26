@@ -35,63 +35,58 @@ Rom::Rom(id i, bool translated)
 
 	memcpy(scriptName, buffer, 30);
 
-	wxFileName* path = new wxFileName(wxStandardPaths::Get().GetExecutablePath());
-	path->SetName("Rom_" + State);
+	wxFileName path = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+	path.SetName("Rom_" + State);
 
 	switch (Console)
 	{
 	case console::GBA:
-		path->SetExt("gba");
+		path.SetExt("gba");
 		break;
 	case console::DS:
-		path->SetExt("nds");
+		path.SetExt("nds");
 		break;
 	default:
 		break;
 	}
 
-	path->AppendDir(Name);
-	path->AppendDir("Rom");
+	path.AppendDir(Name);
+	path.AppendDir("Rom");
 
-	if (!path->DirExists())
-		path->Mkdir(511, wxPATH_MKDIR_FULL);
+	if (!path.DirExists())
+		path.Mkdir(511, wxPATH_MKDIR_FULL);
 
-	Path = path->GetFullPath();
+	Path = path.GetFullPath();
 	//if (wxFile::Exists(Path));
 	this->Open(Path, wxFile::read_write);
 
-	scriptPath = new wxFileName(wxStandardPaths::Get().GetExecutablePath());
-	scriptPath->AppendDir(Name);
-	scriptPath->AppendDir("Script");
-	scriptPath->AppendDir(State);
+	scriptPath = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+	scriptPath.AppendDir(Name);
+	scriptPath.AppendDir("Script");
+	scriptPath.AppendDir(State);
 
-	exportedScriptPath = new wxFileName(scriptPath->GetFullPath());
-	exportedScriptPath->RemoveLastDir();
-	exportedScriptPath->AppendDir("Exported");		
-	exportedScriptPath->SetExt("txt");
+	exportedScriptPath = wxFileName(scriptPath.GetFullPath());
+	exportedScriptPath.RemoveLastDir();
+	exportedScriptPath.AppendDir("Exported");
+	exportedScriptPath.SetExt("txt");
 
-	if (!scriptPath->DirExists())
-		scriptPath->Mkdir(511, wxPATH_MKDIR_FULL);
-
-	delete path;
+	if (!scriptPath.DirExists())
+		scriptPath.Mkdir(511, wxPATH_MKDIR_FULL);	
 }
 
 Rom::~Rom()
-{
-	delete scriptPath;
+{	
 }
 
 std::string Rom::GetTablePath()
 {
-	wxFileName* fileName = new wxFileName(Path);
-	fileName->RemoveLastDir();
-	fileName->AppendDir("Table");
-	fileName->SetName(State);
-	fileName->SetExt("tbl");
+	wxFileName fileName = wxFileName(Path);
+	fileName.RemoveLastDir();
+	fileName.AppendDir("Table");
+	fileName.SetName(State);
+	fileName.SetExt("tbl");
 
-	std::string tablePath = fileName->GetFullPath().ToStdString();
-	delete fileName;
-	return tablePath;
+	return fileName.GetFullPath().ToStdString();
 }
 
 void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector<std::string> &translated)
@@ -230,8 +225,8 @@ std::string Rom::GetScriptFullName(int num)
 
 std::string Rom::GetScriptFullPath(int num)
 {
-	scriptPath->SetFullName(GetScriptFullName(num));
-	return scriptPath->GetFullPath().ToStdString();
+	scriptPath.SetFullName(GetScriptFullName(num));
+	return scriptPath.GetFullPath().ToStdString();
 }
 
 std::string Rom::GetScriptExportedFullPath(int num)
@@ -241,9 +236,9 @@ std::string Rom::GetScriptExportedFullPath(int num)
 
 	sprintf((char*)buffer.data(), scriptExportedName, num);
 
-	exportedScriptPath->SetFullName(buffer);
+	exportedScriptPath.SetFullName(buffer);
 
-	return exportedScriptPath->GetFullPath().ToStdString();
+	return exportedScriptPath.GetFullPath().ToStdString();
 }
 
 void Rom::ReadInt32(uint32_t& value)
@@ -438,8 +433,6 @@ void Rom::Dump()
 			this->Read(scriptBytes.data(), sizes[i]);
 			script->Write(scriptBytes.data(), sizes[i]);
 			script->Close();
-
-			delete script;
 		}
 	}
 }

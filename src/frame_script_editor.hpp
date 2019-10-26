@@ -7,7 +7,7 @@
 #include <wx/clipbrd.h>
 
 #include "class_rom.hpp"
-#include "SpriteFile.hpp"
+#include "class_script.hpp"
 
 #include "Studio.h"
 
@@ -23,6 +23,7 @@ public:
 	cScriptEditor(id i);
 	~cScriptEditor();	
 
+	void SetupRom();
 //Events
 private:
 
@@ -51,7 +52,7 @@ private:
 	void EVT_MENU_RestoreString(wxCommandEvent& event);
 //others
 private:
-	wxClipboard* clip_board = nullptr;
+	wxClipboard clip_board;
 
 	//bool m_stringChange = false;
 	//bool m_stringSaved = false;
@@ -77,17 +78,15 @@ private:
 	void GetTextFromScriptFile();
 	void FindText();
 
-	SpriteFile* scriptOriginal = nullptr;
-	SpriteFile* scriptTranslated = nullptr;
+	Script scriptOriginal;
+	Script scriptTranslated;
 
 	int scriptNum = 0;
 
 //Rom manipulation
 private:
-	Rom* romOriginal = nullptr;
-	Rom* romTranslated = nullptr;
-
-
+	Rom romOriginal;
+	Rom romTranslated;
 //Forms
 
 //Text manipulation

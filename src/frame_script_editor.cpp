@@ -9,14 +9,20 @@ wxBEGIN_EVENT_TABLE(cScriptEditor, wxFrame)
 
 wxEND_EVENT_TABLE()
 
-cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
+cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true)
 {
-	CreateGUIControls();	
+	CreateGUIControls();
+	SetupRom();
+}
 
-	romOriginal = new Rom(i, false);
-	romTranslated = new Rom(i, true);
+cScriptEditor::~cScriptEditor()
+{
+	
+}
 
-	switch (romOriginal->Console)
+void cScriptEditor::SetupRom()
+{
+	switch (romOriginal.Console)
 	{
 	case console::DS:
 		m_lineEnding = "\n";
@@ -32,20 +38,7 @@ cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
 		break;
 	}
 
-
-
-	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal->Name);
-
-	clip_board = new wxClipboard();
-}
-
-cScriptEditor::~cScriptEditor()
-{
-	delete clip_board;
-	delete scriptOriginal;
-	delete scriptTranslated;
-	delete romOriginal;
-	delete romTranslated;
+	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal.Name);
 }
 
 void cScriptEditor::BackupText()
@@ -67,32 +60,28 @@ void cScriptEditor::RestoreText()
 
 void cScriptEditor::OpenScript()
 {
-	SpriteFile* script = new SpriteFile(FileUtil::ReadAllBytes(romOriginal->GetScriptFullPath(scriptNum)));
+	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(scriptNum));
+	Script script(bytes);
 
-	if (script->HaveText())
-	{
-		delete script;		
-
-		delete scriptOriginal;
-		delete scriptTranslated;
-
-		scriptOriginal = new SpriteFile(FileUtil::ReadAllBytes(romOriginal->GetScriptFullPath(scriptNum)));
-		scriptTranslated = new SpriteFile(FileUtil::ReadAllBytes(romTranslated->GetScriptFullPath(scriptNum)));
+	if (script.HaveText())
+	{						
+		scriptOriginal = Script(bytes);
+		bytes = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(scriptNum));
+		scriptTranslated = Script(bytes);
 
 		UpdateScript();
 	}		
 	else {
 		wxMessageBox(_("This script don't have text."), _("Huh?"), 5L, this);
-		delete script;		
 	}
 }
 
 void cScriptEditor::SaveScript()
 {	
 	std::vector<std::string> text = textTranslated;
-	romTranslated->OutputTextWithVariables(text);
-	scriptTranslated->UpdateText(text);
-	FileUtil::WriteAllBytes(romTranslated->GetScriptFullPath(scriptNum), scriptTranslated->data);
+	romTranslated.OutputTextWithVariables(text);
+	scriptTranslated.UpdateText(text);
+	FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.data);
 }
 
 void cScriptEditor::ExportScript()
@@ -105,7 +94,7 @@ void cScriptEditor::ExportScript()
 		text.append(std::string("\n---End text ").append(std::to_string(i).append("---\n")));
 	}
 
-	FileUtil::WriteAllText(romTranslated->GetScriptExportedFullPath(scriptNum), text);
+	FileUtil::WriteAllText(romTranslated.GetScriptExportedFullPath(scriptNum), text);
 }
 
 void cScriptEditor::UpdateScript()
@@ -114,15 +103,15 @@ void cScriptEditor::UpdateScript()
 
 	m_indexesString.clear();
 
-	textOriginal = scriptOriginal->GetText();
-	textTranslated = scriptTranslated->GetText();
+	textOriginal = scriptOriginal.GetText();
+	textTranslated = scriptTranslated.GetText();
 
 	//StringUtil::Replace("Eu", "Você", textTranslated[0]);
 
-	romTranslated->InputTextWithVariables(textOriginal, textTranslated);	
+	romTranslated.InputTextWithVariables(textOriginal, textTranslated);
 
 	uint32_t pointer = 0;
-	romTranslated->GetOffset(pointer, scriptNum);
+	romTranslated.GetOffset(pointer, scriptNum);
 
 	std::string s_pointer = "0000000";
 	_itoa(pointer, (char*)s_pointer.c_str(), 16);
@@ -132,14 +121,14 @@ void cScriptEditor::UpdateScript()
 
 	script_nav_offset->SetLabel(s_pointer);
 
-	this->SetTitle(wxString() << "Script Editor - " << romOriginal->Name << ": Script" << scriptNum);
+	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << ": Script" << scriptNum);
 
 	UpdateText();
 }
 
 void cScriptEditor::CheckAndGoScript(int index)
 {
-	if (index >= 0 && index < romOriginal->Offset.Script_count)
+	if (index >= 0 && index < romOriginal.Offset.Script_count)
 	{
 		if (index != scriptNum)
 		{
@@ -150,38 +139,37 @@ void cScriptEditor::CheckAndGoScript(int index)
 	else
 	{
 		wxMessageBox(wxString("Index out of the range. Index have to be greater than or equal to 0 and less than ")
-							<< romOriginal->Offset.Script_count -1 << ".", "Huh?", 5L, this);
+							<< romOriginal.Offset.Script_count -1 << ".", "Huh?", 5L, this);
 	}
 }
 
 void cScriptEditor::GetTextFromScriptFile()
 {
-	if (scriptOriginal == nullptr)
-	{
-		wxMessageBox("No one script is opened to save the text.", "Huh?", 5L, this);
-		return;
-	}
+	//if (scriptOriginal == nullptr)
+	//{
+	//	wxMessageBox("No one script is opened to save the text.", "Huh?", 5L, this);
+	//	return;
+	//}
 
 	wxFileDialog openFile(this, _("Open Script File"), "", "", "All Suported Files |*.fsf;*.msf;*.dsf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);	
 
 	if (openFile.ShowModal() == wxID_CANCEL)
 		return;	
 
-	SpriteFile* script = new SpriteFile(FileUtil::ReadAllBytes(openFile.GetPath().ToStdString()));
+	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(openFile.GetPath().ToStdString());
+	Script script = Script(bytes);
 
-	if (script->str_count != scriptOriginal->str_count)
+	if (script.str_count != scriptOriginal.str_count)
 	{
 		wxMessageBox("The text count is not the same.", "Huh?", 5L, this);
 		return;
 	}		
 	
-	std::vector<std::string> text = script->GetText();
-	Table::InputTable(FileUtil::ReadAllText(romTranslated->GetTablePath()), text);
+	std::vector<std::string> text = script.GetText();
+	Table::InputTable(FileUtil::ReadAllText(romTranslated.GetTablePath()), text);
 	textTranslated = text;
 	index = 0;
 	UpdateText();
-
-	delete script;
 }
 
 void cScriptEditor::FindText()
@@ -350,9 +338,9 @@ void cScriptEditor::OnScriptNavOffsetMouseDown(wxMouseEvent &event)
 	script_nav_offset->SetForegroundColour(wxColour(255, 0, 0));
 	script_nav_offset->Refresh();
 	
-	clip_board->Open();
-	clip_board->SetData(new wxTextDataObject(script_nav_offset->GetLabel()));
-	clip_board->Close();
+	clip_board.Open();
+	clip_board.SetData(new wxTextDataObject(script_nav_offset->GetLabel()));
+	clip_board.Close();
 
 	event.Skip();
 }
@@ -406,7 +394,7 @@ void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
 void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 {
 	SaveScript();
-	switch (romTranslated->InsertScript(scriptNum, scriptTranslated->data))
+	switch (romTranslated.InsertScript(scriptNum, scriptTranslated.data))
 	{
 	case 0:
 		wxMessageBox(_("Script inserted with no changes."), "Yeah!", 5L, this);
@@ -493,12 +481,12 @@ void cScriptEditor::SaveText()
 
 void cScriptEditor::UpdateText()
 {
-	if (scriptOriginal == nullptr)
-	{
-		wxMessageBox("There is no script opened.", "Huh?", 5L, this);
-		index = 0;
-		return;
-	}	
+	//if (scriptOriginal == nullptr)
+	//{
+	//	wxMessageBox("There is no script opened.", "Huh?", 5L, this);
+	//	index = 0;
+	//	return;
+	//}	
 
 	tScriptOriginal->SetText(textOriginal[index]);
 	tScriptTranslated->SetText(textTranslated[index]);

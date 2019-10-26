@@ -3,15 +3,15 @@
 #include <iostream>
 #include <vector>
 
-class SpriteFile
+class Script
 {
 //Constructors / deconstructors
 public:
-	SpriteFile(std::vector<uint8_t> bytes);
+	Script(std::vector<uint8_t>& bytes);
+	Script();
 
 //Satic, for helping...	
 public:
-	static std::vector<uint8_t> GetEmptyScript(int l_count = 0);
 	//This script have text?
 	bool HaveText();
 	//Gets the offset of the str block.
