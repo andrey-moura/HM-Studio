@@ -141,37 +141,10 @@ void cMain::OnButtonTileEditor_Click(wxCommandEvent& event)
 
 void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
 {
-	Rom* rom = new Rom(id::MFoMT, true);
-	Rom* romOriginal = new Rom(id::MFoMT, false);
+	std::vector <uint8_t> someBytes = { 0xff, 0xff, 0xff, 0xff };
 
-	std::vector<std::string> vec;
-	vec.push_back("Voc) #");
-	vec.push_back("Vou { cl<nica");
+	wxMessageBox(wxString() << BitConverter::ToInt32(someBytes.data(), 0));
 
-	std::string s;
-
-	s = FileUtil::ReadAllText(rom->GetTablePath());
-	
-	Table::InputTable(s, vec);
-
-	wxMessageBox(rom->GetScriptExportedFullPath(4));	
-
-	//SpriteFile* script = new SpriteFile(FileUtil::ReadAllBytes(romOriginal->GetScriptFullPath(4)));
-	//SpriteFile* newScript = new SpriteFile(FileUtil::ReadAllBytes(rom->GetScriptFullPath(4)));	
-
-	//wxFile* fileOut = new wxFile();
-	//fileOut->Create("teste.bin", true);
-	//fileOut->Open("teste.bin", wxFile::read_write);
-
-	//newScript->UpdateText(script->GetText());
-	//
-	//fileOut->Write(newScript->data.data(), newScript->data.size());
-
-	delete rom;
-	delete romOriginal;
-	//delete script;
-	//delete newScript;
-	//delete fileOut;
 	event.Skip();
 }
 

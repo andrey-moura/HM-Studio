@@ -14,8 +14,8 @@ void ItemEditorFrame::CreateGUIControls()
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
 	m_pGUI_whichItensLabel = new wxStaticText(this, wxID_ANY, _("Itens: "));
-	m_pGUI_whichItens = new wxChoice(this, wxID_ANY);
-
+	m_pGUI_whichItens = new wxChoice(this, wxID_ANY);	
+	
 	m_pGUI_whichItensSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_pGUI_whichItensSizer->Add(m_pGUI_whichItensLabel, 0, 0, 0);
 	m_pGUI_whichItensSizer->Add(m_pGUI_whichItens, 0, 0, 0);
@@ -55,8 +55,8 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pGUI_itemBox = new wxStaticBox(this, wxID_ANY, _("Navigation"));
 	m_pGUI_itemBoxSizer = new wxStaticBoxSizer(m_pGUI_itemBox, wxVERTICAL);
 	m_pGUI_itemBoxSizer->Add(m_pGUI_itemIndexSizer);
-	m_pGUI_itemBoxSizer->Add(m_pGUI_goToOriginal);
-	m_pGUI_itemBoxSizer->Add(m_pGUI_goToTranslated);
+	m_pGUI_itemBoxSizer->Add(m_pGUI_goToOriginal, 0, wxEXPAND, 0);
+	m_pGUI_itemBoxSizer->Add(m_pGUI_goToTranslated, 0, wxEXPAND, 0);
 
 	m_pGUI_lateralSizer = new wxBoxSizer(wxVERTICAL);
 	m_pGUI_lateralSizer->AddSpacer(4);
@@ -74,7 +74,7 @@ void ItemEditorFrame::CreateGUIControls()
 	wxSize buttons_size(0, 0);
 	buttons_size.SetWidth(m_pGUI_saveText->GetTextExtent(_("Save")).GetWidth() * 2);
 	buttons_size.SetHeight(m_pGUI_saveText->GetSize().GetHeight());
-	m_pGUI_index_input->SetMinSize(buttons_size);
+	m_pGUI_index_input->SetMinSize(buttons_size);	
 
 	m_pGUI_saveText->SetMinSize(buttons_size);
 	m_pGUI_prevText = new wxButton(this, wxID_ANY, "<<");

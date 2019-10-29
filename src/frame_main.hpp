@@ -13,6 +13,7 @@
 #include "Studio.h"
 #include "class_util_wx_file.hpp"
 #include "class_table.hpp"
+#include "class_bit_converter.hpp"
 
 //Object
 #include "class_script.hpp"

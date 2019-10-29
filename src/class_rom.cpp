@@ -1,6 +1,6 @@
 #include "class_rom.hpp"
 
-Rom::Rom(id i, bool translated)
+Rom::Rom(id i, bool translated) : wxFile()
 {
 	State = translated ? "Translated" : "Original";	
 	std::string scriptExt = "";

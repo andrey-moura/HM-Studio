@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClCompile Include="frame_save_editor.cpp" />
     <ClCompile Include="src\class_app.cpp" />
+    <ClCompile Include="src\class_bit_converter.cpp" />
+    <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_table.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_util_wx_file.cpp" />
@@ -38,6 +40,8 @@
   <ItemGroup>
     <ClInclude Include="frame_save_editor.hpp" />
     <ClInclude Include="src\class_app.hpp" />
+    <ClInclude Include="src\class_bit_converter.hpp" />
+    <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_util_wx_file.hpp" />
