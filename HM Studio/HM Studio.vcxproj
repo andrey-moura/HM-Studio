@@ -111,18 +111,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>C:\Users\KiritoTreze\Desktop\HM Studio</OutDir>
-    <TargetName>$(ProjectName)2</TargetName>
+    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\Users\KiritoTreze\Desktop\HM Studio</OutDir>
+    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

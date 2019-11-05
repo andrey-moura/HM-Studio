@@ -9,7 +9,6 @@ class App : public wxApp
 {
 public:
 	App();
-
 	~App();
 
 private:
