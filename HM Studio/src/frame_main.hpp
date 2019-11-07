@@ -14,7 +14,9 @@
 #include "class_util_wx_file.hpp"
 #include "class_table.hpp"
 #include "class_bit_converter.hpp"
-
+#include "class_graphics.hpp"
+#include "resource_frame_tile_editor.hpp"
+#include "class_log_file.hpp"
 //Object
 #include "class_script.hpp"
 

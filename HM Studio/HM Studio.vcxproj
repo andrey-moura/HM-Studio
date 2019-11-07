@@ -22,10 +22,12 @@
     <ClCompile Include="frame_save_editor.cpp" />
     <ClCompile Include="src\class_app.cpp" />
     <ClCompile Include="src\class_bit_converter.cpp" />
+    <ClCompile Include="src\class_graphics.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_table.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_util_wx_file.cpp" />
+    <ClCompile Include="src\class_log_file.cpp" />
     <ClCompile Include="src\frame_search_script.cpp" />
     <ClCompile Include="src\frame_main.cpp" />
     <ClCompile Include="src\frame_script_editor.cpp" />
@@ -41,10 +43,12 @@
     <ClInclude Include="frame_save_editor.hpp" />
     <ClInclude Include="src\class_app.hpp" />
     <ClInclude Include="src\class_bit_converter.hpp" />
+    <ClInclude Include="src\class_graphics.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_util_wx_file.hpp" />
+    <ClInclude Include="src\class_log_file.hpp" />
     <ClInclude Include="src\frame_search_script.hpp" />
     <ClInclude Include="src\frame_main.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />

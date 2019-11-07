@@ -12,6 +12,7 @@ wxEND_EVENT_TABLE()
 cMain::cMain() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 {
 	CreateGUIControls();
+	LogFile::Init(false);
 }
 
 cMain::~cMain()
@@ -140,12 +141,8 @@ void cMain::OnButtonTileEditor_Click(wxCommandEvent& event)
 }
 
 void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
-{
-	std::vector <uint8_t> someBytes = { 0xff, 0xff, 0xff, 0xff };
-
-	wxMessageBox(wxString() << BitConverter::ToInt32(someBytes.data(), 0));
-
-	event.Skip();
+{	
+	
 }
 
 void cMain::OnButtonDumpOriginal(wxCommandEvent& event)
