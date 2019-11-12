@@ -28,6 +28,7 @@
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_util_wx_file.cpp" />
     <ClCompile Include="src\class_log_file.cpp" />
+    <ClCompile Include="src\FishEditor.cpp" />
     <ClCompile Include="src\frame_search_script.cpp" />
     <ClCompile Include="src\frame_main.cpp" />
     <ClCompile Include="src\frame_script_editor.cpp" />
@@ -49,6 +50,7 @@
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_util_wx_file.hpp" />
     <ClInclude Include="src\class_log_file.hpp" />
+    <ClInclude Include="src\FishEditor.hpp" />
     <ClInclude Include="src\frame_search_script.hpp" />
     <ClInclude Include="src\frame_main.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />
