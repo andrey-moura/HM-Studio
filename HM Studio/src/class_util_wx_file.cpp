@@ -23,6 +23,14 @@ void FileUtil::WriteAllBytes(const std::string& path, const std::vector<uint8_t>
 	file.Write(bytes.data(), bytes.size());	
 }
 
+void FileUtil::WriteAllBytes(const std::string& path, uint8_t* bytes, size_t size)
+{
+	wxFile file;
+	file.Create(path, true);
+	file.Open(path, wxFile::read_write);
+	file.Write(bytes, size);
+}
+
 std::string FileUtil::ReadAllText(const std::string& path)
 {
 	std::string outPut;

@@ -8,6 +8,10 @@ LogFile::LogFile()
 
 }
 
+LogFile::~LogFile()
+{
+}
+
 wxString LogFile::GetLogLevel(LogLevel level)
 {
 	switch (level)
