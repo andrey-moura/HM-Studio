@@ -19,6 +19,8 @@
 #include "class_log_file.hpp"
 //Object
 #include "class_script.hpp"
+#include "wxUtil/wxRefereceCheckBox.hpp"
+#include "OptionWindow.hpp"
 
 class cMain : public wxFrame
 {
@@ -38,8 +40,7 @@ private:
 	void EVT_BUTTON_ItemEditorClick(wxCommandEvent& event);
 
 private:
-	uint8_t cur_choice = 0;
-
+	uint8_t cur_choice = 0;	
 private:
 	id GetCurrentId();
 

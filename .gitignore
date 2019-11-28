@@ -1,7 +1,3 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
 HM Studio/log.txt
 HM Studio/teste.bin
 HM Studio/teste.bmp
@@ -10,3 +6,6 @@ HM Studio/teste.png
 Debug/
 Release/
 smith/
+Tests/
+SpellingSTC/
+MinimalSpellSTC/

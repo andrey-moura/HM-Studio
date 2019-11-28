@@ -13,6 +13,11 @@ void StringUtil::FindAllOccurances(const std::string& str, const std::string& to
 	}
 }
 
+void StringUtil::FindAllOcurrances(std::string* start, std::size_t count, const std::string& toSearch, std::vector<size_t>& output)
+{
+
+}
+
 void StringUtil::FindAllOccurances(const std::vector<std::string>& str, const std::string& toSearch, std::vector<size_t>& output)
 {
 	for (int i = 0; i < str.size(); ++i)

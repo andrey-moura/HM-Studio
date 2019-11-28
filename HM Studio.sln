@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HM Studio", "HM Studio/HM Studio.vcxproj", "{3FD40E94-91F5-4319-8F02-93D2C2B986B2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HM Studio", "HM Studio\HM Studio.vcxproj", "{3FD40E94-91F5-4319-8F02-93D2C2B986B2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Timer", "Tests\Timer\Timer.vcxproj", "{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinimalSpellSTC", "MinimalSpellSTC\MinimalSpellSTC.vcxproj", "{6691278D-7DBC-4B82-8B47-2268EC32F0E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,22 @@ Global
 		{3FD40E94-91F5-4319-8F02-93D2C2B986B2}.Release|x64.Build.0 = Release|x64
 		{3FD40E94-91F5-4319-8F02-93D2C2B986B2}.Release|x86.ActiveCfg = Release|Win32
 		{3FD40E94-91F5-4319-8F02-93D2C2B986B2}.Release|x86.Build.0 = Release|Win32
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Debug|x64.ActiveCfg = Debug|x64
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Debug|x64.Build.0 = Debug|x64
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Debug|x86.ActiveCfg = Debug|Win32
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Debug|x86.Build.0 = Debug|Win32
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Release|x64.ActiveCfg = Release|x64
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Release|x64.Build.0 = Release|x64
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Release|x86.ActiveCfg = Release|Win32
+		{6312F2AD-DD92-43EB-B1D2-22D492BB5C90}.Release|x86.Build.0 = Release|Win32
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Debug|x64.ActiveCfg = Debug|x64
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Debug|x64.Build.0 = Debug|x64
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Debug|x86.ActiveCfg = Debug|Win32
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Debug|x86.Build.0 = Debug|Win32
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Release|x64.ActiveCfg = Release|x64
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Release|x64.Build.0 = Release|x64
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Release|x86.ActiveCfg = Release|Win32
+		{6691278D-7DBC-4B82-8B47-2268EC32F0E0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

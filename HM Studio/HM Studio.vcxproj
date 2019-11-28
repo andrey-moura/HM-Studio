@@ -38,7 +38,9 @@
     <ClCompile Include="src\class_rom.cpp" />
     <ClCompile Include="src\frame_item_editor.cpp" />
     <ClCompile Include="src\class_script.cpp" />
+    <ClCompile Include="src\OptionWindow.cpp" />
     <ClCompile Include="src\Studio.cpp" />
+    <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame_save_editor.hpp" />
@@ -58,10 +60,13 @@
     <ClInclude Include="src\frame_tile_editor_child.hpp" />
     <ClInclude Include="src\frame_tile_editor_parent.hpp" />
     <ClInclude Include="src\frame_item_editor.hpp" />
+    <ClInclude Include="src\Images\delete_icon.h" />
+    <ClInclude Include="src\OptionWindow.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
     <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\class_script.hpp" />
     <ClInclude Include="src\Studio.h" />
+    <ClInclude Include="src\wxUtil\wxRefereceCheckBox.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -147,6 +152,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -184,6 +190,7 @@
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "wx/wx.h"
-#include "wx/richtext/richtextctrl.h"
-#include "wx/richtext/richtextstyles.h"
+//#include "wx/wx.h"
+#include "wx/frame.h"
 #include <wx/stc/stc.h>
 #include <wx/clipbrd.h>
+#include <wx/txtstrm.h>
 
 #include "class_rom.hpp"
 #include "class_script.hpp"
@@ -16,6 +16,12 @@
 #include "class_table.hpp"
 
 #include "frame_search_script.hpp"
+
+#define NormalStyle 0
+#define VarStyle 1
+#define SimbolStyle 2
+
+#define LINEERROR_MASK 0b00000001
 
 class cScriptEditor : public wxFrame
 {
@@ -33,6 +39,7 @@ private:
 	void tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event);
 	void tScritpTranslatedOnModified(wxStyledTextEvent& event);
 	void tScriptTranslatedOnUi(wxStyledTextEvent& event);
+	void tScriptTranslatedPosChanged(wxStyledTextEvent& event);
 	void OnInputKeyDown(wxKeyEvent& event);
 	void OnPrevScriptClick(wxCommandEvent& event);
 	void OnProxScriptClick(wxCommandEvent& event);
@@ -50,6 +57,23 @@ private:
 	void EVT_MENU_FindText(wxCommandEvent& event);
 	void EVT_MENU_FindNextText(wxCommandEvent& event);
 	void EVT_MENU_RestoreString(wxCommandEvent& event);
+
+//Text Editor Globals
+	int m_maxLineLenght;
+
+//STC Functions
+	inline void STCFindAll(wxStyledTextCtrl* stc, const size_t start, const size_t end, const std::string& toFind, std::vector<size_t>& output);
+	inline void HighlightAll(wxStyledTextCtrl* stc, std::vector<size_t>& pos, const size_t size, const int style);	
+//STC Script Funcions
+	inline void VerifyLineLenght(wxStyledTextCtrl* stc, int lenght);
+	inline void VerifyCurLineLenght(wxStyledTextCtrl* stc);	
+	inline void VerifyAllLinesLenght(wxStyledTextCtrl* stc);
+	inline void FindAndHighlightAllVars(wxStyledTextCtrl* stc, const size_t start, const size_t end);
+	inline void UpdateStyle(wxStyledTextCtrl* stc);
+	void SetupStyles(wxStyledTextCtrl* stc);
+
+	void UpdateStatusText(wxStyledTextCtrl* stc);
+
 //others
 private:
 	wxClipboard clip_board;
@@ -105,7 +129,10 @@ private:
 	size_t m_curIndexString = 0;
 
 	std::string m_lineEnding;
-	std::string m_lineLineEnding;
+	std::string m_lineLineEnding;	
+
+private:
+	wxBitmap m_DeleteIcon;
 
 //UI
 private:
