@@ -31,33 +31,25 @@ void StringUtil::FindAllOccurances(const std::vector<std::string>& str, const st
 
 void StringUtil::SplitLines(const std::string& s, std::vector<std::string>& output)
 {
-	std::string cur_line;
+	const char endLine[2] = { 0x0a, 0x0d };
 
-	for (int i = 0; i < s.length(); ++i)
+	size_t npos = std::string::npos;
+
+	for (size_t first = s.find_first_not_of(endLine, 0); first != npos; first = s.find_first_not_of(endLine, first))
 	{
-		if (i == 227)
-			std::string();
+		size_t last = s.find_first_of(endLine, first);		
 
-		if (s[i] == 0x0a)
-		{
-			output.push_back(cur_line);
-			cur_line.clear();
-		}
-		else if (s[i] == 0x0d)
-		{
-			continue;
-		}
-		else {
-			cur_line += s[i];
-		}
+		output.push_back(s.substr(first, last != npos ? last - first : s.size() - first));
+
+		first = last;
 	}
-
-	//This is because... um... well, the for loop was terminated in the last char, and now we need to add the last line...
-	output.push_back(cur_line);
 }
 
 void StringUtil::Replace(const std::string& find, const std::string& replace, std::string& str)
 {
+	if (find.size() <= 0 || replace.size() <= 0 || str.size() <= 0)
+		return;
+
 	if (find.size() == replace.size())
 	{
 		std::vector<size_t> vec;
@@ -69,10 +61,6 @@ void StringUtil::Replace(const std::string& find, const std::string& replace, st
 		}
 	}
 	else {
-		if (find == std::string("|²"))
-			std::string();
-
-		//int add = (int)replace.size() - (int)find.size();
 
 		size_t pos = str.find(find, 0);
 		int size = find.size();
@@ -90,20 +78,5 @@ void StringUtil::Replace(const std::string& find, const std::string& replace, st
 
 			pos = str.find(find, pos + find.size());
 		}
-
-		//for (int i = 0; i < vec.size(); ++i)
-		//{
-		//	if (i != 0)
-		//		vec[i] += add;
-
-		//	std::string newString;
-		//	newString.resize(vec[i]);
-
-		//	memcpy((void*)newString.data(), str.data(), vec[i]);
-		//	newString.append(replace);
-		//	newString.append(str.substr(vec[i] + find.size()));
-
-		//	str = newString;
-		//}
 	}
 }

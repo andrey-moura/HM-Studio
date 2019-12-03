@@ -923,7 +923,6 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_CHARADDED, &cScriptEditor::tScriptTranslatedCharAdded, this);
 #endif // Testing
 
-
 	editor_save_text = new wxButton(this, wxID_ANY, "Save");
 	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnSaveTextClick, this);
 	editor_prev_text = new wxButton(this, wxID_ANY, "<<");

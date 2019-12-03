@@ -118,7 +118,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 
 		player = "Player";
 
-		playerVar = "Player";
+		playerVar = "<Player>";
 		//farm =   "Farm  ";
 		break;
 	default:
@@ -128,7 +128,8 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 	for (int i = 0; i < translated.size(); ++i)
 	{
 		StringUtil::Replace(rawPlayer, player, translated[i]);
-		StringUtil::Replace(rawFarm, farm, translated[i]);
+		if (Console != console::DS)
+			StringUtil::Replace(rawFarm, farm, translated[i]);
 	}
 
 	std::string table_path = GetTablePath();
@@ -138,11 +139,9 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 
 	for (int i = 0; i < translated.size(); ++i)
 	{
-		StringUtil::Replace(player, playerVar, translated[i]);
+		StringUtil::Replace(player, playerVar, translated[i]);		
 		StringUtil::Replace(farm, farmVar, translated[i]);
 
-		if (i == 8)
-			std::string();
 		StringUtil::Replace(std::string("|²"), std::string("|²\r\n"), translated[i]);
 	}
 
