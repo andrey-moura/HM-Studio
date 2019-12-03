@@ -13,13 +13,21 @@ wxEND_EVENT_TABLE()
 
 cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true)
 {
+
 	CreateGUIControls();
 	SetupRom();
+
+#ifdef Testing
+	m_hunspell = new Hunspell("C:/Users/Moonslate/AppData/Roaming/Notepad++/plugins/config/Hunspell/pt_BR.aff", "C:/Users/Moonslate/AppData/Roaming/Notepad++/plugins/config/Hunspell/pt_BR.dic");
+	bool test = m_hunspell->spell(std::string("testando"));
+	wxMessageBox(wxString() << (test ? "true" : "false"));
+#endif // Testing
+
 }
 
 cScriptEditor::~cScriptEditor()
 {
-	
+
 }
 
 void cScriptEditor::SetupRom()
@@ -62,22 +70,28 @@ void cScriptEditor::RestoreText()
 	tScriptTranslated->SetText(m_textSave);
 }
 
-void cScriptEditor::OpenScript()
+void cScriptEditor::SolveProblem()
 {
 	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(scriptNum));
-	Script script(bytes);
+	std::vector<uint8_t> bytes2 = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(scriptNum));
 
-	if (script.HaveText())
-	{						
-		scriptOriginal = Script(bytes);
-		bytes = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(scriptNum));
-		scriptTranslated = Script(bytes);
+	Script script = Script();
+	script.SetData(bytes);
 
-		UpdateScript();
-	}		
-	else {
+	if (!script.HaveText())
+	{
 		wxMessageBox(_("This script don't have text."), _("Huh?"), 5L, this);
+		return;
 	}
+
+	scriptTranslated.SetData(bytes2);
+	scriptOriginal.SetData(bytes);
+}
+
+void cScriptEditor::OpenScript()
+{
+	SolveProblem();
+	UpdateScript();
 }
 
 void cScriptEditor::SaveScript()
@@ -85,7 +99,7 @@ void cScriptEditor::SaveScript()
 	std::vector<std::string> text = textTranslated;
 	romTranslated.OutputTextWithVariables(text);
 	scriptTranslated.UpdateText(text);
-	FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.data);
+	//FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.data);
 }
 
 void cScriptEditor::ExportScript()
@@ -109,8 +123,6 @@ void cScriptEditor::UpdateScript()
 
 	textOriginal = scriptOriginal.GetText();
 	textTranslated = scriptTranslated.GetText();
-
-	//StringUtil::Replace("Eu", "Você", textTranslated[0]);
 
 	romTranslated.InputTextWithVariables(textOriginal, textTranslated);
 
@@ -161,9 +173,10 @@ void cScriptEditor::GetTextFromScriptFile()
 		return;	
 
 	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(openFile.GetPath().ToStdString());
-	Script script = Script(bytes);
+	Script script = Script();
+	script.SetData(bytes);
 
-	if (script.str_count != scriptOriginal.str_count)
+	if (script.size() != scriptOriginal.size())
 	{
 		wxMessageBox("The text count is not the same.", "Huh?", 5L, this);
 		return;
@@ -214,16 +227,31 @@ void cScriptEditor::FindText()
 
 void cScriptEditor::tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event)
 {
-	VerifyCurLineLenght(tScriptTranslated);
-
 	int line = tScriptTranslated->GetCurrentLine();
 	int start = tScriptTranslated->PositionFromLine(line);
 	int end = tScriptTranslated->GetLineEndPosition(line);
 
 	tScriptTranslated->StartStyling(start);
-	tScriptTranslated->SetStyling(tScriptTranslated->LineLength(line), 0);	
+	tScriptTranslated->SetStyling(tScriptTranslated->LineLength(line), 0);
+
+#ifdef Testing
+	double now = (std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() * 0.001);
+
+	double elapsed = now - m_lastTyped;
+
+	if (elapsed > 500 && !m_endTyping)
+	{
+		m_endTyping = true;	
+
+		DoSpelling(tScriptTranslated, tScriptTranslated->WordStartPosition(m_typedMinPos, false), tScriptTranslated->WordEndPosition(m_typedMaxPos, false));
+	}
+#endif // Testing
+
+
 
 	FindAndHighlightAllVars(tScriptTranslated, start, end);
+
+	VerifyCurLineLenght(tScriptTranslated);
 
 	event.Skip();
 }
@@ -265,6 +293,33 @@ void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 
 	event.Skip();	
 }
+
+#ifdef Testing
+void cScriptEditor::tScriptTranslatedCharAdded(wxStyledTextEvent& event)
+{
+	m_lastTyped = (std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() * 0.001);
+
+	size_t curPos = tScriptTranslated->GetCurrentPos();
+
+	if (m_endTyping)
+	{
+		m_typedMinPos = curPos;
+		m_typedMaxPos = curPos;
+	}
+
+	m_endTyping = false;
+
+	if (m_typedMinPos > curPos)
+		m_typedMinPos = curPos;
+
+	if (m_typedMaxPos < curPos)
+		m_typedMaxPos = curPos;
+
+	CallAfter(&cScriptEditor::UpdateStatusText, tScriptTranslated);
+
+	event.Skip();
+}
+#endif // Testing
 
 void cScriptEditor::OnInputKeyDown(wxKeyEvent& event)
 {
@@ -383,7 +438,7 @@ void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
 void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 {
 	SaveScript();
-	switch (romTranslated.InsertScript(scriptNum, scriptTranslated.data))
+	/*switch (romTranslated.InsertScript(scriptNum, scriptTranslated.data))
 	{
 	case 0:
 		wxMessageBox(_("Script inserted with no changes."), "Yeah!", 5L, this);
@@ -396,7 +451,7 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 		break;
 	default:
 		break;
-	}	
+	}	*/
 }
 
 void cScriptEditor::OnExportScript(wxCommandEvent& event)
@@ -427,6 +482,11 @@ void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
 void cScriptEditor::EVT_MENU_RestoreString(wxCommandEvent& event)
 {
 	RestoreText();
+	event.Skip();
+}
+
+void cScriptEditor::OnClosing(wxCloseEvent& event)
+{
 	event.Skip();
 }
 
@@ -481,6 +541,31 @@ inline void cScriptEditor::UpdateStyle(wxStyledTextCtrl* stc)
 	FindAndHighlightAllVars(stc, 0, stc->GetTextLength());
 }
 
+#ifdef Testing
+void cScriptEditor::DoSpelling(wxStyledTextCtrl* stc, const size_t start, const size_t end)
+{
+	std::string s = stc->GetTextRange(start, end).ToStdString();
+
+	size_t npos = std::string::npos;
+
+	tScriptTranslated->IndicatorClearRange(start, end - start);
+
+	for (size_t first = s.find_first_of(letters, 0); first != npos; first = s.find_first_of(letters, first))
+	{
+		size_t last = s.find_first_not_of(letters, first);
+
+		std::string word = s.substr(first, last != npos ? last - first : s.size() - first);
+
+		bool isGood = m_hunspell->spell(s);
+
+		if (!isGood)
+			tScriptTranslated->IndicatorFillRange(start + first, last != npos ? last - first : s.size() - first);
+
+		first = last;
+	}
+}
+#endif // Testing
+
 void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
 {
 	stc->SetLexer(wxSTC_LEX_CONTAINER);
@@ -503,8 +588,11 @@ void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
 	stc->SetMarginWidth(0, 32);	
 	stc->SetMarginType(0, wxSTC_MARGIN_NUMBER);		
 	stc->SetCaretForeground(Studio::GetFontColour());
+
+	stc->IndicatorSetStyle(0, wxSTC_INDIC_SQUIGGLE);
+
 	/*stc->SetMarginBackground(0, wxColor(0xff, 0, 0));
-	
+	b 
 	wxColour color = stc->GetMarginBackground(0);
 	wxString text = wxString("r = ") << (int)color.Red() << " g = " << (int)color.Green() << " b = " << (int)color.Blue();*/
 
@@ -515,6 +603,8 @@ void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
 
 void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
 {
+	statusBar->SetStatusText(wxString("Size: ") << (m_endTyping ? "True" : "False"), 1);
+
 	statusBar->SetStatusText(wxString("Ln: ") << stc->GetCurrentLine() + 1, 2);
 
 	int selSize = (stc->GetSelectionEnd() - stc->GetSelectionStart());
@@ -828,6 +918,11 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
+	
+#ifdef Testing
+	tScriptTranslated->Bind(wxEVT_STC_CHARADDED, &cScriptEditor::tScriptTranslatedCharAdded, this);
+#endif // Testing
+
 
 	editor_save_text = new wxButton(this, wxID_ANY, "Save");
 	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnSaveTextClick, this);
@@ -859,6 +954,8 @@ void cScriptEditor::CreateGUIControls()
 	global_sizer = new wxBoxSizer(wxVERTICAL);
 	global_sizer->Add(horizontal_sizer, 1, wxALL | wxEXPAND, 0);
 	global_sizer->Add(log_text, 0, wxALL, 4);
+
+	this->Bind(wxEVT_CLOSE_WINDOW, &cScriptEditor::OnClosing, this);
 
 	SetSizer(global_sizer);
 	global_sizer->Fit(this);

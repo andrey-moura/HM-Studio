@@ -1,5 +1,14 @@
 #pragma once
 
+#define NormalStyle 0
+#define VarStyle 1
+#define SimbolStyle 2
+
+#define WaitInput 500
+
+#define LINEERROR_MASK 0b00000001
+
+
 //#include "wx/wx.h"
 #include "wx/frame.h"
 #include <wx/stc/stc.h>
@@ -17,11 +26,17 @@
 
 #include "frame_search_script.hpp"
 
-#define NormalStyle 0
-#define VarStyle 1
-#define SimbolStyle 2
+#ifdef Testing
+#define HUNSPELL_STATIC
 
-#define LINEERROR_MASK 0b00000001
+#include <chrono>
+
+#include "include/hunspell/hunspell.hxx"
+
+
+const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+#endif // Testing
+
 
 class cScriptEditor : public wxFrame
 {
@@ -39,7 +54,11 @@ private:
 	void tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event);
 	void tScritpTranslatedOnModified(wxStyledTextEvent& event);
 	void tScriptTranslatedOnUi(wxStyledTextEvent& event);
-	void tScriptTranslatedPosChanged(wxStyledTextEvent& event);
+#ifdef Testing
+	void tScriptTranslatedCharAdded(wxStyledTextEvent& event);
+#endif // Testing
+
+
 	void OnInputKeyDown(wxKeyEvent& event);
 	void OnPrevScriptClick(wxCommandEvent& event);
 	void OnProxScriptClick(wxCommandEvent& event);
@@ -58,9 +77,14 @@ private:
 	void EVT_MENU_FindNextText(wxCommandEvent& event);
 	void EVT_MENU_RestoreString(wxCommandEvent& event);
 
+	void OnClosing(wxCloseEvent& event);
+
 //Text Editor Globals
 	int m_maxLineLenght;
-
+	double m_lastTyped;
+	size_t m_typedMinPos;
+	size_t m_typedMaxPos;
+	bool m_endTyping;
 //STC Functions
 	inline void STCFindAll(wxStyledTextCtrl* stc, const size_t start, const size_t end, const std::string& toFind, std::vector<size_t>& output);
 	inline void HighlightAll(wxStyledTextCtrl* stc, std::vector<size_t>& pos, const size_t size, const int style);	
@@ -70,9 +94,19 @@ private:
 	inline void VerifyAllLinesLenght(wxStyledTextCtrl* stc);
 	inline void FindAndHighlightAllVars(wxStyledTextCtrl* stc, const size_t start, const size_t end);
 	inline void UpdateStyle(wxStyledTextCtrl* stc);
+#ifdef Testing
+	void DoSpelling(wxStyledTextCtrl* stc, const size_t start, const size_t end);
+#endif // Testing
+
 	void SetupStyles(wxStyledTextCtrl* stc);
 
 	void UpdateStatusText(wxStyledTextCtrl* stc);
+
+//Spell
+private:
+#ifdef Testing
+	Hunspell* m_hunspell = nullptr;
+#endif // Testing
 
 //others
 private:
@@ -81,7 +115,7 @@ private:
 	//bool m_stringChange = false;
 	//bool m_stringSaved = false;
 	//bool m_stringExitWithoutSave = false;
-
+	void SolveProblem();
 //Text save
 private:
 	std::string m_textSave;

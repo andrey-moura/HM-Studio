@@ -2,10 +2,10 @@
 
 std::vector<uint8_t> FileUtil::ReadAllBytes(const std::string &path)
 {
-	std::vector<uint8_t> bytes;
-
 	if (!wxFile::Exists(path))
 		return std::vector<uint8_t>();
+
+	std::vector<uint8_t> bytes;
 
 	wxFile file;
 	file.Open(path);	
@@ -13,6 +13,19 @@ std::vector<uint8_t> FileUtil::ReadAllBytes(const std::string &path)
 	file.Read(bytes.data(), file.Length());
 	file.Close();	
 	return bytes;
+}
+
+void FileUtil::ReadAllBytes(const std::string& path, uint8_t** output, int& lenght)
+{
+	if (!wxFile::Exists(path))
+		return;
+
+	wxFile file;
+	file.Open(path);
+	lenght = file.Length();
+	*output = new uint8_t[lenght];
+	file.Read(*output, file.Length());
+	file.Close();
 }
 
 void FileUtil::WriteAllBytes(const std::string& path, const std::vector<uint8_t>& bytes)
