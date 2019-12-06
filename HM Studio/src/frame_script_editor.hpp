@@ -48,7 +48,7 @@ public:
 //Events
 private:
 
-	wxDECLARE_EVENT_TABLE();
+	//wxDECLARE_EVENT_TABLE();
 
 	void tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event);
 	void tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event);
@@ -56,20 +56,15 @@ private:
 	void tScriptTranslatedOnUi(wxStyledTextEvent& event);
 #ifdef Testing
 	void tScriptTranslatedCharAdded(wxStyledTextEvent& event);
-#endif // Testing
-
-
-	void OnInputKeyDown(wxKeyEvent& event);
+#endif // Testing	
 	void OnPrevScriptClick(wxCommandEvent& event);
 	void OnProxScriptClick(wxCommandEvent& event);
+	void OnGoScriptClick(wxCommandEvent& event);
 	void OnSaveTextClick(wxCommandEvent& event);
 	void OnPrevTextClick(wxCommandEvent& event);
 	void OnProxTextClick(wxCommandEvent& event);
 	void OnHorizontalModeCheck(wxCommandEvent& event);
 	void OnMenuGetTextFromScriptFile(wxCommandEvent& event);
-	void OnScriptNavOffsetMouseDown(wxMouseEvent& event);
-	void OnScriptNavOffsetMouseUP(wxMouseEvent& event);
-	void OnStringNavInputKeyDown(wxKeyEvent& event);	
 	void OnSaveScriptClick(wxCommandEvent& event);	
 	void OnInsertScriptClick(wxCommandEvent& event);
 	void OnExportScript(wxCommandEvent& event);
@@ -109,12 +104,7 @@ private:
 #endif // Testing
 
 //others
-private:
-	wxClipboard clip_board;
-
-	//bool m_stringChange = false;
-	//bool m_stringSaved = false;
-	//bool m_stringExitWithoutSave = false;
+private:	
 	void SolveProblem();
 //Text save
 private:
@@ -168,13 +158,17 @@ private:
 private:
 	wxBitmap m_DeleteIcon;
 
-//UI
+//GUI
 private:
+	void CreateMyToolBar();
+
 	void CreateGUIControls();
+	wxToolBar* m_pToolBar = nullptr;
+	wxImage m_ImgPrevScript;
+
 	void SetEditorVertical();
 	void SetEditorHorizontal();
 
-	//wxToolBar* toolBar = nullptr;
 	wxMenuBar* menuBar = nullptr;
 	wxStatusBar* statusBar = nullptr;
 
@@ -187,38 +181,7 @@ private:
 	wxMenu* menuTools = nullptr;
 	wxMenu* menuOptions = nullptr;	
 
-	wxBoxSizer* global_sizer = nullptr;
-	wxBoxSizer* panel_left_sizer = nullptr;	
-	wxBoxSizer* horizontal_sizer = nullptr;
-	
-	//Lateral bar, script navigation
-	wxTextCtrl* script_nav_input = nullptr;
-	wxButton* script_nav_prev = nullptr;
-	wxButton* script_nav_prox = nullptr;
-	wxStaticText* script_nav_offset_0x = nullptr;
-	wxStaticText* script_nav_offset = nullptr;
-	wxBoxSizer* script_nav_offset_sizer = nullptr;
-	wxButton* script_nav_insert = nullptr;
-	wxBoxSizer* script_nav_buttons_sizer = nullptr;
-	wxStaticBox* script_nav_box = nullptr;
-	wxStaticBoxSizer* script_nav_sizer = nullptr;
-
-	//Lateral bar, string navigation
-	wxStaticText* string_nav_index_is = nullptr;
-	wxStaticText* string_nav_index = nullptr;
-	wxCheckBox* string_nav_code = nullptr;
-	wxCheckBox* string_nav_later = nullptr;
-	wxTextCtrl* string_nav_input = nullptr;
-	wxStaticBox* string_nav_box = nullptr;
-	wxStaticBoxSizer* string_nav_sizer = nullptr;
-	wxBoxSizer* string_nav_index_sizer = nullptr;
-
-	//Lateral bar, options
-	wxCheckBox* options_nav_export = nullptr;
-	wxCheckBox* options_nav_scroll = nullptr;
-	wxCheckBox* options_nav_horizontal = nullptr;
-	wxStaticBox* options_nav_box = nullptr;
-	wxStaticBoxSizer* options_nav_sizer = nullptr;	
+	wxBoxSizer* global_sizer = nullptr;	
 
 	//Editor
 	wxStyledTextCtrl* tScriptTranslated = nullptr;
@@ -229,13 +192,13 @@ private:
 	wxBoxSizer* editor_buttons_sizer = nullptr;
 	wxStyledTextCtrl* tScriptOriginal = nullptr;
 
-	//Log
-	wxStaticText* log_text = nullptr;
-
 	enum ID {
 		ID_SCRIPT_NAV_INPUT = 10001,
+		ID_SCRIPT_NAV_GO,
 		ID_SCRIPT_NAV_PREV,
 		ID_SCRIPT_NAV_PROX,
+		ID_SCRIPT_NAV_SAVE,
+		ID_SCRIPT_NAV_INSERT,
 		ID_MENU_STRING_SAVE,
 		ID_MENU_STRING_PREV,
 		ID_MENU_STRING_PROX,
