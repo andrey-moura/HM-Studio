@@ -13,13 +13,14 @@ void Script::SetData(std::vector<uint8_t>& bytes)
 		delete[] m_data;
 
 	m_data = new uint8_t[size];
+	memcpy(m_data, bytes.data(), size);	
 
-	memcpy(m_data, bytes.data(), size);
+	GetPointers();
 
-	if (*RIFFLenght() > size)
-		*RIFFLenght() = size;
 
-	GetStrPosition();
+	if (*m_pRiffLenght > size)
+		*m_pRiffLenght = size;
+
 
 	m_data[size - 1] = 0x00;
 }
@@ -31,18 +32,16 @@ Script::~Script()
 
 std::vector<std::string> Script::GetText()
 {
-	std::vector<std::string> text;
-
-	uint32_t* pointers = STRPointers();
+	std::vector<std::string> text;	
 
 	int this_size = 0;
 
-	for (int i = 0; i < *STRCount(); ++i)
+	for (int i = 0; i < *m_pStrCount; ++i)
 	{
 		this_size = 0;
-		uint8_t* pointer = RelativeToStartText(pointers[i]);
+		uint8_t* pointer = m_pStrPointers[i] + m_pStartText;
 		
-		text.push_back((const char*)pointer);		
+		text.push_back((const char*)pointer);
 	}
 
 	return text;
@@ -50,16 +49,17 @@ std::vector<std::string> Script::GetText()
 
 int Script::size()
 {
-	return *STRCount();
+	return *m_pStrCount;
 }
 
 void Script::GetStrPosition()
 {
 	uint8_t* thisChar = m_data;
-	uint8_t* lastChar = m_data + *RIFFLenght();
+	uint8_t* lastChar = m_data + *m_pRiffLenght;
+
 	while (thisChar < lastChar)
 	{
-		thisChar = (uint8_t*)memchr(thisChar, 0x53, (data.data() + data.size() - thisChar));
+		thisChar = (uint8_t*)memchr(thisChar, 0x53, (m_data + *m_pRiffLenght - thisChar));
 
 		if (thisChar + 3 > lastChar) //Can we use index++ and stay inside m_data?
 			return;
@@ -84,50 +84,47 @@ void Script::GetStrPosition()
 	}
 }
 
-void Script::UpdateText(std::vector<std::string>& text)
+void Script::GetPointers()
 {
-	//*STRLenght() = 0; //Resets the size of the STR
+	m_pRiffLenght = (uint32_t*)(m_data + 4);
 
-	int totalTextSize = 0;
+	GetStrPosition();
 
-	//First, I will get the lenght of total strings. This will help to not allocating memory in every for in the future
-	for (unsigned int i = 0; i < *STRCount(); ++i)
+	m_pStrCount = (uint32_t*)(m_pStr + 8);
+	m_pStrLenght = (uint32_t*)(m_pStr + 4);
+	m_pStrPointers = (uint32_t*)(m_pStr + 12);
+	m_pStartText = (uint8_t*)(m_pStr + (*m_pStrCount * 4) + 12);
+}
+
+void Script::UpdateText(const std::vector<std::string>& text)
+{
+	uint32_t totalTextSize = 0;
+
+	//First, I will get the total lenght of strings. This will help us to not allocating memory in every loop in the future
+	for (unsigned int i = 0; i < *m_pStrCount; ++i)
 	{
-		STRPointers()[i] = totalTextSize;
+		m_pStrPointers[i] = totalTextSize;
 		totalTextSize += text[i].size() + 1; //The std::string is not null terminated
 	}
 
-	std::vector<char> buffer;
-	buffer.resize(totalTextSize);
+	uint32_t newSize = totalTextSize + (*m_pStrCount * 4) + 4;
 
-	for (unsigned int i = 0; i < *STRCount(); ++i)
+	if(newSize != (*m_pStrLenght)) //If is the same, we don't need to re-allocate memory.
 	{
-		memcpy(buffer.data() + STRPointers()[i], text[i].data(), text[i].size());
+		int size = (m_pStr - m_data) + (*m_pStrCount * 4) + 12 + totalTextSize;
+		*m_pRiffLenght = size;
+		uint8_t* newData = new uint8_t[size];
+		memcpy(newData, m_data, (m_pStr - m_data) + ((*m_pStrCount * 4) + 12));
+		delete[] m_data;
+		m_data = newData;
+
+		GetPointers(); //Updates pointers
 	}
 
-	if ((totalTextSize + (*STRCount() * 4) + 4) > * STRLenght())
-	{
+	*m_pStrLenght = newSize;
 
-	}
-
-	//int text_size = 0;
-	//std::string buffer;
-
-	//for (int i = 0; i < str_count; ++i)
-	//{
-	//	memcpy(data.data() + str_offset + (i * 4) + 12, &text_size, 4);		
-	//	text_size += text[i].length() + 1;
-	//	
-	//	buffer.append(text[i]);
-	//	buffer.append(1, (char)0x00);
-	//}
-
-	//data.resize(str_offset + (str_count * 4) + 12 + text_size);
-	//memcpy(data.data() + text_offset, buffer.data(), text_size);
-
-	//int str_size = (str_count * 4) + 4 + text_size;
-	//memcpy(data.data() + str_offset + 4, &str_size, 4);
-
-	//int riff_size = data.size();
-	//memcpy(data.data() + 4, &riff_size, 4);
+	for (unsigned int i = 0; i < *m_pStrCount; ++i)
+	{			
+		memcpy(m_pStartText + m_pStrPointers[i], text[i].c_str(), text[i].size() + 1);
+	}		
 }

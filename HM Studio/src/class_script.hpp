@@ -4,46 +4,44 @@
 #include <string>
 #include <vector>
 
+#include "class_util_wx_file.hpp"
+
 class Script
 {
-//Constructors / deconstructors
 public:
 	Script();
-
-	void SetData(std::vector<uint8_t>& bytes);
-
 	~Script();	
 
+	void SetData(std::vector<uint8_t>& bytes);
 private:
-	//Gets the pointer to the script size
-	inline uint32_t* RIFFLenght() { return (uint32_t*)(m_data + 4); }
-	//Gets the pointer to the str count.
-	inline uint32_t* STRCount() { return (uint32_t*)(m_pStr + 8); }
-	//Gets the pointer to the str lenght.
-	inline uint32_t* STRLenght() { return (uint32_t*)(m_pStr + 4); }
-	//Gets the pointer to the (pointers) of text.
-	inline uint32_t* STRPointers() { return (uint32_t*)(m_pStr + 12); }
-	//Return a pointer, using a position relative to the start of the text. (Use with STRPointers())
-	inline uint8_t* RelativeToStartText(uint32_t position) { return (m_pStr + (*STRCount() * 4) + 12) + position; }
-
+	//Gets the pointer to the script size	
+	uint32_t* m_pRiffLenght = nullptr;
+	//Gets the pointer to the str count.	
+	uint32_t* m_pStrCount = nullptr;
+	//Gets the pointer to the str lenght.	
+	uint32_t* m_pStrLenght = nullptr;
+	//Gets the pointer to the (pointers) of text.	
+	uint32_t* m_pStrPointers = nullptr;
+	//Position relative to the start of the text. (Use with StrPointers)	
+	uint8_t* m_pStartText = nullptr;	
 private:
 	//Gets the offset of the str block.
 	void GetStrPosition();	
+	//Calculates the pointers
+	void GetPointers();
 
-	std::vector<uint8_t> data;
-
-	uint8_t* m_data = nullptr;
-	uint32_t* m_size = nullptr;
+	uint8_t* m_data = nullptr;	
 
 	uint8_t* m_pStr = nullptr;
 	uint32_t* m_strSize = nullptr;	
-
-	bool m_delete = true;
 public:
 	//Gets the text of this script.
 	std::vector<std::string> GetText();	
-	void UpdateText(std::vector<std::string>& text);
+	void UpdateText(const std::vector<std::string>& text);
 	//This script have text?
-	inline bool HaveText() { return *STRCount(); }
+	inline bool HaveText() { return *m_pStrCount; }
+	uint32_t GetRiffLenght() const { return *m_pRiffLenght; }
+	//Take care
+	uint8_t* GetData() const { return m_data; }
 	int size();
 };

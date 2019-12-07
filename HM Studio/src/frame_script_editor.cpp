@@ -99,7 +99,7 @@ void cScriptEditor::SaveScript()
 	std::vector<std::string> text = textTranslated;
 	romTranslated.OutputTextWithVariables(text);
 	scriptTranslated.UpdateText(text);
-	//FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.data);
+	FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.GetData(), scriptTranslated.GetRiffLenght());
 }
 
 void cScriptEditor::ExportScript()

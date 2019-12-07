@@ -11,6 +11,9 @@ void Table::InputTable(const std::string &table, std::vector<std::string> &text)
 
 void Table::OutPutTable(const std::string& table, std::vector<std::string>& text)
 {
+	if (text.size() <= 0 && table.size() < 3)
+		return;
+
 	std::vector<char> right_char;
 	std::vector<char> left_char;
 

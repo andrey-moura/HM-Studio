@@ -49,6 +49,10 @@ std::string FileUtil::ReadAllText(const std::string& path)
 	std::string outPut;
 
 	wxFile file;
+
+	if (!file.Exists(path))
+		return std::string();
+
 	file.Open(path);
 	outPut.resize(file.Length());
 	file.Read((void*)outPut.data(), file.Length());	
