@@ -14,11 +14,9 @@ bool App::OnInit()
 {
 	wxImage::AddHandler(new wxPNGHandler);
 
-	frame1 = new cMain();
+	frame1 = new MainFrame();
 	frame1->Show();
-
-	//scriptEditor = new cScriptEditor();
-	//scriptEditor->Show();
+	
 	return true;
 }
 

@@ -1,25 +1,24 @@
 #include "frame_main.hpp"
 
-wxBEGIN_EVENT_TABLE(cMain, wxFrame)
+wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 
-EVT_CHOICE(ID_currentChoice, cMain::OnChoiceChanged)
-EVT_BUTTON(ID_scriptEditor, cMain::scriptEditor_onClick)
-EVT_BUTTON(ID_tileEditor, cMain::OnButtonTileEditor_Click)
-EVT_BUTTON(ID_teste1, cMain::OnButtonTeste1_Click)
+EVT_CHOICE(ID_currentChoice, MainFrame::OnChoiceChanged)
+EVT_BUTTON(ID_scriptEditor, MainFrame::scriptEditor_onClick)
+EVT_BUTTON(ID_tileEditor, MainFrame::OnButtonTileEditor_Click)
+EVT_BUTTON(ID_teste1, MainFrame::OnButtonTeste1_Click)
 
 wxEND_EVENT_TABLE()
 
-cMain::cMain() : wxFrame(nullptr, wxID_ANY, "HM Studio")
+MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 {
-	CreateGUIControls();
-	LogFile::Init(false);
+	CreateGUIControls();	
 }
 
-cMain::~cMain()
+MainFrame::~MainFrame()
 {
 }
 
-void cMain::CreateGUIControls()
+void MainFrame::CreateGUIControls()
 {	
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
@@ -42,9 +41,9 @@ void cMain::CreateGUIControls()
 	scriptSizer = new wxStaticBoxSizer(scriptBox, wxVERTICAL);
 
 	dumpOriginal = new wxButton(this, wxID_ANY, "Dump Original");
-	dumpOriginal->Bind(wxEVT_BUTTON, &cMain::OnButtonDumpOriginal, this);
+	dumpOriginal->Bind(wxEVT_BUTTON, &MainFrame::OnButtonDumpOriginal, this);
 	dumpTranslated = new wxButton(this, wxID_ANY, "Dump Translated");
-	dumpTranslated->Bind(wxEVT_BUTTON, &cMain::OnButtonDumpTranslated, this);
+	dumpTranslated->Bind(wxEVT_BUTTON, &MainFrame::OnButtonDumpTranslated, this);
 	scriptEditor = new wxButton(this, ID_scriptEditor, "Script Editor");
 
 	scriptSizer->AddSpacer(5);
@@ -73,7 +72,7 @@ void cMain::CreateGUIControls()
 	currentChoice->Insert("MFoMT", 1);
 	currentChoice->Insert("DS", 2);
 	currentChoice->SetSelection(0);
-	//currentChoice->Bind(wxEVT_CHOICE, &cMain::OnChoiceChanged, this);
+	//currentChoice->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceChanged, this);
 	currentDefault = new wxCheckBox(this, wxID_ANY, "Default");
 
 	currentSizer->AddSpacer(5);
@@ -94,7 +93,7 @@ void cMain::CreateGUIControls()
 	sizer1->Add(currentSizer, 0, wxEXPAND, 0);
 
 	m_pGUI_openItemEditor = new wxButton(this, wxID_ANY, _("Item Editor"));
-	m_pGUI_openItemEditor->Bind(wxEVT_BUTTON, &cMain::EVT_BUTTON_ItemEditorClick, this);
+	m_pGUI_openItemEditor->Bind(wxEVT_BUTTON, &MainFrame::EVT_BUTTON_ItemEditorClick, this);
 	m_pGUI_boxItemEditor = new wxStaticBox(this, wxID_ANY, _("Item"));
 	m_pGUI_boxSizerItemEditor = new wxStaticBoxSizer(m_pGUI_boxItemEditor, wxVERTICAL);
 	m_pGUI_boxSizerItemEditor->Add(m_pGUI_openItemEditor, 0, 4);
@@ -117,14 +116,14 @@ void cMain::CreateGUIControls()
 	SetSizer(sizer0);
 }
 
-void cMain::OnChoiceChanged(wxCommandEvent& event)
+void MainFrame::OnChoiceChanged(wxCommandEvent& event)
 {
 	cur_choice = currentChoice->GetSelection();
 
 	event.Skip();
 }
 
-void cMain::scriptEditor_onClick(wxCommandEvent& event)
+void MainFrame::scriptEditor_onClick(wxCommandEvent& event)
 {
 	cScriptEditor* formScriptEditor = new cScriptEditor(GetCurrentId());
 	formScriptEditor->Show();
@@ -132,7 +131,7 @@ void cMain::scriptEditor_onClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cMain::OnButtonTileEditor_Click(wxCommandEvent& event)
+void MainFrame::OnButtonTileEditor_Click(wxCommandEvent& event)
 {
 	tileEditorFrame = new TileEditorFrame();
 	tileEditorFrame->Show();
@@ -140,29 +139,23 @@ void cMain::OnButtonTileEditor_Click(wxCommandEvent& event)
 	event.Skip();
 } 
 
-void cMain::OnButtonTeste1_Click(wxCommandEvent& event)
-{	
-	OptionWindow* optionsWindow = new OptionWindow();
-	optionsWindow->AddCategory("Teste");
-
-	optionsWindow->Show();
-
+void MainFrame::OnButtonTeste1_Click(wxCommandEvent& event)
+{		
 	event.Skip();
 }
 
-void cMain::OnButtonDumpOriginal(wxCommandEvent& event)
+void MainFrame::OnButtonDumpOriginal(wxCommandEvent& event)
 {	
-	Rom* rom = new Rom(GetCurrentId(), true);
-	if (rom->IsOpened())
-	rom->Dump();
+	Rom rom = Rom(GetCurrentId(), true);
+	if (rom.IsOpened())
+	rom.Dump();
 	else
-		wxMessageBox("Cant dump the ROM because it's not opened... Maybe don't exists...", "Huh?", 5L, this);
-	delete rom;
+		wxMessageBox("Cant dump the ROM because it's not opened... Maybe don't exists...", "Huh?", 5L, this);	
 
 	event.Skip();
 }
 
-void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
+void MainFrame::OnButtonDumpTranslated(wxCommandEvent& event)
 {
 	if (wxMessageBox(_("Are you sure? It will erase your scripts if you already made changes..."), "Huh?", wxICON_QUESTION | wxYES_NO, this) == wxID_CANCEL)
 	return;
@@ -177,7 +170,7 @@ void cMain::OnButtonDumpTranslated(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cMain::EVT_BUTTON_ItemEditorClick(wxCommandEvent& event)
+void MainFrame::EVT_BUTTON_ItemEditorClick(wxCommandEvent& event)
 {
 	ItemEditorFrame* itemEditorFrame = new ItemEditorFrame();
 	itemEditorFrame->Show();
@@ -185,7 +178,7 @@ void cMain::EVT_BUTTON_ItemEditorClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-id cMain::GetCurrentId()
+id MainFrame::GetCurrentId()
 {
 	switch (cur_choice)
 	{

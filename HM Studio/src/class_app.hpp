@@ -3,7 +3,6 @@
 #include <wx/app.h>
 
 #include "frame_main.hpp"
-#include "frame_script_editor.hpp"
 
 class App : public wxApp
 {
@@ -12,9 +11,7 @@ public:
 	~App();
 
 private:
-	cMain* frame1 = nullptr;
-	cScriptEditor* scriptEditor = nullptr;
-
+	MainFrame* frame1 = nullptr;
 public:
 	virtual bool OnInit();
 };

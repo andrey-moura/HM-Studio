@@ -25,6 +25,15 @@ void Script::SetData(std::vector<uint8_t>& bytes)
 	m_data[size - 1] = 0x00;
 }
 
+bool Script::CompareCode(const Script& other)
+{		
+	if (memcmp((uint8_t*)m_pSrcCodeLenght - 8, (uint8_t*)other.m_pSrcCodeLenght - 8, (m_pStr - m_data) - 4) != 0) return false;
+
+	if (*m_pStrCount != *(other.m_pStrCount)) return false;
+
+	return true;
+}
+
 Script::~Script()
 {
 	delete[] m_data;
@@ -52,48 +61,26 @@ int Script::size()
 	return *m_pStrCount;
 }
 
-void Script::GetStrPosition()
-{
-	uint8_t* thisChar = m_data;
-	uint8_t* lastChar = m_data + *m_pRiffLenght;
+void Script::GetPointers() //This is very close to the way it is done in GBA
+{	
+	m_pRiffLenght = (uint32_t*)(m_data + 0x04);
+	m_pSrcCodeLenght = (uint32_t*)(m_data + 0x10);
 
-	while (thisChar < lastChar)
+	uint32_t* strOrJump = (uint32_t*)(m_data + (*m_pSrcCodeLenght) + 0x14);
+
+	if (*strOrJump == 0x504d554a) //It is jump
 	{
-		thisChar = (uint8_t*)memchr(thisChar, 0x53, (m_data + *m_pRiffLenght - thisChar));
-
-		if (thisChar + 3 > lastChar) //Can we use index++ and stay inside m_data?
-			return;
-
-		++thisChar;
-
-		if (*thisChar != 0x54)
-			continue;
-
-		++thisChar;
-
-		if (*thisChar != 0x52)
-			continue;
-
-		++thisChar;
-
-		if (*thisChar != 0x20)
-			continue;
-
-		m_pStr = (uint8_t*)(thisChar - 3);
-		return;
-	}
-}
-
-void Script::GetPointers()
-{
-	m_pRiffLenght = (uint32_t*)(m_data + 4);
-
-	GetStrPosition();
-
-	m_pStrCount = (uint32_t*)(m_pStr + 8);
-	m_pStrLenght = (uint32_t*)(m_pStr + 4);
-	m_pStrPointers = (uint32_t*)(m_pStr + 12);
-	m_pStartText = (uint8_t*)(m_pStr + (*m_pStrCount * 4) + 12);
+		uint32_t jumpLenght = *(strOrJump + 1);
+		m_pStr = (uint8_t*)(jumpLenght + 8 + (uint8_t*)strOrJump);
+	}	
+	else {
+		m_pStr = (uint8_t*)strOrJump;
+	}	
+	
+	m_pStrCount = (uint32_t*)(m_pStr + 0x08);
+	m_pStrLenght = (uint32_t*)(m_pStr + 0x04);
+	m_pStrPointers = (uint32_t*)(m_pStr + 0x0c);
+	m_pStartText = (uint8_t*)(m_pStr + (*m_pStrCount * 4) + 0x0c);
 }
 
 void Script::UpdateText(const std::vector<std::string>& text)

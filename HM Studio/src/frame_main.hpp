@@ -1,32 +1,16 @@
 #pragma once
 
 #include "wx/wx.h"
-#include "wx/treectrl.h"
-#include "wx/listctrl.h"
-
 //Frames
 #include "frame_script_editor.hpp"
 #include "frame_tile_editor_parent.hpp"
 #include "frame_item_editor.hpp"
 
-//Static
-#include "Studio.h"
-#include "class_util_wx_file.hpp"
-#include "class_table.hpp"
-#include "class_bit_converter.hpp"
-#include "class_graphics.hpp"
-#include "resource_frame_tile_editor.hpp"
-#include "class_log_file.hpp"
-//Object
-#include "class_script.hpp"
-#include "wxUtil/wxRefereceCheckBox.hpp"
-#include "OptionWindow.hpp"
-
-class cMain : public wxFrame
+class MainFrame : public wxFrame
 {
 public:
-	cMain();
-	~cMain();
+	MainFrame();
+	~MainFrame();
 
 private:
 	DECLARE_EVENT_TABLE();	

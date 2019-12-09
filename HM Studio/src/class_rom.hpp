@@ -8,6 +8,7 @@
 #include "class_util_string.hpp"
 #include "class_table.hpp"
 #include "class_util_wx_file.hpp"
+#include "class_script.hpp"
 
 enum class console {
 	GBA,
@@ -77,9 +78,10 @@ public:
 	void ReadBytes(std::vector<uint8_t> &bytes, size_t size);
 
 	void WriteBytes(std::vector<uint8_t> bytes);
+	void WriteBytes(const void* bytes, const size_t size);
 	void EraseBlock(size_t size);
 	bool VerifyEmptyBlock(size_t size);
-	int InsertScript(int number, std::vector<uint8_t>& bytes);
+	int InsertScript(int number, const Script& script);
 private:
 	void SetOffsets();
 

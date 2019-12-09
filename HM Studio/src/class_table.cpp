@@ -2,11 +2,14 @@
 
 void Table::InputTable(const std::string &table, std::vector<std::string> &text)
 {	
-	std::vector<char> right_char;
-	std::vector<char> left_char;
+	if (text.size() <= 0 && table.size() < 3)
+		return;
+
+	std::string right_char;
+	std::string left_char;
 
 	Split(right_char, left_char, table);
-	Replace(right_char, left_char, text);	
+	Replace(right_char, left_char, text);
 }
 
 void Table::OutPutTable(const std::string& table, std::vector<std::string>& text)
@@ -14,98 +17,46 @@ void Table::OutPutTable(const std::string& table, std::vector<std::string>& text
 	if (text.size() <= 0 && table.size() < 3)
 		return;
 
-	std::vector<char> right_char;
-	std::vector<char> left_char;
+	std::string right_char;
+	std::string left_char;
 
 	Split(right_char, left_char, table);
 	Replace(left_char, right_char, text);
 }
 
-void Table::Split(std::vector<char>& right, std::vector<char>& left, const std::string &table)
+void Table::Split(std::string& right, std::string& left, const std::string &table)
 {
 	std::vector<std::string> lines;
 	StringUtil::SplitLines(table, lines);
 
-	size_t* buf = nullptr;
+	right.reserve(lines.size());
+	left.reserve(lines.size());
 
 	for (int i = 0; i < lines.size(); ++i)
 	{
 		std::string left_char_byte;
+		left_char_byte.reserve(2);
 
 		left_char_byte = lines[i][0];
-		left_char_byte += lines[i][1];
+		left_char_byte += lines[i][1];		
 
 		right.push_back(lines[i][3]);
-
-		left.push_back(std::stoi(left_char_byte, buf, 16));
-	}
-
-	delete buf;
+		left.push_back(std::stoi(left_char_byte, nullptr, 16));
+	}	
 }
 
-void Table::Replace(const std::vector<char>& replace, const std::vector<char>& search, std::vector<std::string>& text)
-{
-	for (int z = 0; z < text.size(); ++z)
+void Table::Replace(const std::string& replace, const std::string& search, std::vector<std::string>& text)
+{	
+	for (std::string& thisText : text)
 	{
-		for (int i = 0; i < text[z].size(); ++i)
+		for (char& c : thisText)
 		{
-			for (int y = 0; y < search.size(); ++y)
+			size_t pos = search.find(c);
+			
+			if (pos != std::string::npos)
 			{
-				if (text[z][i] == search[y])
-				{
-					text[z][i] = replace[y];
-					break;
-				}
+				c = replace[pos];
 			}
 		}
 	}
 }
-
-//This is for 16 bits table. Need the replace function
-/*
-for (int i = 0; i < lines.size(); ++i)
-	{
-		std::string right_chars;
-		std::string left_chars;
-		std::string left_chars_bytes;
-
-		bool addNew = false;
-
-		for (int y = 0; y < lines[i].size(); ++y)
-		{
-			if (lines[i][y] != '=' && !addNew)
-			{
-				left_chars_bytes += lines[i][y];
-				continue;
-			}
-			else if(lines[i][y] == '=')
-			{
-				addNew = true;
-				continue;
-			}
-
-			if(addNew)
-				right_chars += lines[i][y];
-		}
-
-		if (i == 2)
-		{
-			std::string();
-		}
-
-		for (int y = 0; y < left_chars_bytes.size(); y += 2)
-		{
-			std::string this_bytes;
-			this_bytes += left_chars_bytes[y];
-			this_bytes += left_chars_bytes[y + 1];
-
-			char this_char = std::stoi(this_bytes, (size_t*)nullptr, 16);
-			left_chars += this_char;
-		}
-
-		//text[0].replace()
-
-		text[0] = left_chars + '=';
-		text[1] = right_chars;
-	}
-*/

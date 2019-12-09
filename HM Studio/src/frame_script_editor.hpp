@@ -14,6 +14,7 @@
 #include <wx/stc/stc.h>
 #include <wx/clipbrd.h>
 #include <wx/txtstrm.h>
+#include <wx/popupwin.h>
 
 #include "class_rom.hpp"
 #include "class_script.hpp"
@@ -26,10 +27,11 @@
 
 #include "frame_search_script.hpp"
 
+#include <chrono>
+
 #ifdef Testing
 #define HUNSPELL_STATIC
 
-#include <chrono>
 
 #include "include/hunspell/hunspell.hxx"
 
@@ -71,7 +73,8 @@ private:
 	void EVT_MENU_FindText(wxCommandEvent& event);
 	void EVT_MENU_FindNextText(wxCommandEvent& event);
 	void EVT_MENU_RestoreString(wxCommandEvent& event);
-
+	void OnMenuAlwaysOnTop(wxCommandEvent& event);
+	void OnCheckAllCode(wxCommandEvent& event);
 	void OnClosing(wxCloseEvent& event);
 
 //Text Editor Globals
@@ -80,6 +83,12 @@ private:
 	size_t m_typedMinPos;
 	size_t m_typedMaxPos;
 	bool m_endTyping;
+
+	size_t m_VarSize = 0;
+	std::string m_PlayerVar;
+	std::string m_FarmVar;
+
+	wxPopupWindow* m_pSTCMenu = nullptr;
 //STC Functions
 	inline void STCFindAll(wxStyledTextCtrl* stc, const size_t start, const size_t end, const std::string& toFind, std::vector<size_t>& output);
 	inline void HighlightAll(wxStyledTextCtrl* stc, std::vector<size_t>& pos, const size_t size, const int style);	
@@ -120,8 +129,9 @@ private:
 private:
 	void OpenScript();
 	void SaveScript();
-	void ExportScript();
+	void ExportScript();	
 	void UpdateScript();
+	void CheckAllCode();
 	void CheckAndGoScript(int index);
 	void GetTextFromScriptFile();
 	void FindText();
@@ -199,6 +209,7 @@ private:
 		ID_SCRIPT_NAV_PROX,
 		ID_SCRIPT_NAV_SAVE,
 		ID_SCRIPT_NAV_INSERT,
+		ID_SCRIPT_NAV_CODE,
 		ID_MENU_STRING_SAVE,
 		ID_MENU_STRING_PREV,
 		ID_MENU_STRING_PROX,

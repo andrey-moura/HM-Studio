@@ -38,7 +38,7 @@
     <ClCompile Include="src\class_rom.cpp" />
     <ClCompile Include="src\frame_item_editor.cpp" />
     <ClCompile Include="src\class_script.cpp" />
-    <ClCompile Include="src\OptionWindow.cpp" />
+    <ClCompile Include="src\class_option_window.cpp" />
     <ClCompile Include="src\Studio.cpp" />
     <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp" />
   </ItemGroup>
@@ -61,7 +61,7 @@
     <ClInclude Include="src\frame_tile_editor_parent.hpp" />
     <ClInclude Include="src\frame_item_editor.hpp" />
     <ClInclude Include="src\Images\delete_icon.h" />
-    <ClInclude Include="src\OptionWindow.hpp" />
+    <ClInclude Include="src\class_option_window.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
     <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\class_script.hpp" />
@@ -181,7 +181,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -189,7 +189,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(wxWIN)\include\msvc;$(wxWIN)\include</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

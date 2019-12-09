@@ -29,14 +29,37 @@ void StringUtil::FindAllOccurances(const std::vector<std::string>& str, const st
 	}
 }
 
+size_t StringUtil::FindFirstOf(const char* find, const std::string& target, const size_t startIndex)
+{
+	size_t npos = std::string::npos;
+
+	if (find == nullptr)
+		return npos;
+	if (target.size() == 0)
+		return npos;
+
+	size_t findSize = std::strlen(find);
+
+	size_t index = 0;
+
+	for (int i = 0; i < findSize; ++i)
+	{
+		size_t curIndex = target.find(find[i], startIndex);
+
+		if (curIndex < index && curIndex != npos)	index = curIndex;
+	}
+
+	return index;
+}
+
 void StringUtil::SplitLines(const std::string& s, std::vector<std::string>& output)
 {
-	const char endLine[2] = { 0x0a, 0x0d };
+	const char endLine[] = "\r\n";
 
 	size_t npos = std::string::npos;
 
 	for (size_t first = s.find_first_not_of(endLine, 0); first != npos; first = s.find_first_not_of(endLine, first))
-	{
+	{		
 		size_t last = s.find_first_of(endLine, first);		
 
 		output.push_back(s.substr(first, last != npos ? last - first : s.size() - first));

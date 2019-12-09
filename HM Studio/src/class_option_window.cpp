@@ -1,4 +1,4 @@
-#include "OptionWindow.hpp"
+#include "class_option_window.hpp"
 
 OptionWindow::OptionWindow() : wxFrame(nullptr, wxID_ANY, "Options")
 {

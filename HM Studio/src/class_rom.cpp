@@ -100,6 +100,8 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 	std::string playerVar;
 	std::string farmVar;
 
+	std::string endLine;
+
 	switch (Console)
 	{
 	case console::GBA:
@@ -111,6 +113,8 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 
 		playerVar = "<PlayerName>";
 		farmVar = "<FarmName  >";
+
+		endLine = "\r\n";
 		break;
 	case console::DS:
 		rawPlayer = "ÿ$";
@@ -120,6 +124,8 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 
 		playerVar = "<Player>";
 		//farm =   "Farm  ";
+
+		endLine = "\n";
 		break;
 	default:
 		return;
@@ -142,7 +148,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		StringUtil::Replace(player, playerVar, translated[i]);		
 		StringUtil::Replace(farm, farmVar, translated[i]);
 
-		StringUtil::Replace(std::string("|²"), std::string("|²\r\n"), translated[i]);
+		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, translated[i]);
 	}
 
 	for (int i = 0; i < original.size(); ++i)
@@ -150,7 +156,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		StringUtil::Replace(rawPlayer, playerVar, original[i]);
 		StringUtil::Replace(rawFarm, farmVar, original[i]);
 
-		StringUtil::Replace(std::string("|²"), std::string("|²\r\n"), original[i]);
+		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, original[i]);
 	}
 }
 
@@ -165,6 +171,8 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 	std::string playerVar;
 	std::string farmVar;
 
+	std::string endLine;
+
 	switch (Console)
 	{
 	case console::GBA:
@@ -176,6 +184,8 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 
 		playerVar = "<PlayerName>";
 		farmVar = "<FarmName  >";
+
+		endLine = "\r\n";
 		break;
 	case console::DS:
 		rawPlayer = "ÿ$";
@@ -183,8 +193,10 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 
 		player = "Player";
 
-		playerVar = "Player";
+		playerVar = "<Player>";
 		//farm =   "Farm  ";
+
+		endLine = "\n";
 		break;
 	default:
 		return;
@@ -195,7 +207,7 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 		StringUtil::Replace(playerVar, player, translated[i]);
 		StringUtil::Replace(farmVar, farm, translated[i]);
 
-		StringUtil::Replace("|²\r\n", "|²", translated[i]);
+		StringUtil::Replace("|²" + endLine, "|²", translated[i]);
 	}	
 
 	Table::OutPutTable(FileUtil::ReadAllText(GetTablePath()), translated);
@@ -204,15 +216,7 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 	{
 		StringUtil::Replace(player, rawPlayer, translated[i]);
 		StringUtil::Replace(farm, rawFarm, translated[i]);
-	}
-
-	if (Console == console::DS)
-	{
-		for (int i = 0; i < translated.size(); ++i)
-		{
-			StringUtil::Replace("\r\n", "\n", translated[i]);
-		}
-	}
+	}	
 }
 
 std::string Rom::GetScriptFullName(int num)
@@ -241,14 +245,12 @@ std::string Rom::GetScriptExportedFullPath(int num)
 }
 
 void Rom::ReadInt32(uint32_t& value)
-{	
-	value = 0;
+{		
 	this->Read(&value, 4);
 }
 
 void Rom::ReadPointer32(uint32_t& value)
-{
-	value = 0;
+{	
 	this->Read(&value, 3);
 }
 
@@ -261,6 +263,12 @@ void Rom::ReadBytes(std::vector<uint8_t>& bytes, size_t size)
 void Rom::WriteBytes(std::vector<uint8_t> bytes)
 {
 	this->Write(bytes.data(), bytes.size());
+	this->Flush();
+}
+
+void Rom::WriteBytes(const void* bytes, const size_t size)
+{
+	this->Write(bytes, size);
 	this->Flush();
 }
 
@@ -297,31 +305,32 @@ bool Rom::VerifyEmptyBlock(size_t size)
 	else return false;
 }
 
-int Rom::InsertScript(int number, std::vector<uint8_t>& bytes)
+int Rom::InsertScript(int number,  const Script& script)
 {
 	uint32_t offset = 0;
-	uint32_t size = 0;
+	uint32_t oldSize = 0;
+	uint32_t newSize = script.GetRiffLenght();
 	GetOffset(offset, number);
-	GetSize(offset, size);	
+	GetSize(offset, oldSize);
 
-	if (bytes.size() <= size)
+	if (newSize <= oldSize)
 	{
 		this->Seek(offset);
-		this->EraseBlock(size);
+		this->EraseBlock(oldSize);
 		this->Seek(offset);
-		this->WriteBytes(bytes);
+		this->WriteBytes(script.GetData(), newSize);
 
 		return 0;
 	}
-	else if(bytes.size() > size)
+	else if(newSize > oldSize)
 	{
-		int end_offset = offset + size;
+		int end_offset = offset + oldSize;
 		this->Seek(end_offset);
 
-		if (VerifyEmptyBlock(bytes.size() - size))
+		if (VerifyEmptyBlock(newSize - oldSize))
 		{
 			this->Seek(offset);
-			this->WriteBytes(bytes);
+			this->WriteBytes(script.GetData(), newSize);
 			return 1;
 		}
 		else {
@@ -357,24 +366,16 @@ void Rom::SetOffsets()
 
 void Rom::GetOffset(std::vector<uint32_t>& vector)
 {
-	std::vector<uint8_t> pointers;
-	pointers.resize(Offset.Script_count * 4, 0x00);
-
+	vector.resize(Offset.Script_count, 0x00);
 	this->Seek(Offset.Script_start_pointers);
+	this->Read(vector.data(), Offset.Script_count * 4);
 
-	this->Read(pointers.data(), Offset.Script_count * 4);
+	uint8_t* data = (uint8_t*)vector.data();
 
 	for (int i = 3; i < Offset.Script_count * 4; i += 4)
 	{
-		pointers[i] = 0x00;
-	}
-
-	vector.resize(Offset.Script_count, 0x00);
-
-	for (int i = 0; i < Offset.Script_count; ++i)
-	{
-		vector[i] = *((int*)pointers.data()) + (i * 4);
-	}
+		data[i] = 0x00;
+	}	
 }
 
 void Rom::GetOffset(uint32_t& value, int number)
@@ -421,17 +422,17 @@ void Rom::Dump()
 	{		
 		if (offsets[i] > 0 && sizes[i] > 0)
 		{
-			wxFile* script = new wxFile();
-			script->Create(GetScriptFullPath(i), true);
-			script->Open(GetScriptFullPath(i), wxFile::read_write);
+			wxFile script = wxFile();
+			script.Create(GetScriptFullPath(i), true);
+			script.Open(GetScriptFullPath(i), wxFile::read_write);
 
 			std::vector<uint8_t> scriptBytes;
 			scriptBytes.resize(sizes[i], 0x00);
 
 			this->Seek(offsets[i]);
 			this->Read(scriptBytes.data(), sizes[i]);
-			script->Write(scriptBytes.data(), sizes[i]);
-			script->Close();
+			script.Write(scriptBytes.data(), sizes[i]);
+			script.Close();
 		}
 	}
 }
