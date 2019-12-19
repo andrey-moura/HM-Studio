@@ -11,10 +11,11 @@ public:
 	FrameSearchScript();
 	~FrameSearchScript();
 
-	static enum SearchMode {
+	enum SearchMode {
 		Find = -500,
 		Replace,
-		ReplaceExtended
+		ReplaceExtended,
+		SearchInScripts
 	};
 
 	std::string find;
@@ -38,19 +39,18 @@ private:
 	wxStaticText* m_pGUI_replaceLabel = nullptr;
 	wxTextCtrl* m_pGUI_inputReplace = nullptr;
 	wxButton* m_pGUI_replaceAll = nullptr;
-	wxBoxSizer* m_pGUI_replaceSizer = nullptr;
+	wxBoxSizer* m_pGUI_replaceSizer = nullptr;	
 
 	wxRadioButton* m_pGUI_modeNormal = nullptr;
 	wxRadioButton* m_pGUI_modeExtended = nullptr;
 	wxStaticBoxSizer* m_pGUI_boxMode = nullptr;
 
 	wxCheckBox* m_pGUI_optionsCase = nullptr;
+	wxCheckBox* m_pGUI_InScript = nullptr;
 	wxStaticBoxSizer* m_pGUI_boxOptions = nullptr;
 
 	wxBoxSizer* m_pGUI_sizerConfig = nullptr;
 
-	wxBoxSizer* m_pGUI_sizerMain = nullptr;
-
-	//wxPanel* m_pGUI_mainPanel = nullptr;
+	wxBoxSizer* m_pGUI_sizerMain = nullptr;	
 };
 

@@ -40,6 +40,7 @@
     <ClCompile Include="src\class_script.cpp" />
     <ClCompile Include="src\class_option_window.cpp" />
     <ClCompile Include="src\Studio.cpp" />
+    <ClCompile Include="src\wxUtil\window_find_results.cpp" />
     <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +67,7 @@
     <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\class_script.hpp" />
     <ClInclude Include="src\Studio.h" />
+    <ClInclude Include="src\wxUtil\window_find_results.hpp" />
     <ClInclude Include="src\wxUtil\wxRefereceCheckBox.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

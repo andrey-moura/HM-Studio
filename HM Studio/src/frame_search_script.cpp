@@ -14,7 +14,10 @@ void FrameSearchScript::EVT_BTN_FindAllClick(wxCommandEvent& event)
 {
 	find = m_pGUI_inputFind->GetValue();
 	replace = m_pGUI_inputReplace->GetValue();	
-	this->EndModal(Find);
+	if (m_pGUI_InScript->GetValue())
+		this->EndModal(SearchInScripts);
+	else 
+		this->EndModal(Find);
 }
 
 void FrameSearchScript::EVT_BTN_ReplaceAllClick(wxCommandEvent& event)
@@ -30,6 +33,9 @@ void FrameSearchScript::EVT_BTN_ReplaceAllClick(wxCommandEvent& event)
 
 void FrameSearchScript::CreateGUIControls()
 {
+	this->SetFont(Studio::GetDefaultFont());
+	this->SetBackgroundColour(Studio::GetFrameColour());
+	this->SetForegroundColour(Studio::GetFontColour());
 	//m_pGUI_tableControl = new wxNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(400, 400));
 	//m_pGUI_tableControl->SetBackgroundColour(wxColour(255, 255, 255));
 
@@ -52,7 +58,7 @@ void FrameSearchScript::CreateGUIControls()
 	m_pGUI_sizer1 = new wxBoxSizer(wxHORIZONTAL);
 	m_pGUI_sizer1->Add(m_pGUI_findLabel, 0, wxALL, 0);
 	m_pGUI_sizer1->AddSpacer(4);
-	m_pGUI_sizer1->Add(m_pGUI_inputFind, 1, wxALL, 0);
+	m_pGUI_sizer1->Add(m_pGUI_inputFind, 1, wxALL | wxEXPAND, 0);
 	m_pGUI_sizer1->AddSpacer(4);
 	m_pGUI_sizer1->Add(m_pGUI_findAll, 0, wxALL, 0);
 
@@ -73,8 +79,12 @@ void FrameSearchScript::CreateGUIControls()
 	m_pGUI_optionsCase = new wxCheckBox(this, wxID_ANY, _("Match Case"));
 	m_pGUI_optionsCase->SetValue(false);
 
-	m_pGUI_boxOptions = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Options"));
+	m_pGUI_InScript = new wxCheckBox(this, wxID_ANY, _("In Script"));
+	m_pGUI_InScript->SetValue(false);
+
+	m_pGUI_boxOptions = new wxStaticBoxSizer(wxVERTICAL, this, _("Options"));
 	m_pGUI_boxOptions->Add(m_pGUI_optionsCase, 1, wxALL, 0);
+	m_pGUI_boxOptions->Add(m_pGUI_InScript, 1, wxALL, 0);
 
 	m_pGUI_sizerConfig = new wxBoxSizer(wxHORIZONTAL);
 	m_pGUI_sizerConfig->Add(m_pGUI_boxMode, 0, wxALL, 0);

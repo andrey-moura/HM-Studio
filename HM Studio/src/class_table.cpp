@@ -32,7 +32,7 @@ void Table::Split(std::string& right, std::string& left, const std::string &tabl
 	right.reserve(lines.size());
 	left.reserve(lines.size());
 
-	for (int i = 0; i < lines.size(); ++i)
+	for (size_t i = 0; i < lines.size(); ++i)
 	{
 		std::string left_char_byte;
 		left_char_byte.reserve(2);

@@ -25,7 +25,7 @@ Tile* Graphics::Decode()
 
 	int index = 0;
 
-	for (int i = 0; i < totalEncodedBytes; ++i)
+	for (size_t i = 0; i < totalEncodedBytes; ++i)
 	{
 		uint8_t byte = m_data[i];
 
@@ -69,7 +69,7 @@ wxImage Graphics::ToImage()
 
 		dc.DrawBitmap(wxBitmap(wxImage(8, 8, (uint8_t*)offset, true)), 0, 0);
 
-		for (int i = 0; i < (m_width * m_height) / 64; ++i)
+		for (size_t i = 0; i < (m_width * m_height) / 64; ++i)
 		{			
 			++offset;
 

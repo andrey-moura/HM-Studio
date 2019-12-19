@@ -8,6 +8,7 @@
 
 #define LINEERROR_MASK 0b00000001
 
+#define INDIC_FINDSTRING 1
 
 //#include "wx/wx.h"
 #include "wx/frame.h"
@@ -15,6 +16,8 @@
 #include <wx/clipbrd.h>
 #include <wx/txtstrm.h>
 #include <wx/popupwin.h>
+#include <wx/textbuf.h>
+#include <wx/process.h>
 
 #include "class_rom.hpp"
 #include "class_script.hpp"
@@ -24,10 +27,11 @@
 #include "class_util_wx_file.hpp"
 #include "class_util_string.hpp"
 #include "class_table.hpp"
-
 #include "frame_search_script.hpp"
+#include "wxUtil/window_find_results.hpp"
 
 #include <chrono>
+#include <sstream>
 
 #ifdef Testing
 #define HUNSPELL_STATIC
@@ -65,7 +69,7 @@ private:
 	void OnSaveTextClick(wxCommandEvent& event);
 	void OnPrevTextClick(wxCommandEvent& event);
 	void OnProxTextClick(wxCommandEvent& event);
-	void OnHorizontalModeCheck(wxCommandEvent& event);
+	void OnMenuHorizontalMode(wxCommandEvent& event);
 	void OnMenuGetTextFromScriptFile(wxCommandEvent& event);
 	void OnSaveScriptClick(wxCommandEvent& event);	
 	void OnInsertScriptClick(wxCommandEvent& event);
@@ -76,14 +80,17 @@ private:
 	void OnMenuAlwaysOnTop(wxCommandEvent& event);
 	void OnCheckAllCode(wxCommandEvent& event);
 	void OnClosing(wxCloseEvent& event);
-
+	void OnOpenInHexEditorClick(wxCommandEvent& event);
+	void OnSTCLeftDown(wxMouseEvent& event);
+	void OnResultClick(wxCommandEvent& event);	
+	void OnSetTextRange(wxCommandEvent& event);
 //Text Editor Globals
 	int m_maxLineLenght;
 	double m_lastTyped;
 	size_t m_typedMinPos;
 	size_t m_typedMaxPos;
-	bool m_endTyping;
-
+	bool m_endTyping;	
+	std::pair<int, int> m_IndicatorPos;
 	size_t m_VarSize = 0;
 	std::string m_PlayerVar;
 	std::string m_FarmVar;
@@ -132,7 +139,7 @@ private:
 	void ExportScript();	
 	void UpdateScript();
 	void CheckAllCode();
-	void CheckAndGoScript(int index);
+	void CheckAndGoScript(size_t index);
 	void GetTextFromScriptFile();
 	void FindText();
 
@@ -178,6 +185,7 @@ private:
 
 	void SetEditorVertical();
 	void SetEditorHorizontal();
+	bool m_Vertical = true;
 
 	wxMenuBar* menuBar = nullptr;
 	wxStatusBar* statusBar = nullptr;
@@ -186,7 +194,7 @@ private:
 	wxMenu* menuString = nullptr;
 	wxMenuItem* m_pMenuString_Restore = nullptr;
 	wxMenu* menuExport = nullptr;
-	wxMenu* menuEdit = nullptr;
+	wxMenu* menuEdit = nullptr; 
 	wxMenu* menuSearch = nullptr;
 	wxMenu* menuTools = nullptr;
 	wxMenu* menuOptions = nullptr;	
@@ -202,6 +210,13 @@ private:
 	wxBoxSizer* editor_buttons_sizer = nullptr;
 	wxStyledTextCtrl* tScriptOriginal = nullptr;
 
+	FindResultsWindow* m_pFindResultsWindow = nullptr;	
+
+	enum ID_MENU {
+
+		TOOLS_TEXTRANGE = 11000
+	};
+
 	enum ID {
 		ID_SCRIPT_NAV_INPUT = 10001,
 		ID_SCRIPT_NAV_GO,
@@ -216,5 +231,8 @@ private:
 		ID_MENU_STRING_RESTORE,
 		ID_MENU_EXPORT_SCRIPT,
 		ID_MENU_FIND_NEXT,		
+		ID_MENU_HVMODE,
+		ID_MENU_OPENHEX_ORIGINAL,
+		ID_MENU_OPENHEX_TRANSLATED,
 	};
 };

@@ -110,7 +110,7 @@ void cScriptEditor::ExportScript()
 {
 	std::string text;
 
-	for (int i = 0; i < textTranslated.size(); ++i)
+	for (size_t i = 0; i < textTranslated.size(); ++i)
 	{
 		text.append(textTranslated[i]);
 		text.append(std::string("\n---End text ").append(std::to_string(i).append("---\n")));
@@ -152,10 +152,10 @@ void cScriptEditor::CheckAllCode()
 	Script scriptOriginal;
 	Script scriptTranslated;
 
-	bool flag = true;
+	std::vector<std::pair<uint32_t, uint32_t>> wrong;
 
 	for (uint32_t i = 0; i < romOriginal.Offset.Script_count; ++i)
-	{		
+	{
 		romOriginal.Seek(offsetOriginal[i]);
 		romTranslated.Seek(offsetTranslated[i]);
 
@@ -169,13 +169,56 @@ void cScriptEditor::CheckAllCode()
 		scriptTranslated.SetData(bytesTranslated);
 
 		if (!scriptOriginal.CompareCode(scriptTranslated))
-			flag = false;
+		{
+			wrong.push_back(std::make_pair(i, offsetTranslated[i]));
+		}
+	}
+	
+	std::string eol = wxString(wxTextBuffer::GetEOL()).ToStdString();
+
+	if (wrong.size() > 0)
+	{
+		std::stringstream s;
+		s << "The following scripts have incorrect code: " << eol << eol;
+
+		for (size_t i = 0; i < wrong.size(); ++i)
+		{
+			char buffer[8];
+			sprintf(buffer, "%x", wrong[i].second);
+			s << "Script " << std::to_string(wrong[i].first) << " at offset 0x" << std::string(buffer) << eol;
+		}
+
+		s << eol  << "Please, open these scripts and run script checker to get more information." << eol;
+
+		wxFileName fileName(wxStandardPaths::Get().GetExecutablePath());
+		fileName.AppendDir(romOriginal.Name);
+		fileName.AppendDir("Script");
+		fileName.AppendDir("Check");
+
+		fileName.SetExt("txt");
+		fileName.SetName("code");
+
+		if (!fileName.DirExists())
+			fileName.Mkdir();
+
+		std::string path = fileName.GetFullPath().ToStdString();
+
+		wxFile file;
+		file.Create(path, true);
+		file.Open(path, wxFile::read_write);
+		file.Write(s.str());
+
+		s << "A file on " << path << " was created.";
+
+		wxMessageBox(wxString(s.str()), wxMessageBoxCaptionStr, 5L, this);
+
+		return;
 	}
 
-	wxMessageBox(wxString() << (flag ? "True" : "False"));
+	wxMessageBox(wxString("All scripts in this ROM are working"), wxMessageBoxCaptionStr, 5L, this);
 }
 
-void cScriptEditor::CheckAndGoScript(int index)
+void cScriptEditor::CheckAndGoScript(size_t index)
 {
 	if (index >= 0 && index < romOriginal.Offset.Script_count)
 	{
@@ -199,8 +242,8 @@ void cScriptEditor::GetTextFromScriptFile()
 	if (openFile.ShowModal() == wxID_CANCEL)
 		return;	
 
-	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(openFile.GetPath().ToStdString());	
-	Script script = Script();
+	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(openFile.GetPath().ToStdString());
+	Script script;
 	script.SetData(bytes);
 
 	if (script.size() != scriptOriginal.size())
@@ -209,9 +252,11 @@ void cScriptEditor::GetTextFromScriptFile()
 		return;
 	}		
 	
-	std::vector<std::string> textTranslated = script.GetText();
+	textTranslated = script.GetText();
 		
-	romTranslated.InputTextWithVariables(textOriginal, textTranslated);	
+	std::vector<std::string> buffer;
+
+	romTranslated.InputTextWithVariables(buffer, textTranslated);
 	
 	index = 0;
 	UpdateText();
@@ -219,15 +264,15 @@ void cScriptEditor::GetTextFromScriptFile()
 
 void cScriptEditor::FindText()
 {
-	FrameSearchScript* search_text = new FrameSearchScript();
+	FrameSearchScript search_text;
 
-	int result = search_text->ShowModal();
+	int result = search_text.ShowModal();	
 
 	if (result == FrameSearchScript::SearchMode::Find)
 	{
 		m_indexesString.clear();
 		m_curIndexString = 0;
-		StringUtil::FindAllOccurances(textOriginal, search_text->find, m_indexesString);
+		StringUtil::FindAllOccurances(textOriginal, search_text.find, m_indexesString);
 
 		UpdateText();
 	}
@@ -235,24 +280,68 @@ void cScriptEditor::FindText()
 	{
 		if (result == FrameSearchScript::SearchMode::ReplaceExtended)
 		{
-			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text->find);
-			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text->replace);
-			StringUtil::Replace("\\r", "\r", search_text->replace);
-			StringUtil::Replace("\\r", "\r", search_text->find);
+			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text.find);
+			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text.replace);
+			StringUtil::Replace("\\r", "\r", search_text.replace);
+			StringUtil::Replace("\\r", "\r", search_text.find);
 		}
 
-		for (int i = 0; i < textTranslated.size(); ++i)
+		for (size_t i = 0; i < textTranslated.size(); ++i)
 		{
 			m_indexesString.clear();
 			m_curIndexString = 0;
-			StringUtil::Replace(search_text->find, search_text->replace, textTranslated[i]);
+			StringUtil::Replace(search_text.find, search_text.replace, textTranslated[i]);
 		}
 
 		UpdateText();
 	}
+	else if (result == FrameSearchScript::SearchInScripts)
+	{
+		std::vector<FindResult> results;
 
-	search_text->Destroy();
-	delete search_text;
+		for (int i = 0; i < romOriginal.Offset.Script_count; ++i)
+		{			
+			std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(i));
+
+			Script script;
+			script.SetData(bytes);
+
+			if (!script.HaveText())
+			{
+				continue;
+			}
+
+			std::vector<std::string> text = script.GetText();
+
+			FindResult findResult;
+			findResult.m_Path = romTranslated.GetScriptFullName(i);
+			findResult.m_Id = i;
+
+			for (size_t x = 0; x < text.size(); ++x)
+			{
+				size_t index = text[x].find(search_text.find);				
+
+				while (index != std::string::npos)
+				{
+					findResult.m_Hits.push_back(x);
+					index = text[x].find(search_text.find, index + search_text.find.size());
+				}
+			}
+
+			if (findResult.m_Hits.size() > 0)
+				results.push_back(findResult);
+		}
+
+		if (!m_pFindResultsWindow)
+		{
+			m_pFindResultsWindow = new FindResultsWindow(this, wxID_ANY);
+			m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+			global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
+		}		
+		m_pFindResultsWindow->SetResultsInfo(search_text.find, romOriginal.Offset.Script_count, results);
+		m_pFindResultsWindow->Show();
+		Layout();		
+	}
 }
 
 void cScriptEditor::tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event)
@@ -389,16 +478,12 @@ void cScriptEditor::OnProxTextClick(wxCommandEvent& event)
 	ProxText();
 }
 
-void cScriptEditor::OnHorizontalModeCheck(wxCommandEvent& event)
+void cScriptEditor::OnMenuHorizontalMode(wxCommandEvent& event)
 {
-	//if (options_nav_horizontal->IsChecked())
-	/*{
-		SetEditorHorizontal();
-	}
-	else
-	{
-		SetEditorVertical();
-	}*/	
+	if (m_Vertical) SetEditorHorizontal();
+	else SetEditorVertical();
+
+	m_Vertical = !m_Vertical;
 
 	event.Skip();
 }
@@ -424,7 +509,7 @@ void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
 void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 {
 	SaveScript();
-	/*switch (romTranslated.InsertScript(scriptNum, scriptTranslated.data))
+	switch (romTranslated.InsertScript(scriptNum, scriptTranslated))
 	{
 	case 0:
 		wxMessageBox(_("Script inserted with no changes."), "Yeah!", 5L, this);
@@ -437,7 +522,7 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 		break;
 	default:
 		break;
-	}	*/
+	}
 }
 
 void cScriptEditor::OnExportScript(wxCommandEvent& event)
@@ -488,6 +573,91 @@ void cScriptEditor::OnClosing(wxCloseEvent& event)
 	event.Skip();
 }
 
+void cScriptEditor::OnOpenInHexEditorClick(wxCommandEvent& event)
+{
+	wxString arg = "C:\\Romhacking\\Winhex\\winhex.exe \"";
+
+	if (event.GetId() == ID_MENU_OPENHEX_ORIGINAL)
+		arg << romOriginal.GetScriptFullPath(scriptNum);
+	else 
+		arg << romTranslated.GetScriptFullPath(scriptNum);
+
+	arg << "\"";
+
+	wxProcess::Open(arg);
+
+	event.Skip();
+}
+
+void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
+{
+	if (m_IndicatorPos.first != -1)
+	{
+		tScriptTranslated->IndicatorClearRange(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
+		m_IndicatorPos.first = -1;
+	}
+	event.Skip();
+}
+
+void cScriptEditor::OnResultClick(wxCommandEvent& event)
+{	
+	FindResult* result = (FindResult*)event.GetClientData();
+
+	CheckAndGoScript(result->m_Id);
+
+	size_t findIndex = event.GetInt();
+	
+	index = findIndex;
+	UpdateText();
+
+	wxString find = event.GetString();
+		
+	m_IndicatorPos = std::make_pair(tScriptTranslated->FindText(0, tScriptTranslated->GetTextLength(), find), find.size());
+
+	if (m_IndicatorPos.first != -1)
+	{		
+		tScriptTranslated->SetIndicatorCurrent(INDIC_FINDSTRING);
+		tScriptTranslated->IndicatorFillRange(m_IndicatorPos.first, m_IndicatorPos.second);
+		tScriptTranslated->SetSelection(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
+	}
+
+	event.Skip();
+}
+
+void cScriptEditor::OnSetTextRange(wxCommandEvent& event)
+{
+	wxDialog* dialog = new wxDialog(nullptr, wxID_ANY, "Select range");
+	dialog->SetFont(Studio::GetDefaultFont());
+	dialog->SetForegroundColour(Studio::GetFontColour());	
+	dialog->SetBackgroundColour(Studio::GetFrameColour());
+
+	wxStaticText* dialog_LabelFrom = new wxStaticText(dialog, wxID_ANY, "From: ");
+	wxTextCtrl* dialog_InputFrom = new wxTextCtrl(dialog, wxID_ANY);
+
+	wxBoxSizer* dialog_FromSizer = new wxBoxSizer(wxHORIZONTAL);
+	dialog_FromSizer->AddSpacer(4);
+	dialog_FromSizer->Add(dialog_LabelFrom, 0, wxEXPAND, 0);
+	dialog_FromSizer->AddSpacer(4);
+	dialog_FromSizer->Add(dialog_InputFrom, 0, wxEXPAND, 0);
+
+	wxStaticText* dialog_LabelTo = new wxStaticText(dialog, wxID_ANY, "To: ");
+	wxTextCtrl* dialog_InputTo = new wxTextCtrl(dialog, wxID_ANY);
+
+	wxBoxSizer* dialog_ToSizer = new wxBoxSizer(wxHORIZONTAL);
+	dialog_FromSizer->AddSpacer(4);
+	dialog_FromSizer->Add(dialog_LabelTo, 0, wxEXPAND, 0);
+	dialog_FromSizer->AddSpacer(4);
+	dialog_FromSizer->Add(dialog_InputTo, 0, wxEXPAND, 0);
+
+	wxBoxSizer* dialog_RootSizer = new wxBoxSizer(wxVERTICAL);
+	dialog_RootSizer->Add(dialog_FromSizer, 1, wxEXPAND, 0);
+	dialog_RootSizer->Add(dialog_ToSizer, 1, wxEXPAND, 0);
+
+	dialog->SetSizer(dialog_RootSizer);
+
+	event.Skip();
+}
+ 
 inline void cScriptEditor::VerifyLineLenght(wxStyledTextCtrl* stc, int line)
 {	
 	int lenght = stc->GetLineLength(line);
@@ -581,12 +751,16 @@ void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
 	stc->StyleSetForeground(VarStyle, wxColour(86, 156, 214));
 	stc->StyleSetForeground(SimbolStyle, wxColour(78, 201, 176));
 
-	stc->MarkerDefineBitmap(0, m_DeleteIcon);
+	stc->MarkerDefineBitmap(0, m_DeleteIcon);	
 
 	stc->SetMarginWidth(0, 32);	
 	stc->SetMarginType(0, wxSTC_MARGIN_NUMBER);		
 	stc->SetCaretForeground(Studio::GetFontColour());
 
+	stc->IndicatorSetStyle(INDIC_FINDSTRING, wxSTC_INDIC_ROUNDBOX);
+	stc->IndicatorSetForeground(INDIC_FINDSTRING, wxColour(17, 61, 111));
+	stc->IndicatorSetUnder(INDIC_FINDSTRING, true);
+	stc->IndicatorSetAlpha(INDIC_FINDSTRING, 255);
 	stc->IndicatorSetStyle(0, wxSTC_INDIC_SQUIGGLE);
 
 	//stc->Bind(wxEVT_STC_)
@@ -769,8 +943,11 @@ void cScriptEditor::CreateGUIControls()
 	menuTools = new wxMenu();
 	menuTools->Append(wxID_ANY, "Check All Pointers");
 	menuTools->Append(wxID_ANY, "Check All Codes");
+	menuTools->Append(ID_MENU::TOOLS_TEXTRANGE, "Set Text And Insert Script Range");
 	menuTools->Append(wxID_ANY, "Show Previwer");
 	menuTools->Append(wxID_ANY, "Show One By One");
+	menuTools->Append(ID_MENU_OPENHEX_ORIGINAL, "Open Original Hex Editor");
+	menuTools->Append(ID_MENU_OPENHEX_TRANSLATED, "Open Translated Hex Editor");
 	menuBar->Append(menuTools, "Tools");
 
 	menuExport = new wxMenu();
@@ -780,11 +957,11 @@ void cScriptEditor::CreateGUIControls()
 
 	menuOptions = new wxMenu();
 	menuOptions->AppendCheckItem(wxID_TOP, "Always On Top");
+	menuOptions->Append(ID_MENU_HVMODE, "Horizontal Mode");
 	menuBar->Append(menuOptions, "Options");
 
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuGetTextFromScriptFile, this, wxID_OPEN);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveScriptClick, this, wxID_SAVE);
-
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
@@ -793,6 +970,10 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindNextText, this, ID_MENU_FIND_NEXT);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_RestoreString, this, ID_MENU_STRING_RESTORE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuAlwaysOnTop, this, wxID_TOP);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuHorizontalMode, this, ID_MENU_HVMODE);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnOpenInHexEditorClick, this, ID_MENU_OPENHEX_ORIGINAL);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnOpenInHexEditorClick, this, ID_MENU_OPENHEX_TRANSLATED);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSetTextRange, this, ID_MENU::TOOLS_TEXTRANGE);
 
 	SetMenuBar(menuBar);
 
@@ -828,7 +1009,7 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
-	
+	tScriptTranslated->Bind(wxEVT_LEFT_DOWN, &cScriptEditor::OnSTCLeftDown, this);
 #ifdef Testing
 	tScriptTranslated->Bind(wxEVT_STC_CHARADDED, &cScriptEditor::tScriptTranslatedCharAdded, this);
 #endif // Testing
@@ -852,10 +1033,10 @@ void cScriptEditor::CreateGUIControls()
 	editor_sizer = new wxBoxSizer(wxVERTICAL);
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
-	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
-	
+	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);	
+
 	global_sizer = new wxBoxSizer(wxVERTICAL);
-	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 5);
+	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 5);	
 
 	/*m_pSTCMenu = new wxPopupWindow(this);
 	m_pSTCMenu->SetPosition();

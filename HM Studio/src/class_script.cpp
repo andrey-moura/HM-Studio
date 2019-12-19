@@ -43,9 +43,9 @@ std::vector<std::string> Script::GetText()
 {
 	std::vector<std::string> text;	
 
-	int this_size = 0;
+	size_t this_size = 0;
 
-	for (int i = 0; i < *m_pStrCount; ++i)
+	for (size_t i = 0; i < *m_pStrCount; ++i)
 	{
 		this_size = 0;
 		uint8_t* pointer = m_pStrPointers[i] + m_pStartText;

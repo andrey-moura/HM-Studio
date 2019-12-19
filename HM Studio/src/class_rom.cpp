@@ -131,11 +131,10 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		return;
 	}
 
-	for (int i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < translated.size(); ++i)
 	{
-		StringUtil::Replace(rawPlayer, player, translated[i]);
-		if (Console != console::DS)
-			StringUtil::Replace(rawFarm, farm, translated[i]);
+		StringUtil::Replace(rawPlayer, player, translated[i]);		
+		StringUtil::Replace(rawFarm, farm, translated[i]);
 	}
 
 	std::string table_path = GetTablePath();
@@ -143,7 +142,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 	if (wxFile::Exists(table_path))
 		Table::InputTable(FileUtil::ReadAllText(table_path), translated);
 
-	for (int i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < translated.size(); ++i)
 	{
 		StringUtil::Replace(player, playerVar, translated[i]);		
 		StringUtil::Replace(farm, farmVar, translated[i]);
@@ -151,7 +150,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, translated[i]);
 	}
 
-	for (int i = 0; i < original.size(); ++i)
+	for (size_t i = 0; i < original.size(); ++i)
 	{
 		StringUtil::Replace(rawPlayer, playerVar, original[i]);
 		StringUtil::Replace(rawFarm, farmVar, original[i]);
@@ -202,7 +201,7 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 		return;
 	}
 
-	for (int i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < translated.size(); ++i)
 	{
 		StringUtil::Replace(playerVar, player, translated[i]);
 		StringUtil::Replace(farmVar, farm, translated[i]);
@@ -212,7 +211,7 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 
 	Table::OutPutTable(FileUtil::ReadAllText(GetTablePath()), translated);
 
-	for (int i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < translated.size(); ++i)
 	{
 		StringUtil::Replace(player, rawPlayer, translated[i]);
 		StringUtil::Replace(farm, rawFarm, translated[i]);
@@ -357,7 +356,7 @@ void Rom::SetOffsets()
 		break;
 	case id::DS:
 		Offset.Script_start_pointers = 0x24C2E04;
-		Offset.Script_count = 1296;
+		Offset.Script_count = 1296 - 1;//I don't know what happened, but the ROM is missing the last script...
 		break;
 	default:
 		break;
@@ -372,17 +371,24 @@ void Rom::GetOffset(std::vector<uint32_t>& vector)
 
 	uint8_t* data = (uint8_t*)vector.data();
 
-	for (int i = 3; i < Offset.Script_count * 4; i += 4)
+	for (size_t i = 0; i < Offset.Script_count; ++i)
 	{
-		data[i] = 0x00;
-	}	
+		if (Console == console::DS)
+			vector[i] += (Offset.Script_start_pointers - 4);
+		else
+			vector[i] -= 0x08000000;
+	}
 }
 
 void Rom::GetOffset(uint32_t& value, int number)
-{
-	value = 0;
-	this->Seek(Offset.Script_start_pointers + (number * 4));
-	ReadPointer32(value);
+{	
+	this->Seek((long long)Offset.Script_start_pointers + (number * 4));
+	ReadInt32(value);
+
+	if (Console == console::DS)
+		value += (Offset.Script_start_pointers - 4);
+	else
+		value -= 0x08000000;
 }
 
 void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
@@ -392,7 +398,7 @@ void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
 	uint32_t riff = 0x46464952;
 	uint32_t riff_in = 0;
 
-	for (int i = 0; i < Offset.Script_count; ++i)
+	for (size_t i = 0; i < Offset.Script_count; ++i)
 	{
 		this->Seek(offsets[i]);
 
@@ -406,7 +412,7 @@ void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
 }
 void Rom::GetSize(uint32_t offset, uint32_t& output)
 {
-	this->Seek(offset + 4);
+	this->Seek((long long)offset + 4);
 	ReadInt32(output);
 }
 

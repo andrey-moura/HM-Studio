@@ -20,7 +20,7 @@ void StringUtil::FindAllOcurrances(std::string* start, std::size_t count, const 
 
 void StringUtil::FindAllOccurances(const std::vector<std::string>& str, const std::string& toSearch, std::vector<size_t>& output)
 {
-	for (int i = 0; i < str.size(); ++i)
+	for (size_t i = 0; i < str.size(); ++i)
 	{
 		size_t pos = str[i].find(toSearch);
 
@@ -42,7 +42,7 @@ size_t StringUtil::FindFirstOf(const char* find, const std::string& target, cons
 
 	size_t index = 0;
 
-	for (int i = 0; i < findSize; ++i)
+	for (size_t i = 0; i < findSize; ++i)
 	{
 		size_t curIndex = target.find(find[i], startIndex);
 

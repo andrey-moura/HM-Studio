@@ -77,7 +77,7 @@ void LogFile::WriteLine(const std::vector<uint8_t>& vector, LogLevel level)
 
 	stream << "vector = { ";
 
-	for (int i = 0; i < vector.size(); ++i)	
+	for (size_t i = 0; i < vector.size(); ++i)
 	{
 		stream << std::setw(2) << (unsigned)vector[i];
 		stream << ", ";
