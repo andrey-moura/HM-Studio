@@ -12,7 +12,7 @@ public:
 	Script();
 	~Script();	
 
-	void SetData(std::vector<uint8_t>& bytes);
+	void SetData(const std::vector<uint8_t>& bytes);
 	bool CompareCode(const Script& other);
 private:
 	//RIFF
@@ -33,7 +33,14 @@ private:
 	uint8_t* m_pStartText = nullptr;	
 private:	
 	//Calculates the pointers
-	void GetPointers();	
+	void GetPointers();
+	//const char* CStringAt(size_t index) { return (const char*)(m_pStartText + m_pStrPointers[index]); }
+//Operators
+public:
+	//No checking!
+	std::string operator[](int index) const;
+	bool operator==(const Script& other) const;
+	bool operator!=(const Script& other) const;
 public:
 	//Gets the text of this script.
 	std::vector<std::string> GetText();	
@@ -43,5 +50,5 @@ public:
 	uint32_t GetRiffLenght() const { return *m_pRiffLenght; }
 	//Take care
 	uint8_t* GetData() const { return m_data; }
-	int size();
+	size_t Count();
 };

@@ -243,9 +243,73 @@ std::string Rom::GetScriptExportedFullPath(int num)
 	return exportedScriptPath.GetFullPath().ToStdString();
 }
 
-void Rom::ReadInt32(uint32_t& value)
+int8_t Rom::ReadInt8()
+{
+	int8_t value = 0;
+	this->Read(&value, 1);
+	return value;
+}
+
+int16_t Rom::ReadInt16()
+{
+	int16_t value = 0;
+	this->Read(&value, 2);
+	return value;
+}
+
+int32_t Rom::ReadInt32()
 {		
+	int32_t value = 0;
 	this->Read(&value, 4);
+	return value;
+}
+
+uint8_t Rom::ReadUInt8()
+{
+	uint8_t value = 0;
+	this->Read(&value, 1);
+	return value;
+}
+
+uint16_t Rom::ReadUInt16()
+{
+	uint16_t value = 0;
+	this->Read(&value, 2);
+	return value;
+}
+
+uint16_t Rom::ReadUInt16(uint32_t off)
+{
+	this->Seek(off);
+	return ReadUInt16();
+}
+
+uint32_t Rom::ReadUInt32()
+{
+	uint32_t value = 0;
+	this->Read(&value, 4);
+	return value;
+}
+
+std::string Rom::ReadString()
+{
+	size_t size = 0;
+
+	while (this->ReadInt8() != 0x00) //Less memory alocation, but slow
+	{	
+		size++;
+	}
+
+	if (size == 0)
+		return std::string();
+
+	std::string string;
+	string.resize(size);
+
+	this->Seek(this->Tell() - size - 1);
+	this->Read(string.data(), size);
+
+	return string;
 }
 
 void Rom::ReadPointer32(uint32_t& value)
@@ -383,7 +447,7 @@ void Rom::GetOffset(std::vector<uint32_t>& vector)
 void Rom::GetOffset(uint32_t& value, int number)
 {	
 	this->Seek((long long)Offset.Script_start_pointers + (number * 4));
-	ReadInt32(value);
+	value = ReadUInt32();
 
 	if (Console == console::DS)
 		value += (Offset.Script_start_pointers - 4);
@@ -413,7 +477,7 @@ void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
 void Rom::GetSize(uint32_t offset, uint32_t& output)
 {
 	this->Seek((long long)offset + 4);
-	ReadInt32(output);
+	output = ReadUInt32();
 }
 
 
@@ -441,4 +505,16 @@ void Rom::Dump()
 			script.Close();
 		}
 	}
+}
+
+void Rom::BackupRom(const std::string& inform)
+{
+	wxFileName destination(Path);
+	destination.AppendDir("Backup");
+	destination.SetName(inform);
+	
+	if (!destination.DirExists())
+		destination.Mkdir();
+
+	wxCopyFile(Path, destination.GetFullPath(), true);	
 }

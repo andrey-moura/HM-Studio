@@ -1,0 +1,232 @@
+#include "tabctrl.hpp"
+
+wxDEFINE_EVENT(wxEVT_TAB_CLICK, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_TAB_CHANGE, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_TAB_CLOSE, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_TAB_CLOSED, wxCommandEvent);
+
+uint8_t* wxTab::m_pIconrgb = new uint8_t[363]{ 0xb5, 0x9f, 0xc0, 0xb2, 0x8d, 0xab, 0xb0, 0x83, 0x9f, 0xaf, 0x7f, 0x9b, 0xaf, 0x7b, 0x97, 0xaf, 0x79, 0x95, 0xae, 0x78, 0x93, 0xad, 0x74, 0x8f, 0xac, 0x6f, 0x89, 0xaa, 0x67, 0x81, 0xa7, 0x81, 0xa2, 0xb2, 0x8f, 0xae, 0xb3, 0x97, 0xb7, 0xb1, 0x8c, 0xab, 0xb0, 0x85, 0xa3, 0xb0, 0x81, 0x9f, 0xaf, 0x7e, 0x9b, 0xaf, 0x7c, 0x9a, 0xae, 0x79, 0x95, 0xad, 0x73, 0x8f, 0xab, 0x6b, 0x86, 0x9b, 0x5f, 0x7b, 0xb0, 0x85, 0xa2, 0xb2, 0x8d, 0xac, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xae, 0x79, 0x97, 0xae, 0x75, 0x91, 0xad, 0x71, 0x8c, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xab, 0x69, 0x84, 0x9b, 0x61, 0x7d, 0xb0, 0x7f, 0x9c, 0xb1, 0x86, 0xa3, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xae, 0x71, 0x8c, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xab, 0x69, 0x83, 0x9d, 0x63, 0x7f, 0xaf, 0x7b, 0x97, 0xb0, 0x81, 0x9e, 0xb0, 0x7d, 0x9b, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xad, 0x67, 0x7e, 0xac, 0x69, 0x80, 0x9f, 0x62, 0x7e, 0xaf, 0x78, 0x93, 0xb0, 0x7d, 0x9b, 0xb0, 0x7d, 0x9a, 0xaf, 0x79, 0x96, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xae, 0x6a, 0x80, 0xae, 0x69, 0x7d, 0xad, 0x68, 0x7e, 0x9e, 0x61, 0x7c, 0xae, 0x74, 0x8d, 0xaf, 0x7b, 0x97, 0xb0, 0x7c, 0x99, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb1, 0x6b, 0x7d, 0xaf, 0x68, 0x7c, 0xa1, 0x61, 0x7a, 0xae, 0x70, 0x88, 0xaf, 0x78, 0x92, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb1, 0x78, 0x8d, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb0, 0x68, 0x78, 0xa2, 0x60, 0x76, 0xae, 0x6e, 0x84, 0xb0, 0x76, 0x8d, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb1, 0x79, 0x90, 0xb2, 0x77, 0x8b, 0xb3, 0x75, 0x86, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb1, 0x67, 0x75, 0xa3, 0x5f, 0x72, 0xac, 0x6b, 0x7e, 0xae, 0x71, 0x86, 0xaf, 0x76, 0x8c, 0xaf, 0x76, 0x8c, 0xaf, 0x75, 0x8a, 0xb0, 0x74, 0x87, 0xb1, 0x72, 0x83, 0xb2, 0x6e, 0x7d, 0xb2, 0x6a, 0x78, 0xaf, 0x65, 0x73, 0x9f, 0x5d, 0x72, 0xac, 0x8c, 0xa6, 0x9e, 0x67, 0x7d, 0x9f, 0x6b, 0x80, 0x9f, 0x6b, 0x81, 0xa0, 0x6a, 0x80, 0xa1, 0x6a, 0x7e, 0xa4, 0x69, 0x7b, 0xa4, 0x66, 0x79, 0xa3, 0x63, 0x75, 0xa1, 0x60, 0x73, 0xa6, 0x84, 0xa1 };
+
+wxTab::wxTab(const std::string& title, wxWindow* parent, wxWindowID id) : wxWindow(parent, id), m_Title(title)
+{		
+	CreateGUIControls();
+	DoBinds();
+}
+
+void wxTab::CreateGUIControls()
+{
+	m_TitleLabel = new wxStaticText(this, wxID_ANY, m_Title);
+	m_CloseButton = new wxBitmapButton(this, wxID_ANY, wxBitmap(wxImage(11, 11, m_pIconrgb, true)));
+	m_CloseButton->SetMinSize(wxSize(11, 11));
+
+	wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
+	mainSizer->Add(m_TitleLabel);
+	mainSizer->AddSpacer(4);
+	mainSizer->Add(m_CloseButton);
+	this->SetSizer(mainSizer);
+	mainSizer->SetSizeHints(this);
+	mainSizer->Fit(this);
+
+	this->SetMinSize(wxSize(this->GetMinWidth(), 24));	
+}
+
+void wxTab::DoBinds()
+{
+	this->Bind(wxEVT_LEFT_DOWN, &wxTab::OnTabLeftClick, this);
+	this->Bind(wxEVT_BUTTON, &wxTab::OnCloseClick, this);
+	m_TitleLabel->Bind(wxEVT_LEFT_DOWN, &wxTab::OnTabLeftClick, this);
+}
+
+void wxTab::OnTabLeftClick(wxMouseEvent& event)
+{
+	wxCommandEvent toSend(wxEVT_TAB_CLICK, this->GetId());
+	toSend.SetEventObject(this);
+	toSend.SetInt(m_Index);
+	ProcessWindowEvent(toSend);
+
+	event.Skip();
+
+}
+
+void wxTab::OnCloseClick(wxCommandEvent& event)
+{
+	wxCommandEvent toSend(wxEVT_TAB_CLOSE, this->GetId());
+	toSend.SetEventObject(this);
+	toSend.SetInt(m_Index);
+	ProcessWindowEvent(toSend);
+	event.Skip();
+}
+
+wxTabControl::wxTabControl(wxWindow* parent, wxWindowID id) : wxWindow(parent, id), m_pParent(parent)
+{
+	m_SelColor = wxColour(240, 240, 240);
+	m_UnSelColor = wxColour(192, 192, 192);	
+
+	DoBinds();
+
+	CreateGUIControls();
+}
+
+void wxTabControl::CreateGUIControls()
+{
+	m_RootSizer = new wxBoxSizer(wxHORIZONTAL);
+	this->SetSizer(m_RootSizer);
+}
+
+void wxTabControl::AddTab(const std::string& title)
+{
+	wxTab* newTab = new wxTab(title, this, wxID_ANY);
+	newTab->Bind(wxEVT_TAB_CLICK, &wxTabControl::OnTabClick, this);
+	newTab->Bind(wxEVT_TAB_CLOSE, &wxTabControl::OnTabClose, this);
+	
+	size_t curIndex = m_Tabs.size();
+	
+	newTab->m_Index = curIndex;
+
+	m_RootSizer->Add(newTab);
+	Layout();
+
+	m_Tabs.push_back(newTab);
+		
+	SelectTab(curIndex);
+}
+
+void wxTabControl::ChangeCurTabColor()
+{
+	if (m_CurTab == -1)
+		return;
+
+	m_Tabs[m_CurTab]->SetBackgroundColour(m_SelColor);	
+	m_Tabs[m_CurTab]->Refresh();
+}
+
+void wxTabControl::ChangeToUnSelColor(size_t index)
+{
+	if(index > m_Tabs.size())
+		return;
+
+	m_Tabs[index]->SetBackgroundColour(m_UnSelColor);
+	m_Tabs[index]->Refresh();
+}
+
+void wxTabControl::SetSelColor(const wxColour& color)
+{
+	m_SelColor = color;
+	ChangeCurTabColor();
+}
+
+wxColour wxTabControl::GetSelColor()
+{
+	return m_SelColor;
+}
+
+void wxTabControl::SetUnSelColor(const wxColour& color)
+{
+	m_UnSelColor = color;
+}
+
+wxColour wxTabControl::GetUnSelColor()
+{
+	return m_UnSelColor;
+}
+
+void wxTabControl::ChangeAllUnSelColor()
+{
+	for (size_t i = 0; i < m_Tabs.size(); ++i)
+	{
+		if (i != m_CurTab)
+			ChangeToUnSelColor(i);
+	}
+}
+
+void wxTabControl::SelectTab(size_t index)
+{	
+	if (index > m_Tabs.size())
+		return;
+
+	SendChangeTabEvent(new std::pair<size_t, size_t>(m_CurTab, index));
+
+	ChangeToUnSelColor(m_CurTab);
+	m_CurTab = index;
+	ChangeCurTabColor();
+}
+
+void wxTabControl::SetDefaultTitle(const std::string& title)
+{
+	m_DefaultTitle = title;
+}
+
+void wxTabControl::DoBinds()
+{
+	this->Bind(wxEVT_LEFT_DCLICK, &wxTabControl::OnControlDoubleClick, this);		
+}
+
+void wxTabControl::OnControlDoubleClick(wxMouseEvent& event)
+{	
+	if (m_UserCanAdd)
+		AddTab(m_DefaultTitle);
+	event.Skip();
+}
+
+void wxTabControl::SendChangeTabEvent(std::pair<size_t, size_t>* fromTo)
+{
+	wxCommandEvent toSend(wxEVT_TAB_CHANGE, GetId());
+	toSend.SetEventObject(this);
+	toSend.SetClientData(fromTo);
+	ProcessWindowEvent(toSend);
+}
+
+void wxTabControl::OnTabClick(wxCommandEvent& event)
+{
+	size_t index = event.GetInt();
+
+	if (index == m_CurTab)
+		return;	
+
+	SelectTab(event.GetInt());
+	event.Skip();
+}
+
+void wxTabControl::OnTabClose(wxCommandEvent& event)
+{	
+	CallAfter(&wxTabControl::CallTabClosing, event.GetInt());
+	event.Skip();
+}
+
+void wxTabControl::CallTabClosing(size_t index)
+{		
+	if (m_Tabs.size() == 1) //We always need at least one tab
+		return;
+
+	if (index == m_CurTab)
+	{
+		if (index == 0)
+		{
+			SelectTab(1); //We can't select the previous tab
+		}
+		else if (index <= m_Tabs.size()) //Select the previous tab
+		{
+			SelectTab(m_CurTab - 1);
+		}
+	}
+
+	m_RootSizer->Detach(index);
+	m_Tabs[index]->Destroy();
+	m_Tabs.erase(m_Tabs.begin() + index);
+	
+	for (size_t C = index; C < m_Tabs.size(); C++)
+	{	
+		if (m_Tabs[C]->m_Index != 0)
+			m_Tabs[C]->m_Index--;
+	}
+
+	if (m_CurTab > index)
+		--m_CurTab;
+
+	Layout();	
+
+	wxCommandEvent toSend(wxEVT_TAB_CLOSED, GetId());
+	toSend.SetEventObject(this);
+	toSend.SetClientData(new std::pair<size_t, size_t>(index, m_CurTab));
+	ProcessWindowEvent(toSend);
+}

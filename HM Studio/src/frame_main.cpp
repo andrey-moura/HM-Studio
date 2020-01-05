@@ -141,6 +141,51 @@ void MainFrame::OnButtonTileEditor_Click(wxCommandEvent& event)
 
 void MainFrame::OnButtonTeste1_Click(wxCommandEvent& event)
 {		
+	Rom rom = Rom(GetCurrentId(), false);
+
+	//unsigned int adress1 = 0x607de0;
+	//unsigned int adress2 = 0x61a2f0;
+	//unsigned int adress3 = 0x6085c4;
+	//unsigned int adress4 = 0x60A8E4;
+
+	//rom.Seek(0xF876C);
+	//short item_id = rom.ReadUInt16();
+
+	//unsigned int offset = (item_id << 2) + adress1;
+
+	//rom.Seek(offset + 2);
+	//short flag = rom.ReadUInt16();
+
+	//rom.Seek(offset);
+	//short flag2 = rom.ReadUInt16();
+
+	//flag = flag << 2;
+	//unsigned int offset2 = adress2 + flag; //0861A9C4
+
+	//offset2 = offset2 + 0;
+
+	//rom.Seek(offset2);
+	//short flag3 = rom.ReadUInt16(); //195	
+
+	//flag3 = flag3 << 4;
+
+	//unsigned int offset3 = adress3 + flag3;
+
+	//rom.Seek(offset3 + 2);
+	//short flag4 = rom.ReadUInt16();
+
+	//rom.Seek(offset3);
+	//short flag5 = rom.ReadUInt16();
+
+	//rom.Seek(offset3 + 6);
+	//unsigned short flag6 = rom.ReadUInt16();
+	//flag6 = flag6 << 5;
+
+	//unsigned int item_image = adress4 + flag6;
+
+	std::vector<Item> itens;
+	Item::GetItems(rom, ITEM_TYPE::SHELF, itens);
+
 	event.Skip();
 }
 

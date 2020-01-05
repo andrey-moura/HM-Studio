@@ -1,16 +1,5 @@
 #include "frame_script_editor.hpp"
 
-//wxBEGIN_EVENT_TABLE(cScriptEditor, wxFrame)
-//
-//wxEVT_STC_MODIFIED(10001, cScriptEditor::tScritpTranslatedOnModified)
-//
-//
-//EVT_KEY_DOWN(ID_SCRIPT_NAV_INPUT, OnInputKeyDown)
-//
-//EVT_STC_
-//
-//wxEND_EVENT_TABLE()
-
 cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true)
 {
 
@@ -59,25 +48,23 @@ void cScriptEditor::SetupRom()
 
 void cScriptEditor::BackupText()
 {
-	m_textSave = tScriptTranslated->GetText();
-	m_stringBackup = true;
-	m_indexBackup = index;
+	m_Editors[m_Index].BackupText(tScriptTranslated->GetText().ToStdString());
 	m_pMenuString_Restore->Enable(true);
 	//log_text->SetForegroundColour(wxColour(255, 0, 0));
 	//log_text->SetLabel(wxString("Text ") << m_indexBackup << " not saved. See String>Restore");		
 }
 
 void cScriptEditor::RestoreText()
-{
-	index = m_indexBackup;
+{	
 	UpdateText();
-	tScriptTranslated->SetText(m_textSave);
+	tScriptTranslated->SetText(m_Editors[m_Index].GetBackupText());
+	m_Editors[m_Index].ReleaseBackup();
 }
 
-void cScriptEditor::SolveProblem()
+void cScriptEditor::OpenScript(size_t index)
 {
-	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(scriptNum));
-	std::vector<uint8_t> bytes2 = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(scriptNum));
+	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(index));
+	std::vector<uint8_t> bytes2 = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(index));
 
 	Script script = Script();
 	script.SetData(bytes);
@@ -88,49 +75,35 @@ void cScriptEditor::SolveProblem()
 		return;
 	}
 
-	scriptTranslated.SetData(bytes2);
-	scriptOriginal.SetData(bytes);
-}
-
-void cScriptEditor::OpenScript()
-{
-	SolveProblem();
+	m_Index = m_Editors.size();
+	m_Editors.push_back(ScriptEditor(romOriginal, romTranslated));
+	m_Editors[m_Index].SetData(bytes, bytes2, index);
+	m_pTabControl->AddTab("Script " + std::to_string(m_Editor.GetNumber()));
+	
 	UpdateScript();
 }
 
 void cScriptEditor::SaveScript()
-{	
-	std::vector<std::string> text = textTranslated;
-	romTranslated.OutputTextWithVariables(text);
-	scriptTranslated.UpdateText(text);
-	FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(scriptNum), scriptTranslated.GetData(), scriptTranslated.GetRiffLenght());
+{		
+	m_Editor.SaveScript();
 }
 
 void cScriptEditor::ExportScript()
 {
 	std::string text;
 
-	for (size_t i = 0; i < textTranslated.size(); ++i)
+	for (size_t i = 0; i < m_Editors[m_Index].GetCount(); ++i)
 	{
-		text.append(textTranslated[i]);
+		text.append(m_Editors[m_Index][i]);
 		text.append(std::string("\n---End text ").append(std::to_string(i).append("---\n")));
 	}
 
-	FileUtil::WriteAllText(romTranslated.GetScriptExportedFullPath(scriptNum), text);
+	FileUtil::WriteAllText(romTranslated.GetScriptExportedFullPath(m_Editors[m_Index].GetNumber()), text);
 }
 
 void cScriptEditor::UpdateScript()
 {
-	index = 0;
-
-	m_indexesString.clear();
-
-	textOriginal = scriptOriginal.GetText();
-	textTranslated = scriptTranslated.GetText();
-
-	romTranslated.InputTextWithVariables(textOriginal, textTranslated);	
-
-	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << " Script" << scriptNum);
+	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << ": Script " << m_Editors[m_Index].GetNumber());
 
 	UpdateText();
 }
@@ -221,12 +194,8 @@ void cScriptEditor::CheckAllCode()
 void cScriptEditor::CheckAndGoScript(size_t index)
 {
 	if (index >= 0 && index < romOriginal.Offset.Script_count)
-	{
-		if (index != scriptNum)
-		{
-			scriptNum = index;
-			OpenScript();
-		}
+	{		
+		OpenScript(index);
 	}
 	else
 	{
@@ -246,19 +215,15 @@ void cScriptEditor::GetTextFromScriptFile()
 	Script script;
 	script.SetData(bytes);
 
-	if (script.size() != scriptOriginal.size())
+	if (script.Count() != m_Editors[m_Index].GetNumber())
 	{
 		wxMessageBox("The text count is not the same.", "Huh?", 5L, this);
 		return;
 	}		
 	
-	textTranslated = script.GetText();
-		
-	std::vector<std::string> buffer;
+	m_Editor.SetText(script.GetText());	
+	m_Editor.SetIndex(0);
 
-	romTranslated.InputTextWithVariables(buffer, textTranslated);
-	
-	index = 0;
 	UpdateText();
 }
 
@@ -269,12 +234,35 @@ void cScriptEditor::FindText()
 	int result = search_text.ShowModal();	
 
 	if (result == FrameSearchScript::SearchMode::Find)
-	{
-		m_indexesString.clear();
-		m_curIndexString = 0;
-		StringUtil::FindAllOccurances(textOriginal, search_text.find, m_indexesString);
+	{		
+		std::vector<FindResult> results;
 
-		UpdateText();
+		FindResult result;
+		result.m_Path = "Script " + std::to_string(m_Editor.GetNumber());
+
+		for (size_t C = 0; C < m_Editor.GetCount(); C++)
+		{
+			size_t index = m_Editor[C].find(search_text.find);
+
+			while (index != std::string::npos)
+			{
+				result.m_Hits.push_back(index);
+				index = m_Editor[C].find(search_text.find, index);
+			}
+
+			if (result.m_Hits.size() != 0)
+				results.push_back(result);
+		}
+
+		if (!m_pFindResultsWindow)
+		{
+			m_pFindResultsWindow = new FindResultsWindow(this, wxID_ANY);
+			m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+			global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
+		}
+		m_pFindResultsWindow->SetResultsInfo(search_text.find, romOriginal.Offset.Script_count, results);
+		m_pFindResultsWindow->Show();
+		Layout();		
 	}
 	else if (result == FrameSearchScript::SearchMode::Replace || result == FrameSearchScript::SearchMode::ReplaceExtended)
 	{
@@ -286,13 +274,11 @@ void cScriptEditor::FindText()
 			StringUtil::Replace("\\r", "\r", search_text.find);
 		}
 
-		for (size_t i = 0; i < textTranslated.size(); ++i)
+		for (std::string& s : m_Editor.GetTranlated())
 		{
-			m_indexesString.clear();
-			m_curIndexString = 0;
-			StringUtil::Replace(search_text.find, search_text.replace, textTranslated[i]);
+			StringUtil::Replace(search_text.find, search_text.replace, s);
 		}
-
+		
 		UpdateText();
 	}
 	else if (result == FrameSearchScript::SearchInScripts)
@@ -379,7 +365,6 @@ void cScriptEditor::tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event)
 {
 	std::vector<size_t> vec;
 
-	// Get All occurrences of the 'is' in the vector 'vec'
 	StringUtil::FindAllOccurances(tScriptOriginal->GetText().ToStdString(), "<PlayerName>", vec);
 	StringUtil::FindAllOccurances(tScriptOriginal->GetText().ToStdString(), "<ChildName >", vec);
 
@@ -395,19 +380,12 @@ void cScriptEditor::tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event)
 }
 
 void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
-{
-	/*statusBar->SetStatusText(wxString("Size: ") << tScriptTranslated->GetTextLength(), 0);
-	statusBar->SetStatusText(wxString("Lines: ") << tScriptTranslated->GetLineCount(), 1);*/
-	
+{	
 	event.Skip();
 }
 
 void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 {		
-//	if (options_nav_scroll->IsChecked())
-		//tScriptOriginal->ScrollToLine(tScriptTranslated->GetFirstVisibleLine());*/
-
-	//UpdateStatusText(tScriptTranslated);
 	CallAfter(&cScriptEditor::UpdateStatusText, tScriptTranslated);
 
 	event.Skip();	
@@ -442,14 +420,14 @@ void cScriptEditor::tScriptTranslatedCharAdded(wxStyledTextEvent& event)
 
 void cScriptEditor::OnPrevScriptClick(wxCommandEvent& event)
 {
-	CheckAndGoScript(scriptNum - 1);
+	CheckAndGoScript(m_Editor.GetNumber() - 1);
 
 	event.Skip();
 }
 
 void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 {
-	CheckAndGoScript(scriptNum + 1);
+	CheckAndGoScript(m_Editor.GetNumber() + 1);
 
 	event.Skip();
 }
@@ -470,12 +448,18 @@ void cScriptEditor::OnGoScriptClick(wxCommandEvent& event)
 
 void cScriptEditor::OnPrevTextClick(wxCommandEvent& event)
 {
-	PrevText();
+	if (m_Editors[m_Index].PrevText())
+	{
+		UpdateText();
+	}
 }
 
 void cScriptEditor::OnProxTextClick(wxCommandEvent& event)
 {
-	ProxText();
+	if (m_Editors[m_Index].ProxText())
+	{
+		UpdateText();
+	}
 }
 
 void cScriptEditor::OnMenuHorizontalMode(wxCommandEvent& event)
@@ -496,7 +480,11 @@ void cScriptEditor::OnMenuGetTextFromScriptFile(wxCommandEvent& event)
 
 void cScriptEditor::OnSaveTextClick(wxCommandEvent& event)
 {
-	SaveText();
+	if (m_Editors[m_Index].SaveText(tScriptTranslated->GetText().ToStdString()))
+	{
+		UpdateText();
+	}
+
 	event.Skip();
 }
 
@@ -509,7 +497,8 @@ void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
 void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 {
 	SaveScript();
-	switch (romTranslated.InsertScript(scriptNum, scriptTranslated))
+
+	switch (romTranslated.InsertScript(m_Editor.GetNumber(), m_Editor.GetScript()))
 	{
 	case 0:
 		wxMessageBox(_("Script inserted with no changes."), "Yeah!", 5L, this);
@@ -538,16 +527,18 @@ void cScriptEditor::EVT_MENU_FindText(wxCommandEvent& event)
 
 void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
 {
-	if (m_curIndexString == m_indexesString.size())
-	{
-		index = 0;
-		UpdateText();
-	}
-	else {
-		index = m_indexesString[m_curIndexString];
-		m_curIndexString++;
-		UpdateText();
-	}
+	//if (m_curIndexString == m_indexesString.size())
+	//{
+	//	index = 0;
+	//	UpdateText();
+	//}
+	//else {
+	//	index = m_indexesString[m_curIndexString];
+	//	m_curIndexString++;
+	//	UpdateText();
+	//}
+
+	event.Skip();
 }
 
 void cScriptEditor::EVT_MENU_RestoreString(wxCommandEvent& event)
@@ -575,16 +566,16 @@ void cScriptEditor::OnClosing(wxCloseEvent& event)
 
 void cScriptEditor::OnOpenInHexEditorClick(wxCommandEvent& event)
 {
-	wxString arg = "C:\\Romhacking\\Winhex\\winhex.exe \"";
+	//wxString arg = "C:\\Romhacking\\Winhex\\winhex.exe \"";
 
-	if (event.GetId() == ID_MENU_OPENHEX_ORIGINAL)
-		arg << romOriginal.GetScriptFullPath(scriptNum);
-	else 
-		arg << romTranslated.GetScriptFullPath(scriptNum);
+	//if (event.GetId() == ID_MENU_OPENHEX_ORIGINAL)
+	//	arg << romOriginal.GetScriptFullPath(scriptNum);
+	//else 
+	//	arg << romTranslated.GetScriptFullPath(scriptNum);
 
-	arg << "\"";
+	//arg << "\"";
 
-	wxProcess::Open(arg);
+	//wxProcess::Open(arg);
 
 	event.Skip();
 }
@@ -607,7 +598,7 @@ void cScriptEditor::OnResultClick(wxCommandEvent& event)
 
 	size_t findIndex = event.GetInt();
 	
-	index = findIndex;
+	m_Editor.SetIndex(findIndex);
 	UpdateText();
 
 	wxString find = event.GetString();
@@ -621,40 +612,35 @@ void cScriptEditor::OnResultClick(wxCommandEvent& event)
 		tScriptTranslated->SetSelection(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
 	}
 
+	delete result;
+
 	event.Skip();
 }
 
 void cScriptEditor::OnSetTextRange(wxCommandEvent& event)
 {
-	wxDialog* dialog = new wxDialog(nullptr, wxID_ANY, "Select range");
-	dialog->SetFont(Studio::GetDefaultFont());
-	dialog->SetForegroundColour(Studio::GetFontColour());	
-	dialog->SetBackgroundColour(Studio::GetFrameColour());
+	DialogTextRange dialog(this);
+	
+	dialog.ShowModal();
+	
+	event.Skip();
+}
 
-	wxStaticText* dialog_LabelFrom = new wxStaticText(dialog, wxID_ANY, "From: ");
-	wxTextCtrl* dialog_InputFrom = new wxTextCtrl(dialog, wxID_ANY);
+void cScriptEditor::OnTabChange(wxCommandEvent& event)
+{
+	std::pair<size_t, size_t>* fromTo = (std::pair<size_t, size_t>*)event.GetClientData();
 
-	wxBoxSizer* dialog_FromSizer = new wxBoxSizer(wxHORIZONTAL);
-	dialog_FromSizer->AddSpacer(4);
-	dialog_FromSizer->Add(dialog_LabelFrom, 0, wxEXPAND, 0);
-	dialog_FromSizer->AddSpacer(4);
-	dialog_FromSizer->Add(dialog_InputFrom, 0, wxEXPAND, 0);
+	m_Index = fromTo->second;
+	UpdateScript();
 
-	wxStaticText* dialog_LabelTo = new wxStaticText(dialog, wxID_ANY, "To: ");
-	wxTextCtrl* dialog_InputTo = new wxTextCtrl(dialog, wxID_ANY);
+	delete fromTo;
+	event.Skip();
+}
 
-	wxBoxSizer* dialog_ToSizer = new wxBoxSizer(wxHORIZONTAL);
-	dialog_FromSizer->AddSpacer(4);
-	dialog_FromSizer->Add(dialog_LabelTo, 0, wxEXPAND, 0);
-	dialog_FromSizer->AddSpacer(4);
-	dialog_FromSizer->Add(dialog_InputTo, 0, wxEXPAND, 0);
-
-	wxBoxSizer* dialog_RootSizer = new wxBoxSizer(wxVERTICAL);
-	dialog_RootSizer->Add(dialog_FromSizer, 1, wxEXPAND, 0);
-	dialog_RootSizer->Add(dialog_ToSizer, 1, wxEXPAND, 0);
-
-	dialog->SetSizer(dialog_RootSizer);
-
+void cScriptEditor::OnTabClosed(wxCommandEvent& event)
+{
+	std::pair<size_t, size_t>* closedNewPos = (std::pair<size_t, size_t>*)event.GetClientData();	
+	
 	event.Skip();
 }
  
@@ -768,7 +754,7 @@ void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
 
 void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
 {
-	statusBar->SetStatusText(wxString("Size: ") << (m_endTyping ? "True" : "False"), 1);
+	statusBar->SetStatusText(wxString("Size: ") << std::to_string(stc->GetTextLength()), 1);
 
 	statusBar->SetStatusText(wxString("Ln: ") << stc->GetCurrentLine() + 1, 2);
 
@@ -802,63 +788,22 @@ inline void cScriptEditor::HighlightAll(wxStyledTextCtrl* stc, std::vector<size_
 	}
 }
 
-void cScriptEditor::PrevText()
-{
-	if (index > 0)
-	{
-		if (!m_stringSaved && m_stringChange)
-			BackupText();
-		--index;
-		UpdateText();		
-	}		
-}
-
-void cScriptEditor::ProxText()
-{
-	if (index < textOriginal.size() - 1){
-		
-		if (!m_stringSaved && m_stringChange)
-			BackupText();
-		++index;
-		UpdateText();		
-	}		
-}
-
-void cScriptEditor::SaveText()
-{
-	m_stringSaved = true;
-	m_pMenuString_Restore->Enable(false);
-	//log_text->SetLabel("");
-	m_textSave.clear();
-
-	textTranslated[index] = tScriptTranslated->GetText().ToStdString();
-	ProxText();
-}
-
 void cScriptEditor::UpdateText()
-{
-	//if (scriptOriginal == nullptr)
-	//{
-	//	wxMessageBox("There is no script opened.", "Huh?", 5L, this);
-	//	index = 0;
-	//	return;
-	//}	
+{	
+	tScriptOriginal->SetText(m_Editors[m_Index].GetCurOriginal());
+	tScriptTranslated->SetText(m_Editors[m_Index].GetCurTranslated());
 
-	tScriptOriginal->SetText(textOriginal[index]);
-
-	tScriptTranslated->SetText(textTranslated[index]);
 	UpdateStyle(tScriptTranslated);
-		
-	m_stringChange = false;
-	m_stringSaved = false;
 
-	//string_nav_index->SetLabel(wxString("") << (index + 1) << "/" << textTranslated.size());	
+	statusBar->SetStatusText(wxString("Index: ") << std::to_string(m_Editor.GetIndex() + 1) << "/" << std::to_string(m_Editor.GetCount()));
+		
+	m_Editor.SetSaved(false);
+	m_Editor.SetChanged(false);	
 }
 
 void cScriptEditor::CreateGUIControls()
 {
-//images
-
+	//images
 	uint8_t* delete_icon_data = new uint8_t[796]{ 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10,
 											 0x00, 0x00, 0x00, 0x10, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0xf3, 0xff, 0x61, 0x00, 0x00, 0x02, 0xe3, 0x49, 0x44, 0x41,
 											 0x54, 0x78, 0xda, 0x6d, 0x53, 0x4d, 0x48, 0x1b, 0x41, 0x14, 0x7e, 0x6f, 0x13, 0xb3, 0x49, 0xc4, 0x5a, 0x93, 0xc6, 0xe4,
@@ -899,7 +844,7 @@ void cScriptEditor::CreateGUIControls()
 											 0x8b, 0x8a, 0xac, 0xaf, 0xcd, 0xe6, 0x81, 0x5c, 0x44, 0x3b, 0xa6, 0x52, 0x6c, 0x9c, 0x65, 0xb5, 0xfa, 0x2c, 0x04, 0xb0,
 											 0xf9, 0xf5, 0xea, 0xca, 0x33, 0x77, 0x74, 0x74, 0x10, 0x4a, 0x24, 0x94, 0x31, 0x03, 0xf8, 0x0b, 0x74, 0x9a, 0x4e, 0xf3,
 											 0x6a, 0xfb, 0x10, 0x9c, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82 };
-	
+
 	m_DeleteIcon = wxBitmap::NewFromPNGData(delete_icon_data, 796);
 
 	delete[] delete_icon_data;
@@ -907,11 +852,11 @@ void cScriptEditor::CreateGUIControls()
 	this->SetBackgroundColour(Studio::GetFrameColour());
 	this->SetForegroundColour(Studio::GetFontColour());
 
-/******************************	
+	/******************************
 
-	Menu creation starts
+		Menu creation starts
 
-*******************************/
+	*******************************/
 	menuBar = new wxMenuBar();
 
 	//wxSub
@@ -964,7 +909,7 @@ void cScriptEditor::CreateGUIControls()
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveScriptClick, this, wxID_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnExportScript, this, ID_MENU_EXPORT_SCRIPT);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindText, this, wxID_FIND);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindNextText, this, ID_MENU_FIND_NEXT);
@@ -979,13 +924,13 @@ void cScriptEditor::CreateGUIControls()
 
 	statusBar = CreateStatusBar(5);
 	//statusBar->SetStatusText("Original Size: 0", 0);
-	statusBar->SetStatusText("Size: 0", 0);
+	statusBar->SetStatusText("Ready!", 0);
 	statusBar->SetStatusText("Lines: 1", 1);
 	statusBar->SetStatusText("Ln: 0", 2);
 	statusBar->SetStatusText("Sel: 0", 3);
 	statusBar->SetStatusText("Col: 0", 4);
 
-	int widths[5] = { -5, -1, -1, -1, -1};
+	int widths[5] = { -5, -1, -1, -1, -1 };
 
 	statusBar->SetStatusWidths(statusBar->GetFieldsCount(), widths);
 
@@ -998,14 +943,21 @@ void cScriptEditor::CreateGUIControls()
 
 	CreateMyToolBar();
 
-	wxSize button_min_size = wxSize(40, 26);	
+	wxSize button_min_size = wxSize(40, 26);
 
-	tScriptTranslated = new wxStyledTextCtrl(this, wxID_ANY);		
+	m_pTabControl = new wxTabControl(this, wxID_ANY);
+	m_pTabControl->SetUserCanAddTab(false);
+
+	m_pTabControl->SetSelColor(wxColour(240, 240, 240));
+	m_pTabControl->Bind(wxEVT_TAB_CHANGE, &cScriptEditor::OnTabChange, this);
+	m_pTabControl->Bind(wxEVT_TAB_CLOSED, &cScriptEditor::OnTabClosed, this);
+
+	tScriptTranslated = new wxStyledTextCtrl(this, wxID_ANY);
 	SetupStyles(tScriptTranslated);
 
 	tScriptOriginal = new wxStyledTextCtrl(this, wxID_ANY);
 	SetupStyles(tScriptOriginal);
-	
+
 	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
@@ -1031,12 +983,14 @@ void cScriptEditor::CreateGUIControls()
 	editor_buttons_sizer->Add(editor_next_text, 0, wxALL | wxEXPAND, 0);
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);
+	//editor_sizer->Add(m_pTabControl, 0, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
-	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);	
+	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
 	global_sizer = new wxBoxSizer(wxVERTICAL);
-	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 5);	
+	global_sizer->Add(m_pTabControl, 0, wxALL | wxEXPAND, 0);
+	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);	
 
 	/*m_pSTCMenu = new wxPopupWindow(this);
 	m_pSTCMenu->SetPosition();
@@ -1051,8 +1005,8 @@ void cScriptEditor::CreateGUIControls()
 
 void cScriptEditor::SetEditorVertical()
 {
-	if (editor_buttons_sizer != nullptr)
-		editor_buttons_sizer->SetOrientation(wxHORIZONTAL);
+	//if (editor_buttons_sizer != nullptr)
+	//	editor_buttons_sizer->SetOrientation(wxHORIZONTAL);
 
 	if (editor_sizer != nullptr)
 		editor_sizer->SetOrientation(wxVERTICAL);
@@ -1066,7 +1020,11 @@ void cScriptEditor::SetEditorVertical()
 void cScriptEditor::SetEditorHorizontal()
 {
 	if (editor_buttons_sizer != nullptr)
-		editor_buttons_sizer->SetOrientation(wxVERTICAL);
+	{
+		editor_sizer->Detach(1);
+		global_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
+	}
+		//editor_buttons_sizer->SetOrientation(wxVERTICAL);
 
 	if (editor_sizer != nullptr)
 		editor_sizer->SetOrientation(wxHORIZONTAL);
@@ -1104,8 +1062,9 @@ void cScriptEditor::CreateMyToolBar()
 
 	uint8_t* testCodeAlpha = new uint8_t[256]{ 0x00, 0x00, 0x00, 0x00, 0xea, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x23, 0x00, 0x00, 0x00, 0x83, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xbf, 0x00, 0x00, 0x00, 0xe5, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x0c, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xd0, 0x33, 0x33, 0x00, 0x00, 0x34, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xb2, 0x00, 0x00, 0x00, 0x00, 0x73, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x90, 0x00, 0x00, 0x00, 0x00, 0x9b, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x60, 0x00, 0x00, 0x00, 0x00, 0xd2, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xca, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x33, 0x44, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x33, 0x00, 0x07, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0xff, 0xff, 0x33, 0x33, 0xff, 0xff, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x33, 0x00, 0x00, 0x33, 0x33, 0x00, 0x00, 0x00 };
 
-	this->CreateToolBar(wxNO_BORDER | wxHORIZONTAL | wxTB_FLAT, wxID_ANY);
+	this->CreateToolBar(wxTB_DEFAULT_STYLE, wxID_ANY);
 	this->GetToolBar()->SetMargins(2, 2);
+
 	m_pToolBar = this->GetToolBar();
 	m_pToolBar->AddTool(ID_SCRIPT_NAV_PREV, "Previous script", wxImage(16, 16, prevScriptRgb, prevScriptAlpha, false), "Previous script");
 	m_pToolBar->AddTool(ID_SCRIPT_NAV_PROX, "Following script", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, false), "Following script");
@@ -1122,4 +1081,268 @@ void cScriptEditor::CreateMyToolBar()
 	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnSaveScriptClick, this, ID_SCRIPT_NAV_SAVE);
 	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnInsertScriptClick, this, ID_SCRIPT_NAV_INSERT);
 	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnCheckAllCode, this, ID_SCRIPT_NAV_CODE);
+}
+
+void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
+{
+	std::vector<size_t> badScripts;
+	std::vector<size_t> noInsertedScripts;
+
+
+	Script originalText;
+	originalText.SetData(FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
+
+	if (!originalText.HaveText())
+	{
+		wxMessageBox("The script to get the text from have no text.", "Huh?");
+		return;
+	}
+
+	Script translatedText;
+	translatedText.SetData(FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
+
+	romTranslated.BackupRom("Text range " + std::to_string(from) + " - " + std::to_string(to));
+
+	for (size_t C = from; C < to; C++)
+	{
+		Script original; 
+		original.SetData(FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(C)));
+
+		if (!original.HaveText())
+			continue;
+
+		if (original != originalText)
+		{
+			badScripts.push_back(C);
+			continue;
+		}
+
+		original.UpdateText(translatedText.GetText());
+		FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(C), original.GetData(), original.GetRiffLenght());
+
+		if (romTranslated.InsertScript(C, original) == -1)
+			noInsertedScripts.push_back(C);
+	}
+
+	if (noInsertedScripts.size() == 0 && badScripts.size() == 0)
+	{
+		wxMessageBox("All text inserted and changed.", "Done!");
+		return;
+	}
+
+	wxString result = "Scripts not inserteds: \n";
+
+	for (size_t C = 0; C < noInsertedScripts.size(); C++)
+		result << "Script " << std::to_string(noInsertedScripts[C]) << "\n";
+
+	result << "\nScripts not changeds: \n";
+
+	for (size_t C = 0; C < badScripts.size(); C++)
+		result << "Script " << std::to_string(badScripts[C]) << "\n";
+
+	wxMessageDialog dlg(this, result + "\n Yes to copy to clipboard", "Done!", wxYES_NO | wxSTAY_ON_TOP | wxCENTRE_ON_SCREEN | wxICON_EXCLAMATION);
+
+	if (dlg.ShowModal() == wxID_YES)
+	{
+		if (wxTheClipboard->Open())
+		{
+			wxTheClipboard->SetData(new wxTextDataObject(result));
+			wxTheClipboard->Close();
+		}
+		else
+		{
+			wxMessageDialog(this, "Error while copying to clipboard!", "Error!", wxOK_DEFAULT | wxICON_ERROR).ShowModal();
+		}
+	}
+}
+
+//-------------------------------------------------------------------//
+void ScriptEditor::SetData(const std::vector<uint8_t>& original, const std::vector<uint8_t>& translated, size_t scriptNum)
+{
+	m_ScriptOriginal.SetData(original);
+	m_ScriptTranslated.SetData(translated);
+
+	m_Original = m_ScriptOriginal.GetText();
+	m_Translated = m_ScriptTranslated.GetText();
+
+	m_RomTranslated.InputTextWithVariables(m_Original, m_Translated);
+
+	m_Index = 0;
+	m_Number = scriptNum;
+	m_Size = m_Original.size();
+}
+
+std::string ScriptEditor::GetCurOriginal()
+{
+	return m_Original[m_Index];
+}
+
+std::string ScriptEditor::GetCurTranslated()
+{
+	return m_Translated[m_Index];
+}
+
+bool ScriptEditor::ProxText()
+{
+	if (m_Index < m_Size - 1)
+	{
+		if (!m_Saved && m_Changed)
+			BackupText(m_Translated[m_Index]);
+		++m_Index;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool ScriptEditor::PrevText()
+{
+	if (m_Index > 0)
+	{
+		if (!m_Saved && m_Changed)
+			BackupText(m_Translated[m_Index]);
+		--m_Index;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool ScriptEditor::SaveText(const std::string& text)
+{			
+	m_Saved = true;
+
+	ReleaseBackup();
+
+	m_Translated[m_Index] = text;
+	return ProxText();
+}
+
+void ScriptEditor::BackupText(const std::string& text)
+{
+	m_TextBackup = text;
+	m_IndexBackup = m_Index;
+}
+
+void ScriptEditor::ReleaseBackup()
+{
+	m_IndexBackup = 1;	
+	m_TextBackup.clear();
+}
+
+void ScriptEditor::UpdateScript()
+{
+	std::vector<std::string> text = m_Translated;
+	m_RomTranslated.OutputTextWithVariables(text);
+	m_ScriptTranslated.UpdateText(text);
+}
+
+void ScriptEditor::SetText(const std::vector<std::string>& text)
+{
+	m_Translated = text;
+
+	std::vector<std::string> buffer;
+
+	m_RomTranslated.InputTextWithVariables(buffer, m_Translated);
+}
+
+DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID_ANY, "Select range"), m_pParent(parent)
+{
+	CreateGUIControls();
+}
+
+void DialogTextRange::CreateGUIControls()
+{
+	this->SetFont(Studio::GetDefaultFont());
+	this->SetForegroundColour(Studio::GetFontColour());	
+	this->SetBackgroundColour(Studio::GetFrameColour());
+
+	wxStaticText* dialogLabelFrom = new wxStaticText(this, wxID_ANY, "From:  ");
+	dialogInputFrom = new wxTextCtrl(this, wxID_ANY);
+
+	wxBoxSizer* dialogFromSizer = new wxBoxSizer(wxHORIZONTAL);
+	dialogFromSizer->AddSpacer(4);
+	dialogFromSizer->Add(dialogLabelFrom, 0, wxEXPAND, 0);
+	dialogFromSizer->AddSpacer(4);
+	dialogFromSizer->Add(dialogInputFrom, 0, wxEXPAND, 0);
+
+	wxStaticText* dialogLabelTo = new wxStaticText(this, wxID_ANY, "To: ");
+	dialogInputTo = new wxTextCtrl(this, wxID_ANY);
+
+	wxBoxSizer* dialogToSizer = new wxBoxSizer(wxHORIZONTAL);
+	dialogFromSizer->AddSpacer(4);
+	dialogFromSizer->Add(dialogLabelTo, 0, wxEXPAND, 0);
+	dialogFromSizer->AddSpacer(4);
+	dialogFromSizer->Add(dialogInputTo, 0, wxEXPAND, 0);
+	
+	wxStaticText* dialogLabelScript = new wxStaticText(this, wxID_ANY, "Script:");
+	dialogInputScript = new wxTextCtrl(this, wxID_ANY);
+	dialogGoButton = new wxButton(this, wxID_ANY, "Go!");
+	dialogGoButton->Bind(wxEVT_BUTTON, &DialogTextRange::OnGoButton, this);
+	
+	wxBoxSizer*   dialogScriptSizer = new wxBoxSizer(wxHORIZONTAL);
+	dialogScriptSizer->AddSpacer(4);
+	dialogScriptSizer->Add(dialogLabelScript, 0, wxEXPAND, 0);
+	dialogScriptSizer->AddSpacer(4);
+	dialogScriptSizer->Add(dialogInputScript, 0, wxEXPAND, 0);
+	dialogScriptSizer->AddStretchSpacer(1);
+	dialogScriptSizer->Add(dialogGoButton, 0, wxEXPAND, 0);
+
+	wxBoxSizer* dialogRootSizer = new wxBoxSizer(wxVERTICAL);
+	dialogRootSizer->AddSpacer(4);
+	dialogRootSizer->Add(dialogFromSizer, 0, wxEXPAND, 0);
+	dialogRootSizer->AddSpacer(4);
+	dialogRootSizer->Add(dialogToSizer, 0, wxEXPAND, 0);
+	dialogRootSizer->AddSpacer(4);
+	dialogRootSizer->Add(dialogScriptSizer, 0, wxEXPAND, 0);	
+
+	this->SetSizer(dialogRootSizer);
+	dialogRootSizer->SetSizeHints(this);
+	dialogRootSizer->Fit(this);	
+}
+
+void DialogTextRange::OnGoButton(wxCommandEvent& event)
+{
+	if(dialogInputFrom->GetLineLength(0) == 0)
+	{
+		wxMessageBox("We need a number to start from...", "Huh?");
+		event.Skip();
+		return;
+	}
+	
+	if(dialogInputTo->GetLineLength(0) == 0)
+	{
+		wxMessageBox("We need a number to end from...", "Huh?");
+		event.Skip();
+		return;
+	}
+	
+	if(dialogInputScript->GetLineLength(0) == 0)
+	{
+		wxMessageBox("We need a script to get the text from...", "Huh?");
+		event.Skip();
+		return;
+	}
+	
+	size_t from = std::stoi(dialogInputFrom->GetValue().ToStdString());
+	size_t to  = std::stoi(dialogInputTo->GetValue().ToStdString());
+	size_t script = std::stoi(dialogInputScript->GetValue().ToStdString());
+		
+	m_pParent->ScriptTextRange(from, to, script);
+	
+	this->EndModal(wxID_OK);
+	event.Skip();
+}
+
+void ScriptEditor::SaveScript()
+{
+	std::vector<std::string> buffer = m_Translated;
+
+	m_RomTranslated.OutputTextWithVariables(buffer);
+
+	m_ScriptTranslated.UpdateText(buffer);
+
+	FileUtil::WriteAllBytes(m_RomTranslated.GetScriptFullPath(m_Number), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
 }

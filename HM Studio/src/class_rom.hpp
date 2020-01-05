@@ -1,9 +1,11 @@
 #pragma once
-#include "wx/file.h"
-#include "wx/filename.h"
-#include "wx/stdpaths.h"
-
 #include <vector>
+
+#include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/stdpaths.h>
+#include <wx/utils.h>
+
 
 #include "class_util_string.hpp"
 #include "class_table.hpp"
@@ -47,9 +49,9 @@ public:
 
 public:
 	std::string GetTablePath();
-	void InputTextWithVariables(std::vector<std::string> &original, std::vector<std::string> &translated);
+	void InputTextWithVariables(std::vector<std::string>& original, std::vector<std::string> &translated);
 	void OutputTextWithVariables(std::vector<std::string>& translated);
-
+	void BackupRom(const std::string& inform);
 //script
 public:
 	char scriptName[30] = "Script_%s_%s.%s";
@@ -58,7 +60,7 @@ public:
 
 	std::string GetScriptFullName(int num);
 	std::string GetScriptFullPath(int num);
-	std::string GetScriptExportedFullPath(int num);
+	std::string GetScriptExportedFullPath(int num);	
 
 	wxFileName scriptPath;
 	wxFileName exportedScriptPath;
@@ -73,7 +75,18 @@ public:
 
 //File
 public:
-	void ReadInt32(uint32_t& value);
+	//void ReadInt32(uint32_t& value);
+	int8_t  ReadInt8();
+	int16_t ReadInt16();
+	int32_t ReadInt32();
+
+	uint8_t  ReadUInt8();
+	uint16_t ReadUInt16();
+	uint16_t ReadUInt16(uint32_t off);
+	uint32_t ReadUInt32();
+
+	std::string ReadString();
+
 	void ReadPointer32(uint32_t& value);
 	void ReadBytes(std::vector<uint8_t> &bytes, size_t size);
 

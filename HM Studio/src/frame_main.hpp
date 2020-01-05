@@ -5,6 +5,8 @@
 #include "frame_script_editor.hpp"
 #include "frame_tile_editor_parent.hpp"
 #include "frame_item_editor.hpp"
+//
+#include "class_item.hpp"
 
 class MainFrame : public wxFrame
 {

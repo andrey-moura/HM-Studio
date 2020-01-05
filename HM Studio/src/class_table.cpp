@@ -9,6 +9,21 @@ void Table::InputTable(const std::string &table, std::vector<std::string> &text)
 	std::string left_char;
 
 	Split(right_char, left_char, table);
+
+	for (std::string& thisText : text)
+		Replace(right_char, left_char, thisText);
+}
+
+void Table::InputTable(const std::string& table, std::string text)
+{
+	if (text.size() <= 0 && table.size() < 3)
+		return;
+
+	std::string right_char;
+	std::string left_char;
+
+	Split(right_char, left_char, table);
+
 	Replace(right_char, left_char, text);
 }
 
@@ -21,7 +36,9 @@ void Table::OutPutTable(const std::string& table, std::vector<std::string>& text
 	std::string left_char;
 
 	Split(right_char, left_char, table);
-	Replace(left_char, right_char, text);
+
+	for (std::string& thisText : text)
+		Replace(left_char, right_char, thisText);
 }
 
 void Table::Split(std::string& right, std::string& left, const std::string &table)
@@ -45,18 +62,15 @@ void Table::Split(std::string& right, std::string& left, const std::string &tabl
 	}	
 }
 
-void Table::Replace(const std::string& replace, const std::string& search, std::vector<std::string>& text)
-{	
-	for (std::string& thisText : text)
+void Table::Replace(const std::string& replace, const std::string& search, std::string& text)
+{
+	for (char& c : text)
 	{
-		for (char& c : thisText)
+		size_t pos = search.find(c);
+
+		if (pos != std::string::npos)
 		{
-			size_t pos = search.find(c);
-			
-			if (pos != std::string::npos)
-			{
-				c = replace[pos];
-			}
+			c = replace[pos];
 		}
 	}
 }

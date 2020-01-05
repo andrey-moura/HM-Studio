@@ -5,7 +5,7 @@ Script::Script()
 	
 }
 
-void Script::SetData(std::vector<uint8_t>& bytes)
+void Script::SetData(const std::vector<uint8_t>& bytes)
 {
 	int size = bytes.size();
 
@@ -56,7 +56,7 @@ std::vector<std::string> Script::GetText()
 	return text;
 }
 
-int Script::size()
+size_t Script::Count()
 {
 	return *m_pStrCount;
 }
@@ -114,4 +114,30 @@ void Script::UpdateText(const std::vector<std::string>& text)
 	{			
 		memcpy(m_pStartText + m_pStrPointers[i], text[i].c_str(), text[i].size() + 1);
 	}		
+}
+
+std::string Script::operator[](int index) const
+{
+	return std::string((const char*)(m_pStartText + m_pStrPointers[index]));
+}
+
+bool Script::operator==(const Script& other) const
+{
+	if (*(other.m_pStrCount) != *m_pStrCount)
+		return false;
+
+	bool flag = true;
+
+	for (size_t C = 0; C < *m_pStrCount; C++)
+	{
+		if (other[C] !=  this->operator[](C))
+			flag = false;
+	}
+
+	return flag;
+}
+
+bool Script::operator!=(const Script& other) const
+{
+	return !(*this == other);
 }
