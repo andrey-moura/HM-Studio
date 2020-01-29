@@ -1,28 +1,44 @@
 #include "class_script.hpp"
 
-Script::Script()
+Script::Script(uint8_t* bytes, size_t size)
 {
-	
+	SetData(bytes, size);
 }
 
-void Script::SetData(const std::vector<uint8_t>& bytes)
+Script::Script(std::vector<uint8_t> bytes)
 {
-	int size = bytes.size();
+	SetData(bytes);
+}
 
+Script::~Script()
+{
+	delete[] m_data;
+}
+
+void Script::SetData(uint8_t* bytes, size_t size)
+{	
 	if (m_data)
 		delete[] m_data;
 
-	m_data = new uint8_t[size];
-	memcpy(m_data, bytes.data(), size);	
+	m_data = bytes;
 
 	GetPointers();
-
 
 	if (*m_pRiffLenght > size)
 		*m_pRiffLenght = size;
 
+	m_data[size - 1] = 0x00; //This situation can generate an exception.
+}
 
-	m_data[size - 1] = 0x00;
+void Script::SetData(std::vector<uint8_t> bytes)
+{
+	size_t size = bytes.size();
+
+	uint8_t* b = new uint8_t[size];
+
+	memcpy(b, bytes.data(), size);
+
+	SetData(b, size);
 }
 
 bool Script::CompareCode(const Script& other)
@@ -34,10 +50,6 @@ bool Script::CompareCode(const Script& other)
 	return true;
 }
 
-Script::~Script()
-{
-	delete[] m_data;
-}
 
 std::vector<std::string> Script::GetText()
 {
@@ -56,13 +68,14 @@ std::vector<std::string> Script::GetText()
 	return text;
 }
 
-size_t Script::Count()
+size_t Script::Count() const
 {
 	return *m_pStrCount;
 }
 
-void Script::GetPointers() //This is very close to the way it is done in GBA
+void Script::GetPointers()
 {	
+	//This is very close to the way it is done in GBA
 	m_pRiffLenght = (uint32_t*)(m_data + 0x04);
 	m_pSrcCodeLenght = (uint32_t*)(m_data + 0x10);
 
@@ -130,7 +143,7 @@ bool Script::operator==(const Script& other) const
 
 	for (size_t C = 0; C < *m_pStrCount; C++)
 	{
-		if (other[C] !=  this->operator[](C))
+		if (other[C] != this->operator[](C))
 			flag = false;
 	}
 

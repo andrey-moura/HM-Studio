@@ -140,7 +140,7 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 	std::string table_path = GetTablePath();
 
 	if (wxFile::Exists(table_path))
-		Table::InputTable(FileUtil::ReadAllText(table_path), translated);
+		Table::InputTable(File::ReadAllText(table_path), translated);
 
 	for (size_t i = 0; i < translated.size(); ++i)
 	{
@@ -209,12 +209,18 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 		StringUtil::Replace("|²" + endLine, "|²", translated[i]);
 	}	
 
-	Table::OutPutTable(FileUtil::ReadAllText(GetTablePath()), translated);
+	Table::OutPutTable(File::ReadAllText(GetTablePath()), translated);
 
 	for (size_t i = 0; i < translated.size(); ++i)
 	{
 		StringUtil::Replace(player, rawPlayer, translated[i]);
 		StringUtil::Replace(farm, rawFarm, translated[i]);
+
+		if (Console == console::GBA)
+		{
+			StringUtil::ReplaceMatching('\"', 0xcf, translated[i], false);
+			StringUtil::ReplaceMatching('\'', 0xd0, translated[i], true);
+		}
 	}	
 }
 
@@ -517,4 +523,44 @@ void Rom::BackupRom(const std::string& inform)
 		destination.Mkdir();
 
 	wxCopyFile(Path, destination.GetFullPath(), true);	
+}
+
+void Rom::InsertAllScript()
+{	
+	size_t totalSize = 0;
+
+	//uint8_t* toInsert = new uint8_t[0x2A9959]{0};
+
+	//uint32_t* newOffsets = new uint32_t[Offset.Script_count];
+	//size_t offset = 0;
+
+	//uint32_t startOffset = 0x701694;
+
+	//for (size_t i = 0; i < Offset.Script_count; ++i)
+	//{		
+	//	Script script;
+	//	script.SetData(FileUtil::ReadAllBytes(GetScriptFullPath(i)));
+
+	//	size_t scriptSize = script.GetRiffLenght();
+
+	//	totalSize += scriptSize;
+
+	//	if (totalSize > 0x2A9959)
+	//		return;
+
+	//	memcpy(toInsert + offset, script.GetData(), scriptSize);
+	//	offset += scriptSize;
+
+	//	newOffsets[i] = offset + startOffset + 0x08000000;
+	//}
+
+	//Seek(Offset.Script_start_pointers);
+	//WriteBytes(newOffsets, Offset.Script_count * 4);
+
+	//delete[] newOffsets;
+
+	//Seek(startOffset);
+	//WriteBytes(toInsert, 0x2A9959);
+
+	//delete[] toInsert;
 }

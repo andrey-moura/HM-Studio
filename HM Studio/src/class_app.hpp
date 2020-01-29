@@ -15,6 +15,3 @@ private:
 public:
 	virtual bool OnInit();
 };
-
-
-

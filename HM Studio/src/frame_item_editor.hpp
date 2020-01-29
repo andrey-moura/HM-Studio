@@ -1,68 +1,72 @@
 #pragma once
 
-//#include <wx/frame.h>
-//#include <wx/stattext.h>
-//#include <wx/textctrl.h>
-//#include <wx/stc/stc.h>
-//#include <wx/sizer.h>
+#include <wx/frame.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/sizer.h>
+#include <wx/choice.h>
+#include <wx/combobox.h>
+#include <wx/button.h>
+#include <wx/statbox.h>
+#include <wx/msgdlg.h>
+#include <wx/image.h>
+#include <wx/statbmp.h>
+#include <wx/menu.h>
 
-#include <wx/wx.h>
-#include <wx\stc\stc.h>
+#include "class_stc.hpp"
+#include "class_item.hpp"
+#include "class_rom.hpp"
+
+#define m_Item m_Itens[m_Index]
+#define m_ItemOriginal m_ItensOriginais[m_Index]
 
 class ItemEditorFrame : public wxFrame
 {
 public:
-	ItemEditorFrame();
+	ItemEditorFrame(id id);
 	~ItemEditorFrame();
 
+private:
+	std::vector<Item> m_Itens;
+	std::vector<Item> m_ItensOriginais;
+	wxImage m_ItemIcon;
 
+	Rom m_RomOriginal;
+	Rom m_RomTranslated;
+
+	size_t m_Index;
+	ITEM_DATA m_ItemData;
+
+	void UpdateItem();
+	void GetItens(size_t index);
+//Events
+private:
+	void OnFileClick(wxCommandEvent& event);
+	void OnProxClick(wxCommandEvent& event);
+	void OnPrevClick(wxCommandEvent& event);
 private:
 	void CreateGUIControls();
 	
-	wxStaticText* m_pGUI_whichItensLabel = nullptr;
-	wxChoice* m_pGUI_whichItens = nullptr;
+	wxTextCtrl* m_pItemName = nullptr;
+	STC* m_pItemText = nullptr;	
 
-	wxBoxSizer* m_pGUI_whichItensSizer = nullptr;
+	wxButton* m_pSaveText = nullptr;
+	wxButton* m_pPrevText = nullptr;
+	wxButton* m_pProxText = nullptr;
 
-	wxStaticText* m_pGUI_labelOffset = nullptr;
-	wxStaticText* m_pGUI_offset = nullptr;
+	wxStaticText* m_pOrigItemName = nullptr;
+	wxStaticText* m_pOrigItemDescription = nullptr;
 
-	wxBoxSizer* m_pGUI_offsetSizer = nullptr;
+	wxStaticBitmap* m_pItemIconView = nullptr;	
 
-	wxButton* m_pGUI_insert = nullptr;
-
-	wxStaticBox* m_pGUI_blockBox = nullptr;
-	wxStaticBoxSizer* m_pGUI_blockBoxSizer = nullptr;
-
-	wxStaticText* m_pGUI_index = nullptr;
-	wxStaticText* m_pGUI_indexLabel = nullptr;
-
-	wxTextCtrl* m_pGUI_index_input = nullptr;	
-
-	wxBoxSizer* m_pGUI_itemIndexSizer = nullptr;
-
-	wxComboBox* m_pGUI_goToOriginal = nullptr;
-	wxComboBox* m_pGUI_goToTranslated = nullptr;
-
-	wxStaticBox* m_pGUI_itemBox = nullptr;
-	wxStaticBoxSizer* m_pGUI_itemBoxSizer = nullptr;
-
-	wxBoxSizer* m_pGUI_lateralSizer = nullptr;
-
-	wxTextCtrl* m_pGUI_transItemName = nullptr;
-	wxStyledTextCtrl* m_pGUI_transItemDescription = nullptr;	
-
-	wxButton* m_pGUI_saveText = nullptr;
-	wxButton* m_pGUI_prevText = nullptr;
-	wxButton* m_pGUI_proxText = nullptr;		
-
-	wxStaticText* m_pGUI_origItemName = nullptr;
-	wxStaticText* m_pGUI_origItemDescription = nullptr;
-
-	wxStaticBox* m_pGUI_origBox = nullptr;
-	wxStaticBoxSizer* m_pGUI_origBoxSizer = nullptr;
-
-	wxBoxSizer* m_pGUI_navigationSizer = nullptr;
-	wxBoxSizer* m_pGUI_mainSizer = nullptr;
-	wxBoxSizer* m_pGUI_editorSizer = nullptr;
+	wxStaticBox* m_pOrigBox = nullptr;
+	wxStaticBoxSizer* m_pOrigBoxSizer = nullptr;
+	
+	wxBoxSizer* m_pRootSizer = nullptr;
 };
+
+//m_pGUI_whichItens = new wxChoice(this, wxID_ANY);
+//m_pGUI_whichItens->Append("Tool");
+//m_pGUI_whichItens->Append("Fridge");
+//m_pGUI_whichItens->Append("Shelf");
+//m_pGUI_whichItens->Bind(wxEVT_CHOICE, &ItemEditorFrame::OnChoiceChanged, this);

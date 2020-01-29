@@ -47,6 +47,11 @@ public:
 	void SetName(const std::string& name) { m_Name = name; }
 	void SetDescription(const std::string& description) { m_Description = description; }
 	void SetImage(uint32_t image, uint32_t palette) { m_BitmapOff = image; m_PaletteOff = palette; }
+
+	std::string GetName() { return m_Name; }
+	std::string GetDescription() { return m_Description; }
+	uint32_t GetPalOffset() { return m_PaletteOff; }
+	uint32_t GetImageOffset() { return m_BitmapOff; }
 private:
 	static ITEM_DATA GetMFoMTData(ITEM_TYPE type);
 private:
@@ -56,7 +61,7 @@ private:
 	static uint32_t m_sAdress4;
 	static uint32_t m_sAdress5;
 public:
-	static void GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output);
+	static ITEM_DATA GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output);
 	static void GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);
 	static void GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);
 	static void GetItemImageOffset(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);

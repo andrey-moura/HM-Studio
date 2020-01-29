@@ -1,5 +1,13 @@
 #include "class_util_string.hpp"
 
+#ifdef _WIN32
+std::string StringUtil::eol = "\r\n";
+#endif // _WIN32
+#ifdef _linux_
+std::string StringUtil::eol = "\n";
+#endif // _WIN32
+
+
 void StringUtil::FindAllOccurances(const std::string& str, const std::string& toSearch, std::vector<size_t>& output)
 {
 	size_t pos = str.find(toSearch);
@@ -101,5 +109,22 @@ void StringUtil::Replace(const std::string& find, const std::string& replace, st
 
 			pos = str.find(find, pos + find.size());
 		}
+	}
+}
+
+void StringUtil::ReplaceMatching(const char& find, const char& replace, std::string& string, bool first)
+{
+	size_t pos = string.find(find);
+
+	bool replaceNow = first;
+
+	while (pos != std::string::npos)
+	{
+		if (replaceNow)
+			string[pos] = replace;
+
+		replaceNow = !replaceNow;
+
+		pos = string.find(find, pos + 1);
 	}
 }

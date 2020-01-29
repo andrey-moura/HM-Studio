@@ -1,18 +1,20 @@
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <vector>
-
-#include "class_util_wx_file.hpp"
 
 class Script
 {
 public:
-	Script();
+	Script() = default;
+	//Script is now the owner of this data. You don't to care about deleting.
+	Script(uint8_t* bytes, size_t size);
+	Script(std::vector<uint8_t> bytes);
 	~Script();	
 
-	void SetData(const std::vector<uint8_t>& bytes);
+	//Script is now the owner of this data. You don't to care about deleting.
+	void SetData(uint8_t* bytes, size_t size);
+	void SetData(std::vector<uint8_t> bytes);
 	bool CompareCode(const Script& other);
 private:
 	//RIFF
@@ -29,7 +31,7 @@ private:
 	uint32_t* m_pStrCount = nullptr;
 	//STR + 12
 	uint32_t* m_pStrPointers = nullptr;
-	//STR + (4 * STR count) + 12
+	//STR + (4 * STRcount) + 12
 	uint8_t* m_pStartText = nullptr;	
 private:	
 	//Calculates the pointers
@@ -45,10 +47,11 @@ public:
 	//Gets the text of this script.
 	std::vector<std::string> GetText();	
 	void UpdateText(const std::vector<std::string>& text);
+	uint8_t* GetStartText() const { return m_pStartText; }
 	//This script have text?
 	inline bool HaveText() { return *m_pStrCount; }
 	uint32_t GetRiffLenght() const { return *m_pRiffLenght; }
 	//Take care
 	uint8_t* GetData() const { return m_data; }
-	size_t Count();
+	size_t Count() const;
 };

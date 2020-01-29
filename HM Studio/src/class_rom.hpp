@@ -6,10 +6,9 @@
 #include <wx/stdpaths.h>
 #include <wx/utils.h>
 
-
+#include "class_file.hpp"
 #include "class_util_string.hpp"
 #include "class_table.hpp"
-#include "class_util_wx_file.hpp"
 #include "class_script.hpp"
 
 enum class console {
@@ -28,12 +27,6 @@ struct offset {
 	uint32_t Script_start_pointers = 0;
 	uint32_t Script_count = 0;	
 };
-
-//enum scriptCount {
-//	FOMT_SCRIPT_COUNT,
-//	MFoMT_SCRIPT_COUNT,
-//	HMDS_SCRIPT_COUNT
-//};
 
 class Rom : public wxFile
 {
@@ -67,6 +60,7 @@ public:
 	
 	void GetOffset(std::vector<uint32_t>& vector);
 	void GetOffset(uint32_t& value, int number);
+	void SetOffset(uint32_t offset, size_t number);
 	void GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output);
 	void GetSize(uint32_t offset, uint32_t& output);
 	void Dump();
@@ -95,6 +89,7 @@ public:
 	void EraseBlock(size_t size);
 	bool VerifyEmptyBlock(size_t size);
 	int InsertScript(int number, const Script& script);
+	void InsertAllScript();
 private:
 	void SetOffsets();
 

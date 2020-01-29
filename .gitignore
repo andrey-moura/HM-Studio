@@ -10,3 +10,6 @@ Tests/
 SpellingSTC/
 MinimalSpellSTC/
 /FastersMethods
+HM Studio/resource.h
+*.aps
+*.rc

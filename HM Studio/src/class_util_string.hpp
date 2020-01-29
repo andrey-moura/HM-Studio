@@ -4,6 +4,7 @@
 #include <vector>
 #include <string_view>
 
+
 class StringUtil
 {
 private:
@@ -17,5 +18,8 @@ public:
 	static size_t FindFirstOf(const char* find, const std::string& target, const size_t startIndex);
 	static void SplitLines(const std::string& s, std::vector<std::string>& output);
 	static void Replace(const std::string& find, const std::string& replace, std::string& str);
+	static void ReplaceMatching(const char& find, const char& replace, std::string& string, bool first = true);
+
+	static std::string eol;
 };
 

@@ -1,17 +1,13 @@
 #include "frame_script_editor.hpp"
 
-cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true)
+cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true), m_Editor(romOriginal, romTranslated)
 {
-
 	CreateGUIControls();
 	SetupRom();
-
-#ifdef Testing
-	m_hunspell = new Hunspell("C:/Users/Moonslate/AppData/Roaming/Notepad++/plugins/config/Hunspell/pt_BR.aff", "C:/Users/Moonslate/AppData/Roaming/Notepad++/plugins/config/Hunspell/pt_BR.dic");
-	bool test = m_hunspell->spell(std::string("testando"));
-	wxMessageBox(wxString() << (test ? "true" : "false"));
-#endif // Testing
-
+	
+#ifdef USESPELL
+	tScriptTranslated->SetHunspell(Studio::GetHunspell(), false);
+#endif
 }
 
 cScriptEditor::~cScriptEditor()
@@ -24,21 +20,25 @@ void cScriptEditor::SetupRom()
 	switch (romOriginal.Console)
 	{
 	case console::DS:
+	{
 		m_lineEnding = "\n";
 		m_lineLineEnding = "\\n";
-		m_PlayerVar = "<Player>";
-		m_VarSize = 8;
-		m_maxLineLenght = 30;
-		tScriptTranslated->SetEOLMode(wxEOL_MAC);
+		std::vector<std::string> varsDS;
+		varsDS.push_back("<Player>");
+		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptOriginal);
+		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptTranslated);
 		break;
+	}
 	case console::GBA:
+	{
 		m_lineEnding = "\r\n";
 		m_lineLineEnding = "\\n";
-		m_PlayerVar = "<PlayerName>";
-		m_VarSize = 12;
-		m_maxLineLenght = 28;
-		tScriptTranslated->SetEOLMode(wxEOL_DOS);
+		std::vector<std::string> vars;
+		vars.push_back("<PlayerName>");
+		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptOriginal);
+		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptTranslated);
 		break;
+	}
 	default:
 		break;
 	}
@@ -46,39 +46,46 @@ void cScriptEditor::SetupRom()
 	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal.Name);
 }
 
+void cScriptEditor::ConfigureSTC(size_t maxLine, int eol, std::vector<std::string> vars, STC* stc)
+{
+	stc->SetMaxLineLenght(maxLine);
+	stc->SetEOLMode(eol);	
+
+	for (const std::string& s : vars)
+	{
+		stc->AddVar(s);
+	}
+}
+
 void cScriptEditor::BackupText()
 {
-	m_Editors[m_Index].BackupText(tScriptTranslated->GetText().ToStdString());
+	m_Editor.BackupText(tScriptTranslated->GetText().ToStdString());
 	m_pMenuString_Restore->Enable(true);
-	//log_text->SetForegroundColour(wxColour(255, 0, 0));
-	//log_text->SetLabel(wxString("Text ") << m_indexBackup << " not saved. See String>Restore");		
 }
 
 void cScriptEditor::RestoreText()
 {	
 	UpdateText();
-	tScriptTranslated->SetText(m_Editors[m_Index].GetBackupText());
-	m_Editors[m_Index].ReleaseBackup();
+	tScriptTranslated->SetText(m_Editor.GetBackupText());
+	m_Editor.ReleaseBackup();
 }
 
 void cScriptEditor::OpenScript(size_t index)
 {
-	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(index));
-	std::vector<uint8_t> bytes2 = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(index));
+	std::vector<uint8_t> bytesOriginal = File::ReadAllBytes(romOriginal.GetScriptFullPath(index));
 
 	Script script = Script();
-	script.SetData(bytes);
+	script.SetData(bytesOriginal);
 
 	if (!script.HaveText())
 	{
 		wxMessageBox(_("This script don't have text."), _("Huh?"), 5L, this);
 		return;
 	}
+		
+	std::vector<uint8_t> bytesTranslated = File::ReadAllBytes(romTranslated.GetScriptFullPath(index));
 
-	m_Index = m_Editors.size();
-	m_Editors.push_back(ScriptEditor(romOriginal, romTranslated));
-	m_Editors[m_Index].SetData(bytes, bytes2, index);
-	m_pTabControl->AddTab("Script " + std::to_string(m_Editor.GetNumber()));
+	m_Editor.SetData(bytesOriginal, bytesTranslated, index);	
 	
 	UpdateScript();
 }
@@ -92,18 +99,18 @@ void cScriptEditor::ExportScript()
 {
 	std::string text;
 
-	for (size_t i = 0; i < m_Editors[m_Index].GetCount(); ++i)
+	for (size_t i = 0; i < m_Editor.GetCount(); ++i)
 	{
-		text.append(m_Editors[m_Index][i]);
+		text.append(m_Editor[i]);
 		text.append(std::string("\n---End text ").append(std::to_string(i).append("---\n")));
 	}
 
-	FileUtil::WriteAllText(romTranslated.GetScriptExportedFullPath(m_Editors[m_Index].GetNumber()), text);
+	File::WriteAllText(romTranslated.GetScriptExportedFullPath(m_Editor.GetNumber()), text);
 }
 
 void cScriptEditor::UpdateScript()
 {
-	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << ": Script " << m_Editors[m_Index].GetNumber());
+	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << ": Script " << m_Editor.GetNumber());
 
 	UpdateText();
 }
@@ -204,29 +211,6 @@ void cScriptEditor::CheckAndGoScript(size_t index)
 	}
 }
 
-void cScriptEditor::GetTextFromScriptFile()
-{
-	wxFileDialog openFile = wxFileDialog(nullptr, _("Open Script File"), "", "", "All Suported Files |*.fsf;*.msf;*.dsf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);	
-
-	if (openFile.ShowModal() == wxID_CANCEL)
-		return;	
-
-	std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(openFile.GetPath().ToStdString());
-	Script script;
-	script.SetData(bytes);
-
-	if (script.Count() != m_Editors[m_Index].GetNumber())
-	{
-		wxMessageBox("The text count is not the same.", "Huh?", 5L, this);
-		return;
-	}		
-	
-	m_Editor.SetText(script.GetText());	
-	m_Editor.SetIndex(0);
-
-	UpdateText();
-}
-
 void cScriptEditor::FindText()
 {
 	FrameSearchScript search_text;
@@ -266,6 +250,8 @@ void cScriptEditor::FindText()
 	}
 	else if (result == FrameSearchScript::SearchMode::Replace || result == FrameSearchScript::SearchMode::ReplaceExtended)
 	{
+		if(result == FrameSearchScript::SearchMode::SearchInScripts)
+
 		if (result == FrameSearchScript::SearchMode::ReplaceExtended)
 		{
 			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text.find);
@@ -281,13 +267,18 @@ void cScriptEditor::FindText()
 		
 		UpdateText();
 	}
+	else if (result == FrameSearchScript::ReplaceInScripts)
+	{
+		m_Editor.ReplaceInAllScripts(search_text.find, search_text.replace);
+	}
+
 	else if (result == FrameSearchScript::SearchInScripts)
 	{
 		std::vector<FindResult> results;
 
 		for (int i = 0; i < romOriginal.Offset.Script_count; ++i)
 		{			
-			std::vector<uint8_t> bytes = FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(i));
+			std::vector<uint8_t> bytes = File::ReadAllBytes(romTranslated.GetScriptFullPath(i));
 
 			Script script;
 			script.SetData(bytes);
@@ -330,55 +321,6 @@ void cScriptEditor::FindText()
 	}
 }
 
-void cScriptEditor::tScriptTranslatedOnStyleNeeded(wxStyledTextEvent& event)
-{
-	int line = tScriptTranslated->GetCurrentLine();
-	int start = tScriptTranslated->PositionFromLine(line);
-	int end = tScriptTranslated->GetLineEndPosition(line);
-
-	tScriptTranslated->StartStyling(start);
-	tScriptTranslated->SetStyling(tScriptTranslated->LineLength(line), 0);
-
-#ifdef Testing
-	double now = (std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() * 0.001);
-
-	double elapsed = now - m_lastTyped;
-
-	if (elapsed > 500 && !m_endTyping)
-	{
-		m_endTyping = true;	
-
-		DoSpelling(tScriptTranslated, tScriptTranslated->WordStartPosition(m_typedMinPos, false), tScriptTranslated->WordEndPosition(m_typedMaxPos, false));
-	}
-#endif // Testing
-
-
-
-	FindAndHighlightAllVars(tScriptTranslated, start, end);
-
-	VerifyCurLineLenght(tScriptTranslated);
-
-	event.Skip();
-}
-
-void cScriptEditor::tScriptOriginalOnStyleNeeded(wxStyledTextEvent& event)
-{
-	std::vector<size_t> vec;
-
-	StringUtil::FindAllOccurances(tScriptOriginal->GetText().ToStdString(), "<PlayerName>", vec);
-	StringUtil::FindAllOccurances(tScriptOriginal->GetText().ToStdString(), "<ChildName >", vec);
-
-	tScriptOriginal->ClearDocumentStyle();
-
-	for (size_t pos : vec)
-	{
-		tScriptOriginal->StartStyling(pos);
-		tScriptOriginal->SetStyling(12, VarStyle);
-	}	
-
-	event.Skip();
-}
-
 void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
 {	
 	event.Skip();
@@ -390,33 +332,6 @@ void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 
 	event.Skip();	
 }
-
-#ifdef Testing
-void cScriptEditor::tScriptTranslatedCharAdded(wxStyledTextEvent& event)
-{
-	m_lastTyped = (std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() * 0.001);
-
-	size_t curPos = tScriptTranslated->GetCurrentPos();
-
-	if (m_endTyping)
-	{
-		m_typedMinPos = curPos;
-		m_typedMaxPos = curPos;
-	}
-
-	m_endTyping = false;
-
-	if (m_typedMinPos > curPos)
-		m_typedMinPos = curPos;
-
-	if (m_typedMaxPos < curPos)
-		m_typedMaxPos = curPos;
-
-	CallAfter(&cScriptEditor::UpdateStatusText, tScriptTranslated);
-
-	event.Skip();
-}
-#endif // Testing
 
 void cScriptEditor::OnPrevScriptClick(wxCommandEvent& event)
 {
@@ -448,7 +363,7 @@ void cScriptEditor::OnGoScriptClick(wxCommandEvent& event)
 
 void cScriptEditor::OnPrevTextClick(wxCommandEvent& event)
 {
-	if (m_Editors[m_Index].PrevText())
+	if (m_Editor.PrevText())
 	{
 		UpdateText();
 	}
@@ -456,7 +371,7 @@ void cScriptEditor::OnPrevTextClick(wxCommandEvent& event)
 
 void cScriptEditor::OnProxTextClick(wxCommandEvent& event)
 {
-	if (m_Editors[m_Index].ProxText())
+	if (m_Editor.ProxText())
 	{
 		UpdateText();
 	}
@@ -472,15 +387,27 @@ void cScriptEditor::OnMenuHorizontalMode(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnMenuGetTextFromScriptFile(wxCommandEvent& event)
+void cScriptEditor::OnMenuGetTextFrom(wxCommandEvent& event)
 {
-	GetTextFromScriptFile();
+	TextFromScriptDialog dialog(m_Editor.GetCount(), (int)(romOriginal.Id));
+
+	if (dialog.ShowModal() == wxOK)
+	{
+		m_Editor.SetText(dialog.GetText());
+		UpdateText();
+	}
+
 	event.Skip();
 }
 
 void cScriptEditor::OnSaveTextClick(wxCommandEvent& event)
 {
-	if (m_Editors[m_Index].SaveText(tScriptTranslated->GetText().ToStdString()))
+	if (romOriginal.Console == console::GBA)
+		tScriptTranslated->ConvertEOLs(STC_EOL_CRLF);
+	else
+		tScriptTranslated->ConvertEOLs(STC_EOL_LF);
+
+	if (m_Editor.SaveText(tScriptTranslated->GetText().ToStdString()))
 	{
 		UpdateText();
 	}
@@ -507,7 +434,7 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 		wxMessageBox(_("Script inserted with empty bytes used."), "Yeah!", 5L, this);
 		break;
 	case -1:
-		wxMessageBox(_("The script is lenght is greater than the old. You have to move to another offset."), "...", 5L, this);
+		wxMessageBox(_("The script lenght is greater than the old. You have to move to another offset."), "...", 5L, this);
 		break;
 	default:
 		break;
@@ -527,16 +454,6 @@ void cScriptEditor::EVT_MENU_FindText(wxCommandEvent& event)
 
 void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
 {
-	//if (m_curIndexString == m_indexesString.size())
-	//{
-	//	index = 0;
-	//	UpdateText();
-	//}
-	//else {
-	//	index = m_indexesString[m_curIndexString];
-	//	m_curIndexString++;
-	//	UpdateText();
-	//}
 
 	event.Skip();
 }
@@ -566,17 +483,6 @@ void cScriptEditor::OnClosing(wxCloseEvent& event)
 
 void cScriptEditor::OnOpenInHexEditorClick(wxCommandEvent& event)
 {
-	//wxString arg = "C:\\Romhacking\\Winhex\\winhex.exe \"";
-
-	//if (event.GetId() == ID_MENU_OPENHEX_ORIGINAL)
-	//	arg << romOriginal.GetScriptFullPath(scriptNum);
-	//else 
-	//	arg << romTranslated.GetScriptFullPath(scriptNum);
-
-	//arg << "\"";
-
-	//wxProcess::Open(arg);
-
 	event.Skip();
 }
 
@@ -607,7 +513,7 @@ void cScriptEditor::OnResultClick(wxCommandEvent& event)
 
 	if (m_IndicatorPos.first != -1)
 	{		
-		tScriptTranslated->SetIndicatorCurrent(INDIC_FINDSTRING);
+//		tScriptTranslated->SetIndicatorCurrent(INDIC_FINDSTRING);
 		tScriptTranslated->IndicatorFillRange(m_IndicatorPos.first, m_IndicatorPos.second);
 		tScriptTranslated->SetSelection(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
 	}
@@ -626,132 +532,6 @@ void cScriptEditor::OnSetTextRange(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnTabChange(wxCommandEvent& event)
-{
-	std::pair<size_t, size_t>* fromTo = (std::pair<size_t, size_t>*)event.GetClientData();
-
-	m_Index = fromTo->second;
-	UpdateScript();
-
-	delete fromTo;
-	event.Skip();
-}
-
-void cScriptEditor::OnTabClosed(wxCommandEvent& event)
-{
-	std::pair<size_t, size_t>* closedNewPos = (std::pair<size_t, size_t>*)event.GetClientData();	
-	
-	event.Skip();
-}
- 
-inline void cScriptEditor::VerifyLineLenght(wxStyledTextCtrl* stc, int line)
-{	
-	int lenght = stc->GetLineLength(line);
-
-	if (lenght > m_maxLineLenght) {
-		if (!(stc->MarkerGet(line) & LINEERROR_MASK)) //Verify if the line already has that marker
-			stc->MarkerAdd(line, 0);
-	}
-	else {
-		if (stc->MarkerGet(line) & LINEERROR_MASK)
-			stc->MarkerDelete(line, 0);
-	}
-}
-
-inline void cScriptEditor::VerifyCurLineLenght(wxStyledTextCtrl* stc)
-{
-	VerifyLineLenght(stc, stc->GetCurrentLine());
-}
-
-inline void cScriptEditor::VerifyAllLinesLenght(wxStyledTextCtrl* stc)
-{
-	for (int i = 0; i < stc->GetLineCount(); ++i)
-	{
-		VerifyLineLenght(stc, i);
-	}
-}
-
-inline void cScriptEditor::FindAndHighlightAllVars(wxStyledTextCtrl* stc, const size_t start, const size_t end)
-{
-	std::vector<size_t> pos;
-	STCFindAll(stc, start, end, m_PlayerVar, pos);
-	STCFindAll(stc, start, end, "<ChildName >", pos);
-
-	HighlightAll(stc, pos, m_VarSize, VarStyle);
-
-	pos.clear();
-
-	STCFindAll(stc, start, end, "|", pos);
-	STCFindAll(stc, start, end, "²", pos);
-
-	HighlightAll(stc, pos, 1, SimbolStyle);
-}
-
-inline void cScriptEditor::UpdateStyle(wxStyledTextCtrl* stc)
-{
-	stc->ClearDocumentStyle();
-	stc->MarkerDeleteAll(0);
-	VerifyAllLinesLenght(stc);
-	FindAndHighlightAllVars(stc, 0, stc->GetTextLength());
-}
-
-#ifdef Testing
-void cScriptEditor::DoSpelling(wxStyledTextCtrl* stc, const size_t start, const size_t end)
-{
-	std::string s = stc->GetTextRange(start, end).ToStdString();
-
-	size_t npos = std::string::npos;
-
-	tScriptTranslated->IndicatorClearRange(start, end - start);
-
-	for (size_t first = s.find_first_of(letters, 0); first != npos; first = s.find_first_of(letters, first))
-	{
-		size_t last = s.find_first_not_of(letters, first);
-
-		std::string word = s.substr(first, last != npos ? last - first : s.size() - first);
-
-		bool isGood = m_hunspell->spell(s);
-
-		if (!isGood)
-			tScriptTranslated->IndicatorFillRange(start + first, last != npos ? last - first : s.size() - first);
-
-		first = last;
-	}
-}
-#endif // Testing
-
-void cScriptEditor::SetupStyles(wxStyledTextCtrl* stc)
-{
-	stc->SetLexer(wxSTC_LEX_CONTAINER);
-
-	stc->StyleSetBackground(NormalStyle, Studio::GetControlBackgroundColor());
-	stc->StyleSetBackground(VarStyle, Studio::GetControlBackgroundColor());
-	stc->StyleSetBackground(SimbolStyle, Studio::GetControlBackgroundColor());
-	stc->StyleSetBackground(32, Studio::GetControlBackgroundColor()); //The editor background
-
-	stc->StyleSetFont(NormalStyle, Studio::GetDefaultFont());
-	stc->StyleSetFont(VarStyle, Studio::GetDefaultFont());
-	stc->StyleSetFont(SimbolStyle, Studio::GetDefaultFont());
-
-	stc->StyleSetForeground(NormalStyle, Studio::GetFontColour());
-	stc->StyleSetForeground(VarStyle, wxColour(86, 156, 214));
-	stc->StyleSetForeground(SimbolStyle, wxColour(78, 201, 176));
-
-	stc->MarkerDefineBitmap(0, m_DeleteIcon);	
-
-	stc->SetMarginWidth(0, 32);	
-	stc->SetMarginType(0, wxSTC_MARGIN_NUMBER);		
-	stc->SetCaretForeground(Studio::GetFontColour());
-
-	stc->IndicatorSetStyle(INDIC_FINDSTRING, wxSTC_INDIC_ROUNDBOX);
-	stc->IndicatorSetForeground(INDIC_FINDSTRING, wxColour(17, 61, 111));
-	stc->IndicatorSetUnder(INDIC_FINDSTRING, true);
-	stc->IndicatorSetAlpha(INDIC_FINDSTRING, 255);
-	stc->IndicatorSetStyle(0, wxSTC_INDIC_SQUIGGLE);
-
-	//stc->Bind(wxEVT_STC_)
-}
-
 void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
 {
 	statusBar->SetStatusText(wxString("Size: ") << std::to_string(stc->GetTextLength()), 1);
@@ -768,32 +548,10 @@ void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
 	statusBar->SetStatusText(wxString("Col: ") << tScriptTranslated->GetColumn(tScriptTranslated->GetCurrentPos()), 4);
 }
 
-inline void cScriptEditor::STCFindAll(wxStyledTextCtrl* stc, const size_t start, const size_t end, const std::string& toFind, std::vector<size_t>& output)
-{
-	size_t pos = stc->FindText(start, end, toFind);
-
-	while (pos != -1)
-	{
-		output.push_back(pos);
-		pos = stc->FindText(pos + toFind.size(), end, toFind);
-	}
-}
-
-inline void cScriptEditor::HighlightAll(wxStyledTextCtrl* stc, std::vector<size_t>& pos, const size_t size, const int style)
-{
-	for (size_t start : pos)
-	{
-		stc->StartStyling(start);
-		stc->SetStyling(size, style);
-	}
-}
-
 void cScriptEditor::UpdateText()
 {	
-	tScriptOriginal->SetText(m_Editors[m_Index].GetCurOriginal());
-	tScriptTranslated->SetText(m_Editors[m_Index].GetCurTranslated());
-
-	UpdateStyle(tScriptTranslated);
+	tScriptOriginal->SetText(m_Editor.GetCurOriginal());
+	tScriptTranslated->SetText(m_Editor.GetCurTranslated());	
 
 	statusBar->SetStatusText(wxString("Index: ") << std::to_string(m_Editor.GetIndex() + 1) << "/" << std::to_string(m_Editor.GetCount()));
 		
@@ -863,7 +621,7 @@ void cScriptEditor::CreateGUIControls()
 
 	menuScript = new wxMenu();
 	menuScript->Append(wxID_SAVE, _("Save\tCtrl-Shift-S"), nullptr, _("Save the current script"));
-	menuScript->Append(wxID_OPEN, _("Get Text From Other Script"));
+	menuScript->Append(wxID_OPEN, "Get text from...");
 	menuBar->Append(menuScript, _("File"));
 
 	menuString = new wxMenu();
@@ -905,7 +663,7 @@ void cScriptEditor::CreateGUIControls()
 	menuOptions->Append(ID_MENU_HVMODE, "Horizontal Mode");
 	menuBar->Append(menuOptions, "Options");
 
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuGetTextFromScriptFile, this, wxID_OPEN);
+	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuGetTextFrom, this, wxID_OPEN);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveScriptClick, this, wxID_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
 	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
@@ -943,22 +701,12 @@ void cScriptEditor::CreateGUIControls()
 
 	CreateMyToolBar();
 
-	wxSize button_min_size = wxSize(40, 26);
+	wxSize button_min_size = wxSize(40, 26);	
 
-	m_pTabControl = new wxTabControl(this, wxID_ANY);
-	m_pTabControl->SetUserCanAddTab(false);
+	tScriptTranslated = new STC(this, wxID_ANY);
 
-	m_pTabControl->SetSelColor(wxColour(240, 240, 240));
-	m_pTabControl->Bind(wxEVT_TAB_CHANGE, &cScriptEditor::OnTabChange, this);
-	m_pTabControl->Bind(wxEVT_TAB_CLOSED, &cScriptEditor::OnTabClosed, this);
-
-	tScriptTranslated = new wxStyledTextCtrl(this, wxID_ANY);
-	SetupStyles(tScriptTranslated);
-
-	tScriptOriginal = new wxStyledTextCtrl(this, wxID_ANY);
-	SetupStyles(tScriptOriginal);
-
-	tScriptTranslated->Bind(wxEVT_STC_STYLENEEDED, &cScriptEditor::tScriptTranslatedOnStyleNeeded, this);
+	tScriptOriginal = new STC(this, wxID_ANY);
+	
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
 	tScriptTranslated->Bind(wxEVT_LEFT_DOWN, &cScriptEditor::OnSTCLeftDown, this);
@@ -982,19 +730,13 @@ void cScriptEditor::CreateGUIControls()
 	editor_buttons_sizer->AddSpacer(4);
 	editor_buttons_sizer->Add(editor_next_text, 0, wxALL | wxEXPAND, 0);
 
-	editor_sizer = new wxBoxSizer(wxVERTICAL);
-	//editor_sizer->Add(m_pTabControl, 0, wxALL | wxEXPAND, 0);
+	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
 	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
-	global_sizer = new wxBoxSizer(wxVERTICAL);
-	global_sizer->Add(m_pTabControl, 0, wxALL | wxEXPAND, 0);
+	global_sizer = new wxBoxSizer(wxVERTICAL);	
 	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);	
-
-	/*m_pSTCMenu = new wxPopupWindow(this);
-	m_pSTCMenu->SetPosition();
-	m_pSTCMenu->Show();*/	
 
 	this->Bind(wxEVT_CLOSE_WINDOW, &cScriptEditor::OnClosing, this);
 
@@ -1004,10 +746,7 @@ void cScriptEditor::CreateGUIControls()
 }
 
 void cScriptEditor::SetEditorVertical()
-{
-	//if (editor_buttons_sizer != nullptr)
-	//	editor_buttons_sizer->SetOrientation(wxHORIZONTAL);
-
+{	
 	if (editor_sizer != nullptr)
 		editor_sizer->SetOrientation(wxVERTICAL);
 
@@ -1023,8 +762,7 @@ void cScriptEditor::SetEditorHorizontal()
 	{
 		editor_sizer->Detach(1);
 		global_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
-	}
-		//editor_buttons_sizer->SetOrientation(wxVERTICAL);
+	}	
 
 	if (editor_sizer != nullptr)
 		editor_sizer->SetOrientation(wxHORIZONTAL);
@@ -1090,7 +828,7 @@ void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
 
 
 	Script originalText;
-	originalText.SetData(FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
+	originalText.SetData(File::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
 
 	if (!originalText.HaveText())
 	{
@@ -1099,14 +837,14 @@ void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
 	}
 
 	Script translatedText;
-	translatedText.SetData(FileUtil::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
+	translatedText.SetData(File::ReadAllBytes(romTranslated.GetScriptFullPath(script)));
 
 	romTranslated.BackupRom("Text range " + std::to_string(from) + " - " + std::to_string(to));
 
 	for (size_t C = from; C < to; C++)
 	{
 		Script original; 
-		original.SetData(FileUtil::ReadAllBytes(romOriginal.GetScriptFullPath(C)));
+		original.SetData(File::ReadAllBytes(romOriginal.GetScriptFullPath(C)));
 
 		if (!original.HaveText())
 			continue;
@@ -1118,7 +856,7 @@ void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
 		}
 
 		original.UpdateText(translatedText.GetText());
-		FileUtil::WriteAllBytes(romTranslated.GetScriptFullPath(C), original.GetData(), original.GetRiffLenght());
+		File::WriteAllBytes(romTranslated.GetScriptFullPath(C), original.GetData(), original.GetRiffLenght());
 
 		if (romTranslated.InsertScript(C, original) == -1)
 			noInsertedScripts.push_back(C);
@@ -1170,6 +908,8 @@ void ScriptEditor::SetData(const std::vector<uint8_t>& original, const std::vect
 	m_Index = 0;
 	m_Number = scriptNum;
 	m_Size = m_Original.size();
+
+	m_Opened = true;
 }
 
 std::string ScriptEditor::GetCurOriginal()
@@ -1211,7 +951,7 @@ bool ScriptEditor::PrevText()
 }
 
 bool ScriptEditor::SaveText(const std::string& text)
-{			
+{	
 	m_Saved = true;
 
 	ReleaseBackup();
@@ -1344,5 +1084,49 @@ void ScriptEditor::SaveScript()
 
 	m_ScriptTranslated.UpdateText(buffer);
 
-	FileUtil::WriteAllBytes(m_RomTranslated.GetScriptFullPath(m_Number), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
+	File::WriteAllBytes(m_RomTranslated.GetScriptFullPath(m_Number), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
+}
+
+void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::string& replace)
+{
+	wxFileName outPut(m_RomOriginal.Path);
+	outPut.RemoveLastDir();
+	outPut.AppendDir("Script");
+	outPut.AppendDir("Backup");
+
+	if (!outPut.DirExists())
+		outPut.Mkdir(511, wxPATH_MKDIR_FULL);
+
+	for (size_t i = 0; i < m_RomOriginal.Offset.Script_count; ++i)
+	{
+		std::string path = m_RomTranslated.GetScriptFullPath(i);
+		outPut.SetFullName(m_RomTranslated.GetScriptFullName(i));
+		
+		Script script(File::ReadAllBytes(path));
+
+		if (!script.HaveText())
+			continue;
+
+		std::string_view view = (const char*)script.GetStartText();
+		
+		if (view.find(find) == std::string::npos)
+			continue;
+
+		wxCopyFile(path, outPut.GetFullPath());
+
+		std::vector<std::string> text = script.GetText();
+		std::vector<std::string> buffer;
+
+		m_RomTranslated.InputTextWithVariables(buffer, text);
+
+		for (std::string& s : text)
+		{
+			StringUtil::Replace(find, replace, s);
+		}
+
+		m_RomTranslated.OutputTextWithVariables(text);
+		script.UpdateText(text);
+
+		File::WriteAllBytes(path, script.GetData(), script.GetRiffLenght());
+	}
 }

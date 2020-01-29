@@ -1,12 +1,18 @@
 #pragma once
 
-#include "wx/wx.h"
+#include <wx/frame.h>
+#include <wx/button.h>
+#include <wx/statbox.h>
+#include <wx/sizer.h>
+#include <wx/stdpaths.h>
 //Frames
 #include "frame_script_editor.hpp"
-#include "frame_tile_editor_parent.hpp"
 #include "frame_item_editor.hpp"
-//
-#include "class_item.hpp"
+
+//tests
+#ifdef _DEBUG
+#include "class_spell_checker.hpp"
+#endif
 
 class MainFrame : public wxFrame
 {
@@ -14,12 +20,9 @@ public:
 	MainFrame();
 	~MainFrame();
 
-private:
-	DECLARE_EVENT_TABLE();	
-
+private:	
 	void OnChoiceChanged(wxCommandEvent& event);
 	void scriptEditor_onClick(wxCommandEvent& event);
-	void OnButtonTileEditor_Click(wxCommandEvent& event);
 	void OnButtonTeste1_Click(wxCommandEvent& event);
 	void OnButtonDumpOriginal(wxCommandEvent& event);
 	void OnButtonDumpTranslated(wxCommandEvent& event);
@@ -29,11 +32,6 @@ private:
 	uint8_t cur_choice = 0;	
 private:
 	id GetCurrentId();
-
-//Form
-	TileEditorFrame* tileEditorFrame = nullptr;
-
-
 //UI
 private:
 	void CreateGUIControls();
@@ -56,15 +54,7 @@ private:
 	wxStaticBox* currentBox = nullptr;
 	wxStaticBoxSizer* currentSizer = nullptr;
 	wxChoice* currentChoice = nullptr;
-	wxCheckBox* currentDefault = nullptr;
-
-	wxButton* graphic_button_tile_editor = nullptr;
-	wxStaticBox* graphic_static_box = nullptr;
-	wxStaticBoxSizer* graphic_static_sizer = nullptr;
-	
-	wxButton* save_editor_button = nullptr;
-	wxStaticBox* save_editor_box = nullptr;
-	wxStaticBoxSizer* save_editor_sizer = nullptr;
+	wxCheckBox* currentDefault = nullptr;	
 
 	wxButton* teste_button_1 = nullptr;
 	wxStaticBox* teste_box = nullptr;
@@ -72,20 +62,6 @@ private:
 
 	wxButton* m_pGUI_openItemEditor = nullptr;
 	wxStaticBox* m_pGUI_boxItemEditor = nullptr;
-	wxStaticBoxSizer* m_pGUI_boxSizerItemEditor = nullptr;
-	//cScriptEditor* scriptEditor = nullptr;
-//id
-private:
-
-	enum ID {
-		ID_currentChoice = 10001,
-		ID_scriptEditor =  10002,
-		ID_tileEditor =	   10003,
-		ID_saveEditor =	   10004,
-		ID_teste1 =		   10005
-	};
-	
-
-	//wxDECLARE_EVENT_TABLE();
+	wxStaticBoxSizer* m_pGUI_boxSizerItemEditor = nullptr;	
 };
 

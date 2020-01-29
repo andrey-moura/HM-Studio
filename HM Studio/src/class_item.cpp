@@ -10,7 +10,7 @@ Item::Item(const std::string& name, const std::string& description) : m_Name(nam
 {
 }
 
-void Item::GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output)
+ITEM_DATA Item::GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output)
 {	
 	ITEM_DATA data;
 
@@ -34,47 +34,7 @@ void Item::GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output)
 	GetItensDescription(output, data, rom);
 	GetItemImageOffset(output, data, rom);
 
-	//wxFileName name(rom.Path);
-	//name.RemoveLastDir();
-	//name.AppendDir("Itens");
-	//name.AppendDir("Shelf");
-	//name.AppendDir("Image");
-	//name.SetExt("png");
-
-	//if (!name.DirExists())
-	//	name.Mkdir(511, wxPATH_MKDIR_FULL);
-
-	//uint8_t* image = new uint8_t[256];
-	//uint8_t* pal = new uint8_t[256];
-
-	//for (size_t i = 0; i < output.size(); ++i)
-	//{
-	//	std::string secureName = output[i].m_Name;
-	//	StringUtil::Replace("\\", " ", secureName);
-	//	StringUtil::Replace("/", " ", secureName);
-	//	StringUtil::Replace(":", " ", secureName);
-	//	StringUtil::Replace("*", " ", secureName);
-	//	StringUtil::Replace("?", " ", secureName);
-	//	StringUtil::Replace("\"", " ", secureName);
-	//	StringUtil::Replace("<", " ", secureName);
-	//	StringUtil::Replace(">", " ", secureName);
-	//	StringUtil::Replace("|", " ", secureName);
-
-	//	name.SetName(std::to_string(i) + " - " + secureName);
-
-	//	rom.Seek(output[i].m_BitmapOff);
-	//	rom.Read(image, 256);
-
-	//	rom.Seek(output[i].m_PaletteOff);
-	//	rom.Read(pal, 256);
-
-	//	Graphics graphics(image, 4, 16, 16);
-	//	graphics.DecodePalette(pal);
-	//	graphics.ToImage().SaveFile(name.GetFullPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
-	//}
-
-	//delete[] image;
-	//delete[] pal;
+	return data;
 }
 
 void Item::GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom)

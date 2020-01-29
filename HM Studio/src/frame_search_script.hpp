@@ -15,7 +15,8 @@ public:
 		Find = -500,
 		Replace,
 		ReplaceExtended,
-		SearchInScripts
+		SearchInScripts,
+		ReplaceInScripts
 	};
 
 	std::string find;

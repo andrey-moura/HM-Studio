@@ -24,9 +24,16 @@ void FrameSearchScript::EVT_BTN_ReplaceAllClick(wxCommandEvent& event)
 {
 	find = m_pGUI_inputFind->GetValue();
 	replace = m_pGUI_inputReplace->GetValue();
+	
+	if (m_pGUI_InScript->GetValue())
+	{
+		this->EndModal(ReplaceInScripts);
+	}
 
-	if (m_pGUI_modeExtended->GetValue())
+	else if (m_pGUI_modeExtended->GetValue())
+	{
 		this->EndModal(ReplaceExtended);
+	}
 	else
 		this->EndModal(Replace);
 }
