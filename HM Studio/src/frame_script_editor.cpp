@@ -35,6 +35,8 @@ void cScriptEditor::SetupRom()
 		m_lineLineEnding = "\\n";
 		std::vector<std::string> vars;
 		vars.push_back("<PlayerName>");
+		vars.push_back("<AnimalName>");
+		vars.push_back("<Variable02>");
 		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptOriginal);
 		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptTranslated);
 		break;
@@ -903,7 +905,9 @@ void ScriptEditor::SetData(const std::vector<uint8_t>& original, const std::vect
 	m_Original = m_ScriptOriginal.GetText();
 	m_Translated = m_ScriptTranslated.GetText();
 
-	m_RomTranslated.InputTextWithVariables(m_Original, m_Translated);
+	m_RomTranslated.InputTextWithVariables(m_Translated);
+	m_RomOriginal.InputTextWithVariables(m_Original);
+
 
 	m_Index = 0;
 	m_Number = scriptNum;
@@ -982,10 +986,7 @@ void ScriptEditor::UpdateScript()
 void ScriptEditor::SetText(const std::vector<std::string>& text)
 {
 	m_Translated = text;
-
-	std::vector<std::string> buffer;
-
-	m_RomTranslated.InputTextWithVariables(buffer, m_Translated);
+	m_RomTranslated.InputTextWithVariables(m_Translated);
 }
 
 DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID_ANY, "Select range"), m_pParent(parent)
@@ -1114,10 +1115,9 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 
 		wxCopyFile(path, outPut.GetFullPath());
 
-		std::vector<std::string> text = script.GetText();
-		std::vector<std::string> buffer;
+		std::vector<std::string> text = script.GetText();		
 
-		m_RomTranslated.InputTextWithVariables(buffer, text);
+		m_RomTranslated.InputTextWithVariables(text);
 
 		for (std::string& s : text)
 		{

@@ -75,6 +75,9 @@ size_t Script::Count() const
 
 void Script::GetPointers()
 {	
+	if (m_data == nullptr)
+		return;
+
 	//This is very close to the way it is done in GBA
 	m_pRiffLenght = (uint32_t*)(m_data + 0x04);
 	m_pSrcCodeLenght = (uint32_t*)(m_data + 0x10);

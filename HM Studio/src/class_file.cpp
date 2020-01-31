@@ -51,7 +51,6 @@ void File::WriteAllBytes(const std::string& path, const uint8_t* bytes, size_t s
 	file.Create(path, true);
 
 	file.Open(path, wxFile::read_write);
-	size = file.Length();
 
 	file.Write(bytes, size);
 

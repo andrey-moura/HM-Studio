@@ -74,10 +74,6 @@ Rom::Rom(id i, bool translated) : wxFile()
 		scriptPath.Mkdir(511, wxPATH_MKDIR_FULL);	
 }
 
-Rom::~Rom()
-{	
-}
-
 std::string Rom::GetTablePath()
 {
 	wxFileName fileName = wxFileName(Path);
@@ -89,16 +85,22 @@ std::string Rom::GetTablePath()
 	return fileName.GetFullPath().ToStdString();
 }
 
-void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector<std::string> &translated)
+void Rom::InputTextWithVariables(std::vector<std::string>& text)
 {
 	std::string rawPlayer;
 	std::string rawFarm;
+	std::string rawAnimal;
+	std::string rawVar2;
 
 	std::string player;
 	std::string farm;
+	std::string animal;
+	std::string var2;
 
 	std::string playerVar;
 	std::string farmVar;
+	std::string animalVar;
+	std::string var2Var;
 
 	std::string endLine;
 
@@ -106,13 +108,19 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 	{
 	case console::GBA:
 		rawPlayer = "ÿ!";
-		rawFarm = "ÿ#";
+		rawFarm   = "ÿ#";
+		rawAnimal = "ÿ%";
+		rawVar2   = "ÿ\'";
 
 		player = " PlayerName ";
-		farm =   " FarmName   ";
+		farm   = " FarmName   ";
+		animal = " AnimalName ";
+		var2   = " Variable02 ";
 
 		playerVar = "<PlayerName>";
-		farmVar = "<FarmName  >";
+		farmVar   = "<FarmName  >";
+		animalVar = "<AnimalName>";
+		var2Var   = "<Variable02>";
 
 		endLine = "\r\n";
 		break;
@@ -131,44 +139,46 @@ void Rom::InputTextWithVariables(std::vector<std::string> &original, std::vector
 		return;
 	}
 
-	for (size_t i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(rawPlayer, player, translated[i]);		
-		StringUtil::Replace(rawFarm, farm, translated[i]);
+		StringUtil::Replace(rawPlayer, player, text[i]);
+		StringUtil::Replace(rawFarm, farm, text[i]);
+		StringUtil::Replace(rawAnimal, animal, text[i]);
+		StringUtil::Replace(rawVar2, var2, text[i]);
 	}
 
-	std::string table_path = GetTablePath();
+	std::string tablePath = GetTablePath();
 
-	if (wxFile::Exists(table_path))
-		Table::InputTable(File::ReadAllText(table_path), translated);
+	if (wxFile::Exists(tablePath))
+		Table::InputTable(File::ReadAllText(tablePath), text);
 
-	for (size_t i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(player, playerVar, translated[i]);		
-		StringUtil::Replace(farm, farmVar, translated[i]);
+		StringUtil::Replace(player, playerVar, text[i]);
+		StringUtil::Replace(farm, farmVar, text[i]);
+		StringUtil::Replace(animal, animalVar, text[i]);
+		StringUtil::Replace(var2, var2Var, text[i]);
 
-		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, translated[i]);
-	}
-
-	for (size_t i = 0; i < original.size(); ++i)
-	{
-		StringUtil::Replace(rawPlayer, playerVar, original[i]);
-		StringUtil::Replace(rawFarm, farmVar, original[i]);
-
-		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, original[i]);
+		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, text[i]);
 	}
 }
 
-void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
+void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 {
 	std::string rawPlayer;
 	std::string rawFarm;
+	std::string rawAnimal;
+	std::string rawVar2;
 
 	std::string player;
 	std::string farm;
+	std::string animal;
+	std::string var2;
 
 	std::string playerVar;
 	std::string farmVar;
+	std::string animalVar;
+	std::string var2Var;
 
 	std::string endLine;
 
@@ -176,13 +186,19 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 	{
 	case console::GBA:
 		rawPlayer = "ÿ!";
-		rawFarm = "ÿ#";
+		rawFarm =   "ÿ#";
+		rawAnimal = "ÿ%";
+		rawVar2 =   "ÿ\'";
 
 		player = " PlayerName ";
-		farm = " FarmName   ";
+		farm =   " FarmName   ";
+		animal = " AnimalName ";
+		var2 =   " Variable02 ";
 
 		playerVar = "<PlayerName>";
-		farmVar = "<FarmName  >";
+		farmVar =   "<FarmName  >";
+		animalVar = "<AnimalName>";
+		var2Var =   "<Variable02>";
 
 		endLine = "\r\n";
 		break;
@@ -201,26 +217,31 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& translated)
 		return;
 	}
 
-	for (size_t i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(playerVar, player, translated[i]);
-		StringUtil::Replace(farmVar, farm, translated[i]);
+		StringUtil::Replace(playerVar, player, text[i]);
+		StringUtil::Replace(farmVar, farm, text[i]);
+		StringUtil::Replace(animalVar, animal, text[i]);
+		StringUtil::Replace(var2Var, var2, text[i]);
 
-		StringUtil::Replace("|²" + endLine, "|²", translated[i]);
+		StringUtil::Replace("|²" + endLine, "|²", text[i]);
 	}	
 
-	Table::OutPutTable(File::ReadAllText(GetTablePath()), translated);
+	Table::OutPutTable(File::ReadAllText(GetTablePath()), text);
 
-	for (size_t i = 0; i < translated.size(); ++i)
+	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(player, rawPlayer, translated[i]);
-		StringUtil::Replace(farm, rawFarm, translated[i]);
+		StringUtil::Replace(player, rawPlayer, text[i]);
+		StringUtil::Replace(farm, rawFarm, text[i]);
+		StringUtil::Replace(animal, rawAnimal, text[i]);
 
 		if (Console == console::GBA)
 		{
-			StringUtil::ReplaceMatching('\"', 0xcf, translated[i], false);
-			StringUtil::ReplaceMatching('\'', 0xd0, translated[i], true);
+			StringUtil::ReplaceMatching('\"', 0xcf, text[i], false);
+			StringUtil::ReplaceMatching('\'', 0xd0, text[i], true);
 		}
+
+		StringUtil::Replace(var2, rawVar2, text[i]);
 	}	
 }
 

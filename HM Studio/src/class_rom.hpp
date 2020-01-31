@@ -32,7 +32,7 @@ class Rom : public wxFile
 {
 public:
 	Rom(id i, bool translated);
-	~Rom();
+	~Rom() = default;
 
 	id Id;
 	console Console;
@@ -42,8 +42,8 @@ public:
 
 public:
 	std::string GetTablePath();
-	void InputTextWithVariables(std::vector<std::string>& original, std::vector<std::string> &translated);
-	void OutputTextWithVariables(std::vector<std::string>& translated);
+	void InputTextWithVariables(std::vector<std::string>& text);
+	void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);
 //script
 public:

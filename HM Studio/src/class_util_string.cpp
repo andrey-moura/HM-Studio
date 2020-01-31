@@ -78,7 +78,10 @@ void StringUtil::SplitLines(const std::string& s, std::vector<std::string>& outp
 
 void StringUtil::Replace(const std::string& find, const std::string& replace, std::string& str)
 {
-	if (find.size() <= 0 || replace.size() <= 0 || str.size() <= 0)
+	if (find.size() == 0 || replace.size() == 0 || str.size() == 0)
+		return;
+
+	if (find == replace)
 		return;
 
 	if (find.size() == replace.size())
@@ -94,7 +97,7 @@ void StringUtil::Replace(const std::string& find, const std::string& replace, st
 	else {
 
 		size_t pos = str.find(find, 0);
-		int size = find.size();
+		size_t findSize = find.size();
 
 		while (pos != std::string::npos)
 		{
@@ -103,11 +106,11 @@ void StringUtil::Replace(const std::string& find, const std::string& replace, st
 
 			memcpy((void*)newString.data(), str.data(), pos);
 			newString.append(replace);
-			newString.append(str.substr(pos + size));
+			newString.append(str.substr(pos + findSize));
 
 			str = newString;
 
-			pos = str.find(find, pos + find.size());
+			pos = str.find(find, pos + replace.size());
 		}
 	}
 }
