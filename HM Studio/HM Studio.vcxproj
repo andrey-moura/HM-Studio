@@ -22,8 +22,10 @@
     <ClCompile Include="frame_save_editor.cpp" />
     <ClCompile Include="src\class_app.cpp" />
     <ClCompile Include="src\class_bit_converter.cpp" />
+    <ClCompile Include="src\class_finder.cpp" />
     <ClCompile Include="src\class_graphics.cpp" />
     <ClCompile Include="src\class_item.cpp" />
+    <ClCompile Include="src\class_script_editor.cpp" />
     <ClCompile Include="src\class_spell_checker.cpp" />
     <ClCompile Include="src\class_stc.cpp" />
     <ClCompile Include="src\class_table.cpp" />
@@ -48,8 +50,10 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\class_app.hpp" />
     <ClInclude Include="src\class_bit_converter.hpp" />
+    <ClInclude Include="src\class_finder.hpp" />
     <ClInclude Include="src\class_graphics.hpp" />
     <ClInclude Include="src\class_item.hpp" />
+    <ClInclude Include="src\class_script_editor.hpp" />
     <ClInclude Include="src\class_spell_checker.hpp" />
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
@@ -129,7 +133,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
-    <TargetName>HM Studio2</TargetName>
+    <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -139,7 +143,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
-    <TargetName>HM Studio2</TargetName>
+    <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -154,7 +158,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(wxWIN)\include\msvc;$(wxWIN)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -164,7 +168,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(Hunspell)/msvc/$(Configuration)/libhunspell;$(wxWIN)\lib\vc_lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);libhunspell.lib</AdditionalDependencies>
+      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_core.lib;wxmsw31u_stc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);libhunspell.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -193,7 +197,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>USESPELL;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(wxWIN)\include\msvc;$(wxWIN)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>

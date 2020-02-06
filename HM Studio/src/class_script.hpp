@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#define SCRIPT_RIFF 0x46464952
+
 class Script
 {
 public:

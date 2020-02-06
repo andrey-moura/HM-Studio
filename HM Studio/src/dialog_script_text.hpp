@@ -10,6 +10,7 @@
 #include <wx/msgdlg.h>
 
 #include "class_script.hpp"
+#include "class_script_editor.hpp"
 #include "class_rom.hpp"
 #include "class_file.hpp"
 #include "Studio.h"
@@ -17,8 +18,9 @@
 class TextFromScriptDialog : public wxDialog
 {
 public:
-	TextFromScriptDialog(size_t scriptCount, size_t romId);
+	TextFromScriptDialog(ScriptEditor& editor);
 private:
+	ScriptEditor& m_Editor;
 	size_t m_ScriptCount;
 	size_t m_RomId;
 

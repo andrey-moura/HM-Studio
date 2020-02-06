@@ -8,6 +8,7 @@
 #include <wx/textbuf.h>
 #include <wx/string.h>
 
+#include "wxUtil/window_find_results.hpp"
 #include "frame_search_script.hpp"
 #include "dialog_script_text.hpp"
 
@@ -15,68 +16,10 @@
 #include "class_script.hpp"
 #include "Studio.h"
 #include "class_stc.hpp"
-
 #include "class_file.hpp"
 #include "class_util_string.hpp"
 #include "class_table.hpp"
-#include "wxUtil/window_find_results.hpp"
-
-class ScriptEditor
-{
-public:
-	ScriptEditor(Rom& original, Rom& translated) : m_RomOriginal(original), m_RomTranslated(translated)
-	{
-
-	}	
-
-	~ScriptEditor() = default;
-
-public:
-	void SetData(const std::vector<uint8_t>& original, const std::vector<uint8_t>& translated, size_t scriptNum);
-	std::string GetCurOriginal();
-	std::string GetCurTranslated();
-	size_t GetNumber() { return m_Number; }
-	bool IsOpened() { return m_Opened; }
-	bool ProxText();
-	bool PrevText();
-	size_t GetCount() { return m_ScriptOriginal.Count(); }
-	bool SaveText(const std::string& text);
-	void BackupText(const std::string& text);
-	std::string GetBackupText() { return m_TextBackup; }
-	void SetText(const std::vector<std::string>& text);
-	void ReleaseBackup();
-	void SetChanged(bool changed) { m_Changed = changed; }
-	void SetSaved(bool saved) { m_Saved = saved; }
-	std::vector<std::string>& GetTranlated() { return m_Translated; }
-	void SaveScript();
-	std::string& operator[](size_t index) { return m_Translated[index]; }	
-	void SetIndex(size_t index) { m_Index = index; }
-	size_t GetIndex() { return m_Index; }
-	void ReplaceInAllScripts(const std::string& find, const std::string& replace);
-
-	void UpdateScript();
-	Script& GetScript() { return m_ScriptTranslated; }
-private:
-	Script m_ScriptOriginal;
-	Script m_ScriptTranslated;
-
-	std::vector<std::string> m_Original;
-	std::vector<std::string> m_Translated;
-
-	size_t m_Index = 0;	
-	size_t m_Size;
-	size_t m_Number;
-
-	Rom& m_RomOriginal;
-	Rom& m_RomTranslated;
-
-	std::string m_TextBackup;
-	size_t m_IndexBackup = -1;
-	bool m_Changed = false;
-	bool m_Saved = false;
-
-	bool m_Opened = false;
-};
+#include "class_script_editor.hpp"
 
 class cScriptEditor : public wxFrame
 {
@@ -98,8 +41,7 @@ private:
 	void OnMenuHorizontalMode(wxCommandEvent& event);
 	void OnMenuGetTextFrom(wxCommandEvent& event);
 	void OnSaveScriptClick(wxCommandEvent& event);	
-	void OnInsertScriptClick(wxCommandEvent& event);
-	void OnExportScript(wxCommandEvent& event);
+	void OnInsertScriptClick(wxCommandEvent& event);	
 	void EVT_MENU_FindText(wxCommandEvent& event);
 	void EVT_MENU_FindNextText(wxCommandEvent& event);
 	void EVT_MENU_RestoreString(wxCommandEvent& event);
@@ -119,25 +61,23 @@ private:
 private:
 	void BackupText();
 	void RestoreText();
-
+//Rom manipulation
+private:
+	Rom romOriginal;
+	Rom romTranslated;
 //Script manipulation
 private:
 	void OpenScript(size_t index);
-	void SaveScript();	
-	void ExportScript();	
+	void SaveScript();		
 	void UpdateScript();
 	void CheckAllCode();
 	void CheckAndGoScript(size_t index);
 	void FindText();
 public:
 	void ScriptTextRange(size_t from, size_t to, size_t script);
-
+private:
 	ScriptEditor m_Editor;
 
-//Rom manipulation
-private:
-	Rom romOriginal;
-	Rom romTranslated;
 //Forms
 
 //Text manipulation
@@ -165,8 +105,7 @@ private:
 
 	wxMenu* menuScript = nullptr;
 	wxMenu* menuString = nullptr;
-	wxMenuItem* m_pMenuString_Restore = nullptr;
-	wxMenu* menuExport = nullptr;
+	wxMenuItem* m_pMenuString_Restore = nullptr;	
 	wxMenu* menuEdit = nullptr; 
 	wxMenu* menuSearch = nullptr;
 	wxMenu* menuTools = nullptr;
@@ -202,11 +141,10 @@ private:
 		ID_MENU_STRING_PREV,
 		ID_MENU_STRING_PROX,
 		ID_MENU_STRING_RESTORE,
-		ID_MENU_EXPORT_SCRIPT,
 		ID_MENU_FIND_NEXT,		
 		ID_MENU_HVMODE,
 		ID_MENU_OPENHEX_ORIGINAL,
-		ID_MENU_OPENHEX_TRANSLATED,
+		ID_MENU_OPENHEX_TRANSLATED
 	};
 };
 

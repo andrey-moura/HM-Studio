@@ -2,40 +2,33 @@
 
 Rom::Rom(id i, bool translated) : wxFile()
 {
-	State = translated ? "Translated" : "Original";	
-	std::string scriptExt = "";
+	State = translated ? "Translated" : "Original";		
 	Id = i;	
 
 	switch (i)
 	{
-	case id::FoMT:	
-		scriptExt = "fsf";
+	case id::FoMT:			
 		Name = "FoMT";
 		Console = console::GBA;
 		break;
-	case id::MFoMT:
-		scriptExt = "msf";
+	case id::MFoMT:		
 		Name = "MFoMT";
 		Console = console::GBA;
 		break;
-	case id::DS:
-		scriptExt = "dsf";
+	case id::DS:		
 		Name = "DS";
 		Console = console::DS;
 		break;
 	default:
 		break;
-	}
-
-	char buffer[30];
-	sprintf(buffer, scriptName, State.c_str(), "%i", scriptExt.c_str());
-	
-	Offset = offset();
-	SetOffsets();
-
-	memcpy(scriptName, buffer, 30);
+	}		
 
 	wxFileName path = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+	path.AppendDir(Name);
+
+	m_Dir = path.GetPath().ToStdString();
+
+	path.AppendDir("Rom");
 	path.SetName("Rom_" + State);
 
 	switch (Console)
@@ -50,28 +43,11 @@ Rom::Rom(id i, bool translated) : wxFile()
 		break;
 	}
 
-	path.AppendDir(Name);
-	path.AppendDir("Rom");
-
 	if (!path.DirExists())
 		path.Mkdir(511, wxPATH_MKDIR_FULL);
 
-	Path = path.GetFullPath();
-	//if (wxFile::Exists(Path));
-	this->Open(Path, wxFile::read_write);
-
-	scriptPath = wxFileName(wxStandardPaths::Get().GetExecutablePath());
-	scriptPath.AppendDir(Name);
-	scriptPath.AppendDir("Script");
-	scriptPath.AppendDir(State);
-
-	exportedScriptPath = wxFileName(scriptPath.GetFullPath());
-	exportedScriptPath.RemoveLastDir();
-	exportedScriptPath.AppendDir("Exported");
-	exportedScriptPath.SetExt("txt");
-
-	if (!scriptPath.DirExists())
-		scriptPath.Mkdir(511, wxPATH_MKDIR_FULL);	
+	Path = path.GetFullPath();	
+	this->Open(Path, wxFile::read_write);	
 }
 
 std::string Rom::GetTablePath()
@@ -245,31 +221,6 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 	}	
 }
 
-std::string Rom::GetScriptFullName(int num)
-{
-	char buffer[30];
-	sprintf(buffer, scriptName, num);
-	return buffer;
-}
-
-std::string Rom::GetScriptFullPath(int num)
-{
-	scriptPath.SetFullName(GetScriptFullName(num));
-	return scriptPath.GetFullPath().ToStdString();
-}
-
-std::string Rom::GetScriptExportedFullPath(int num)
-{
-	std::string buffer;
-	buffer.resize(25);
-
-	sprintf((char*)buffer.data(), scriptExportedName, num);
-
-	exportedScriptPath.SetFullName(buffer);
-
-	return exportedScriptPath.GetFullPath().ToStdString();
-}
-
 int8_t Rom::ReadInt8()
 {
 	int8_t value = 0;
@@ -318,6 +269,20 @@ uint32_t Rom::ReadUInt32()
 	return value;
 }
 
+uint64_t Rom::ReadUint64(uint32_t off)
+{
+	Seek(off);
+	uint64_t value;
+	Read(&value, 8);
+	return value;
+}
+
+uint32_t Rom::ReadPointer32(uint32_t offset)
+{
+	Seek(offset);
+	return ReadUInt32() & ROM_BUS_NOT;
+}
+
 std::string Rom::ReadString()
 {
 	size_t size = 0;
@@ -339,9 +304,15 @@ std::string Rom::ReadString()
 	return string;
 }
 
-void Rom::ReadPointer32(uint32_t& value)
-{	
-	this->Read(&value, 3);
+void Rom::WriteUInt32(uint32_t number)
+{
+	Write(&number, 4);
+}
+
+void Rom::WriteUInt32(uint32_t number, uint32_t offset)
+{
+	Seek(offset);
+	WriteUInt32(number);
 }
 
 void Rom::ReadBytes(std::vector<uint8_t>& bytes, size_t size)
@@ -362,178 +333,6 @@ void Rom::WriteBytes(const void* bytes, const size_t size)
 	this->Flush();
 }
 
-void Rom::EraseBlock(size_t size)
-{
-	std::vector<uint8_t> bytes;
-	bytes.resize(size, 0x00);
-	this->WriteBytes(bytes);
-}
-
-bool Rom::VerifyEmptyBlock(size_t size)
-{
-	std::vector<uint8_t> bytes;
-	std::vector<uint8_t> buffer;
-
-	bytes.resize(size, 0x00);	
-
-	this->Read(bytes.data(), size);
-
-	if (bytes[0] == 0x00)
-	{
-		buffer.resize(size, 0x00);
-		if (memcmp(bytes.data(), buffer.data(), size) == 0)
-			return true;
-		else return false;
-	}	
-	else if (bytes[0] == 0xff)
-	{
-		buffer.resize(size, 0xff);
-		if (memcmp(bytes.data(), buffer.data(), size) == 0)
-			return true;
-		else return false;
-	}
-	else return false;
-}
-
-int Rom::InsertScript(int number,  const Script& script)
-{
-	uint32_t offset = 0;
-	uint32_t oldSize = 0;
-	uint32_t newSize = script.GetRiffLenght();
-	GetOffset(offset, number);
-	GetSize(offset, oldSize);
-
-	if (newSize <= oldSize)
-	{
-		this->Seek(offset);
-		this->EraseBlock(oldSize);
-		this->Seek(offset);
-		this->WriteBytes(script.GetData(), newSize);
-
-		return 0;
-	}
-	else if(newSize > oldSize)
-	{
-		int end_offset = offset + oldSize;
-		this->Seek(end_offset);
-
-		if (VerifyEmptyBlock(newSize - oldSize))
-		{
-			this->Seek(offset);
-			this->WriteBytes(script.GetData(), newSize);
-			return 1;
-		}
-		else {
-			return -1;
-		}
-
-		return end_offset;
-	}
-
-	return 0;
-}
-
-void Rom::SetOffsets()
-{
-	switch (Id)
-	{
-	case id::FoMT:
-		Offset.Script_start_pointers = 0xF89D8;		
-		Offset.Script_count = 1328;
-		break;
-	case id::MFoMT:
-		Offset.Script_start_pointers = 0x1014C0;
-		Offset.Script_count = 1415;
-		break;
-	case id::DS:
-		Offset.Script_start_pointers = 0x24C2E04;
-		Offset.Script_count = 1296 - 1;//I don't know what happened, but the ROM is missing the last script...
-		break;
-	default:
-		break;
-	}
-}
-
-void Rom::GetOffset(std::vector<uint32_t>& vector)
-{
-	vector.resize(Offset.Script_count, 0x00);
-	this->Seek(Offset.Script_start_pointers);
-	this->Read(vector.data(), Offset.Script_count * 4);
-
-	uint8_t* data = (uint8_t*)vector.data();
-
-	for (size_t i = 0; i < Offset.Script_count; ++i)
-	{
-		if (Console == console::DS)
-			vector[i] += (Offset.Script_start_pointers - 4);
-		else
-			vector[i] -= 0x08000000;
-	}
-}
-
-void Rom::GetOffset(uint32_t& value, int number)
-{	
-	this->Seek((long long)Offset.Script_start_pointers + (number * 4));
-	value = ReadUInt32();
-
-	if (Console == console::DS)
-		value += (Offset.Script_start_pointers - 4);
-	else
-		value -= 0x08000000;
-}
-
-void Rom::GetSize(std::vector<uint32_t>& offsets, std::vector<uint32_t>& output)
-{
-	output.resize(Offset.Script_count, 0x00);
-	
-	uint32_t riff = 0x46464952;
-	uint32_t riff_in = 0;
-
-	for (size_t i = 0; i < Offset.Script_count; ++i)
-	{
-		this->Seek(offsets[i]);
-
-		this->Read(&riff_in, 4);
-
-		if (riff_in == riff)
-			this->Read(&output[i], 4);
-		else
-			output[i] = 0;
-	}	
-}
-void Rom::GetSize(uint32_t offset, uint32_t& output)
-{
-	this->Seek((long long)offset + 4);
-	output = ReadUInt32();
-}
-
-
-void Rom::Dump()
-{
-	std::vector<uint32_t> offsets;
-	GetOffset(offsets);
-	std::vector<uint32_t> sizes;
-	GetSize(offsets, sizes);
-
-	for (int i = 0; i < Offset.Script_count; ++i)
-	{		
-		if (offsets[i] > 0 && sizes[i] > 0)
-		{
-			wxFile script = wxFile();
-			script.Create(GetScriptFullPath(i), true);
-			script.Open(GetScriptFullPath(i), wxFile::read_write);
-
-			std::vector<uint8_t> scriptBytes;
-			scriptBytes.resize(sizes[i], 0x00);
-
-			this->Seek(offsets[i]);
-			this->Read(scriptBytes.data(), sizes[i]);
-			script.Write(scriptBytes.data(), sizes[i]);
-			script.Close();
-		}
-	}
-}
-
 void Rom::BackupRom(const std::string& inform)
 {
 	wxFileName destination(Path);
@@ -544,44 +343,4 @@ void Rom::BackupRom(const std::string& inform)
 		destination.Mkdir();
 
 	wxCopyFile(Path, destination.GetFullPath(), true);	
-}
-
-void Rom::InsertAllScript()
-{	
-	size_t totalSize = 0;
-
-	//uint8_t* toInsert = new uint8_t[0x2A9959]{0};
-
-	//uint32_t* newOffsets = new uint32_t[Offset.Script_count];
-	//size_t offset = 0;
-
-	//uint32_t startOffset = 0x701694;
-
-	//for (size_t i = 0; i < Offset.Script_count; ++i)
-	//{		
-	//	Script script;
-	//	script.SetData(FileUtil::ReadAllBytes(GetScriptFullPath(i)));
-
-	//	size_t scriptSize = script.GetRiffLenght();
-
-	//	totalSize += scriptSize;
-
-	//	if (totalSize > 0x2A9959)
-	//		return;
-
-	//	memcpy(toInsert + offset, script.GetData(), scriptSize);
-	//	offset += scriptSize;
-
-	//	newOffsets[i] = offset + startOffset + 0x08000000;
-	//}
-
-	//Seek(Offset.Script_start_pointers);
-	//WriteBytes(newOffsets, Offset.Script_count * 4);
-
-	//delete[] newOffsets;
-
-	//Seek(startOffset);
-	//WriteBytes(toInsert, 0x2A9959);
-
-	//delete[] toInsert;
 }

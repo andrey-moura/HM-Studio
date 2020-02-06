@@ -1,6 +1,6 @@
 #include "dialog_script_text.hpp"
 
-TextFromScriptDialog::TextFromScriptDialog(size_t scriptCount, size_t romId) : wxDialog(nullptr, wxID_ANY, "Select script"), m_ScriptCount(scriptCount), m_RomId(romId)
+TextFromScriptDialog::TextFromScriptDialog(ScriptEditor& editor) : wxDialog(nullptr, wxID_ANY, "Select script"), m_Editor(editor)
 {
 	CreateGUIControls();
 }
@@ -20,7 +20,7 @@ void TextFromScriptDialog::CreateGUIControls()
 	m_pFromNumberChoice->AppendString("FoMT");
 	m_pFromNumberChoice->AppendString("MFoMT");
 	m_pFromNumberChoice->AppendString("DS");
-	m_pFromNumberChoice->SetSelection(m_RomId);
+	m_pFromNumberChoice->SetSelection((int)m_Editor.GetRom(true).Id);
 
 	wxBoxSizer* fromNumberSizer = new wxBoxSizer(wxHORIZONTAL);
 	fromNumberSizer->Add(fromNumberLabel);
@@ -82,9 +82,21 @@ void TextFromScriptDialog::OnGoButton(wxCommandEvent& event)
 
 	if (numberText.size())
 	{
-		Rom rom = Rom((id)m_pFromNumberChoice->GetSelection(), true);
+		id i = (id)m_pFromNumberChoice->GetSelection();
 
-		path = rom.GetScriptFullPath(std::stoi(numberText));
+		size_t number = std::stoi(numberText);
+
+		if (m_Editor.GetRom(true).Id == i)
+		{
+			path = m_Editor.GetPath(number, true);
+		}
+		else
+		{
+			Rom rom(i, true);
+			Rom romOri(i, false);
+			ScriptEditor editor(romOri, rom);
+			path = editor.GetPath(number, true);
+		}	
 	}
 	else if (pathText.size())
 	{
