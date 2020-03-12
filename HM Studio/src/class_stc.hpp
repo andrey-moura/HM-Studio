@@ -24,6 +24,8 @@
 #endif
 
 #include "Studio.h"
+#include "class_finder.hpp"
+#include "namespace_math.hpp"
 
 class STC : public wxStyledTextCtrl
 {
@@ -33,6 +35,9 @@ public:
 public:
 	void SetMaxLineLenght(size_t lenght) { m_MaxLineLenght = lenght; }
 	void AddVar(const std::string& var) { m_Vars.push_back(var); }
+
+	bool UserCanAddLine() { return m_UserCanAddLine; }
+	void SetUserCanAddLine(bool can);
 private:
 	wxMenu* m_pMenu = nullptr;
 	const size_t m_MenuSize = 5;
@@ -45,6 +50,8 @@ public:
 private:	
 	void OnMenuClick(wxCommandEvent& event);
 private:
+	bool m_UserCanAddLine = true;
+
 	size_t m_MaxLineLenght = UINT32_MAX;
 
 	std::vector<std::string> m_Vars;
@@ -57,6 +64,13 @@ private:
 	bool m_Typing = false;
 
 	bool m_NeedStyle = false;
+
+//String short cut
+private:
+	std::vector <std::string> m_StringsOnKey;
+	std::string m_Keys;
+public:
+	void InsertOnCtrlKey(const std::string& s, char key);
 #ifdef USESPELL
 private:	
 	bool m_NeedToSpell = false;
@@ -71,7 +85,6 @@ public:
 	inline void Highlight(size_t start, size_t lenght, int style);
 	inline void HighlightAll(const std::vector<size_t>& indexes, size_t lenght, int style);
 	inline void FindAll(size_t start, size_t end, const std::string& s, std::vector<size_t>& result);
-
 private:	
 	inline void VerifyLineLenght(size_t line);
 	inline void VerifyLineLenghtFromPos(size_t from, size_t to);
@@ -79,6 +92,7 @@ private:
 	inline void FindAndStyleAllVars(size_t start, size_t end);
 //Events
 private:
+	void OnKeyPress(wxKeyEvent& event);
 	void OnStyleNeeded(wxStyledTextEvent& event);
 	void OnModified(wxStyledTextEvent& event);	
 	void OnMouseRight(wxMouseEvent& event);

@@ -90,6 +90,18 @@
     <ClCompile Include="src\class_finder.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
+    <ClCompile Include="src\class_letter.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\class_letter_editor.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frame_text_block_editor.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\namespace_math.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Studio.h">
@@ -174,6 +186,18 @@
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\class_finder.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\class_letter.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\class_letter_editor.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frame_text_block_editor.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\namespace_math.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
   </ItemGroup>

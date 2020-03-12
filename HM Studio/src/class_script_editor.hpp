@@ -9,6 +9,7 @@
 #include "class_script.hpp"
 #include "class_file.hpp"
 #include "class_finder.hpp"
+#include "namespace_math.hpp"
 
 struct RomInfo
 {

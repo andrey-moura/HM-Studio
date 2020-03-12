@@ -135,7 +135,11 @@ void Rom::InputTextWithVariables(std::vector<std::string>& text)
 		StringUtil::Replace(animal, animalVar, text[i]);
 		StringUtil::Replace(var2, var2Var, text[i]);
 
-		StringUtil::Replace(std::string("|²"), std::string("|²") + endLine, text[i]);
+		std::string hex050c;
+		hex050c.append(1, 0x05);
+		hex050c.append(1, 0x0c);
+
+		StringUtil::Replace(hex050c, hex050c + endLine, text[i]);
 	}
 }
 
@@ -200,7 +204,11 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 		StringUtil::Replace(animalVar, animal, text[i]);
 		StringUtil::Replace(var2Var, var2, text[i]);
 
-		StringUtil::Replace("|²" + endLine, "|²", text[i]);
+		std::string hex050c;
+		hex050c.append(1, 0x05);
+		hex050c.append(1, 0x0c);
+
+		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
 	}	
 
 	Table::OutPutTable(File::ReadAllText(GetTablePath()), text);

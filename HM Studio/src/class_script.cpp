@@ -20,6 +20,15 @@ void Script::SetData(uint8_t* bytes, size_t size)
 	if (m_data)
 		delete[] m_data;
 
+	if (size == 0)
+	{
+		m_IsGood = false;
+		ReleasePointers();
+		return;
+	}
+
+	m_IsGood = true;
+
 	m_data = bytes;
 
 	GetPointers();
@@ -33,6 +42,15 @@ void Script::SetData(uint8_t* bytes, size_t size)
 void Script::SetData(std::vector<uint8_t> bytes)
 {
 	size_t size = bytes.size();
+
+	if (size == 0)
+	{
+		m_IsGood = false;
+		ReleasePointers();
+		return;
+	}
+
+	m_IsGood = true;
 
 	uint8_t* b = new uint8_t[size];
 
@@ -50,7 +68,6 @@ bool Script::CompareCode(const Script& other)
 	return true;
 }
 
-
 std::vector<std::string> Script::GetText()
 {
 	std::vector<std::string> text;	
@@ -66,6 +83,19 @@ std::vector<std::string> Script::GetText()
 	}
 
 	return text;
+}
+
+bool Script::IsGood()
+{
+	return m_IsGood;
+}
+
+bool Script::HaveText()
+{
+	if (!IsGood())
+		return false;
+
+	return *m_pStrCount;
 }
 
 size_t Script::Count() const
@@ -97,6 +127,18 @@ void Script::GetPointers()
 	m_pStrLenght = (uint32_t*)(m_pStr + 0x04);
 	m_pStrPointers = (uint32_t*)(m_pStr + 0x0c);
 	m_pStartText = (uint8_t*)(m_pStr + (*m_pStrCount * 4) + 0x0c);
+}
+
+void Script::ReleasePointers()
+{
+	m_data = nullptr;
+	m_pRiffLenght = nullptr;
+	m_pSrcCodeLenght = nullptr;
+	m_pStr = nullptr;
+	m_pStrCount = nullptr;
+	m_pStrLenght = nullptr;
+	m_pStrPointers = nullptr;
+	m_pStartText = nullptr;
 }
 
 void Script::UpdateText(const std::vector<std::string>& text)
@@ -147,7 +189,10 @@ bool Script::operator==(const Script& other) const
 	for (size_t C = 0; C < *m_pStrCount; C++)
 	{
 		if (other[C] != this->operator[](C))
+		{
 			flag = false;
+			break;
+		}
 	}
 
 	return flag;

@@ -39,6 +39,7 @@ private:
 	//Calculates the pointers
 	void GetPointers();
 	//const char* CStringAt(size_t index) { return (const char*)(m_pStartText + m_pStrPointers[index]); }
+	void ReleasePointers();
 //Operators
 public:
 	//No checking!
@@ -48,10 +49,12 @@ public:
 public:
 	//Gets the text of this script.
 	std::vector<std::string> GetText();	
+	bool m_IsGood = false;
 	void UpdateText(const std::vector<std::string>& text);
 	uint8_t* GetStartText() const { return m_pStartText; }
+	bool IsGood();
 	//This script have text?
-	inline bool HaveText() { return *m_pStrCount; }
+	bool HaveText();
 	uint32_t GetRiffLenght() const { return *m_pRiffLenght; }
 	//Take care
 	uint8_t* GetData() const { return m_data; }

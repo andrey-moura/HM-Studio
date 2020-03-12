@@ -33,20 +33,23 @@ void MainFrame::CreateGUIControls()
 	romSizer->Add(m_pDefault, 0, wxRIGHT | wxLEFT, 5);
 	romSizer->AddSpacer(4);	
 
-	m_pEditorScript = new wxButton(this, wxID_ANY, "Script Editor");
-	m_pEditorItem = new wxButton(this, wxID_ANY, "Item Editor");
+	m_pEditorScript = new wxButton(this, wxNewId(), "Script Editor");
+	m_pEditorItem = new wxButton(this, wxNewId(), "Item Editor");
+	m_pEditorText = new wxButton(this, wxNewId(), "Text Block Editor");
 
 	wxStaticBox* editorsBox = new wxStaticBox(this, wxID_ANY, "Editors");
 	wxStaticBoxSizer* editorsSizer = new wxStaticBoxSizer(editorsBox, wxVERTICAL);
 
 	m_pEditorScript->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 	m_pEditorItem->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
+	m_pEditorText->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorScript, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);	
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorItem, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 	editorsSizer->AddSpacer(4);
+	editorsSizer->Add(m_pEditorText, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
 	rootSizer->AddSpacer(4);
@@ -107,6 +110,11 @@ void MainFrame::OnEditorClick(wxCommandEvent& event)
 	{
 		ItemEditorFrame* itemEditor = new ItemEditorFrame(GetCurrentId());
 		itemEditor->Show();
+	}
+	else if (id == m_pEditorText->GetId())
+	{
+		TextBlockEditor* textBlockEditor = new TextBlockEditor(GetCurrentId());
+		textBlockEditor->Show();
 	}
 
 	event.Skip();

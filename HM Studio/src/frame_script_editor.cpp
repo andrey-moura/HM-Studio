@@ -53,6 +53,9 @@ void cScriptEditor::ConfigureSTC(size_t maxLine, int eol, std::vector<std::strin
 	stc->SetMaxLineLenght(maxLine);
 	stc->SetEOLMode(eol);	
 
+	stc->InsertOnCtrlKey(std::string(1, (char)0x05), 'E');
+	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + m_lineEnding, 'R');
+
 	for (const std::string& s : vars)
 	{
 		stc->AddVar(s);

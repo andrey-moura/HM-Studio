@@ -23,7 +23,7 @@ void Studio::SetupProgramStyle()
 }
 
 #ifdef USESPELL
-Hunspell* Studio::m_sHunspell = new Hunspell("C:\\Users\\Moonslate\\AppData\\Roaming\\Notepad++\\plugins\\Config\\Hunspell\\pt_BR.aff", "C:\\Users\\Moonslate\\AppData\\Roaming\\Notepad++\\plugins\\Config\\Hunspell\\pt_BR.dic");
+Hunspell* Studio::m_sHunspell = new Hunspell("Spellchecker\\Dics\\pt_BR.aff", "Spellchecker\\Dics\\pt_BR.dic");
 
 Hunspell* Studio::GetHunspell()
 {

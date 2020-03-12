@@ -99,6 +99,38 @@ inline void STC::FindAndStyleAllVars(size_t start, size_t end)
 	}
 }
 
+void STC::SetUserCanAddLine(bool can)
+{
+	m_UserCanAddLine = can;
+}
+
+void STC::OnKeyPress(wxKeyEvent& event)
+{
+	char key = event.GetUnicodeKey();
+	int keyCode = event.GetKeyCode();
+	bool ctrl = event.GetModifiers() == wxMOD_CONTROL;
+
+	if (ctrl && keyCode != wxKeyCode::WXK_CONTROL)
+	{
+		size_t pos = m_Keys.find(key, 0);
+
+		if (pos != std::string::npos)
+		{
+			InsertText(GetCurrentPos(), m_StringsOnKey[pos]);
+			GotoPos(GetCurrentPos() + m_StringsOnKey[pos].size());
+		}
+	}
+	else if (!m_UserCanAddLine)
+	{
+		if (keyCode != wxKeyCode::WXK_RETURN && keyCode != wxKeyCode::WXK_NUMPAD_ENTER)
+		{
+			return;
+		}
+	}
+
+	event.Skip();
+}
+
 void STC::OnStyleNeeded(wxStyledTextEvent& event)
 {	
 	if (m_NeedStyle)
@@ -219,6 +251,24 @@ void STC::OnMouseRight(wxMouseEvent& event)
 	//event.Skip();
 }
 
+void STC::InsertOnCtrlKey(const std::string& s, char key)
+{
+	if (!MathUtil::IsInsideBlock(key, 61, 26))
+		return;
+
+	size_t index = m_Keys.find(key, 0);
+
+	if (index != std::string::npos)
+	{
+		m_StringsOnKey[index] = s;
+	}
+	else
+	{
+		m_StringsOnKey.push_back(s);
+		m_Keys.push_back((uint16_t)key);
+	}
+}
+
 #ifdef USESPELL
 void STC::SetHunspell(Hunspell* hunspell, bool canDelete)
 {
@@ -310,6 +360,8 @@ void STC::DoBinds()
 	this->Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);
 	this->Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
 	this->Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
+	this->Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
+
 	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
 	m_pMenu->Bind(wxEVT_MENU, &STC::OnMenuClick, this);
 }
