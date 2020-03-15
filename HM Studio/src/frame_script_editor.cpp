@@ -307,13 +307,6 @@ void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 	event.Skip();	
 }
 
-void cScriptEditor::OnPrevScriptClick(wxCommandEvent& event)
-{
-	CheckAndGoScript(m_Editor.GetNumber() - 1);
-
-	event.Skip();
-}
-
 void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 {
 	CheckAndGoScript(m_Editor.GetNumber() + 1);
@@ -335,7 +328,7 @@ void cScriptEditor::CheckAndGoScript(size_t number)
 	}
 }
 
-void cScriptEditor::OnGoScriptClick(wxCommandEvent& event)
+void cScriptEditor::GoScript()
 {
 	wxTextEntryDialog ted(this, "Got to script ", "Enter a number");
 	ted.SetTextValidator(wxFILTER_NUMERIC);
@@ -344,12 +337,10 @@ void cScriptEditor::OnGoScriptClick(wxCommandEvent& event)
 	if (ted.ShowModal() == wxID_OK)
 	{
 		CheckAndGoScript(std::stoi(ted.GetValue().ToStdString()));
-	}
-
-	event.Skip();
+	}	
 }
 
-void cScriptEditor::OnPrevTextClick(wxCommandEvent& event)
+void cScriptEditor::PrevText()
 {
 	if (m_Editor.PrevText())
 	{
@@ -357,7 +348,7 @@ void cScriptEditor::OnPrevTextClick(wxCommandEvent& event)
 	}
 }
 
-void cScriptEditor::OnProxTextClick(wxCommandEvent& event)
+void cScriptEditor::ProxText()
 {
 	if (m_Editor.ProxText())
 	{
@@ -365,17 +356,15 @@ void cScriptEditor::OnProxTextClick(wxCommandEvent& event)
 	}
 }
 
-void cScriptEditor::OnMenuHorizontalMode(wxCommandEvent& event)
+void cScriptEditor::HorizontalMode()
 {
 	if (m_Vertical) SetEditorHorizontal();
 	else SetEditorVertical();
 
-	m_Vertical = !m_Vertical;
-
-	event.Skip();
+	m_Vertical = !m_Vertical;	
 }
 
-void cScriptEditor::OnMenuGetTextFrom(wxCommandEvent& event)
+void cScriptEditor::GetTextFrom()
 {
 	TextFromScriptDialog dialog(m_Editor);
 
@@ -383,13 +372,13 @@ void cScriptEditor::OnMenuGetTextFrom(wxCommandEvent& event)
 	{
 		m_Editor.SetText(dialog.GetText());
 		UpdateText();
-	}
-
-	event.Skip();
+	}	
 }
 
-void cScriptEditor::OnSaveTextClick(wxCommandEvent& event)
+void cScriptEditor::SaveText()
 {
+//ToDo: Remove line converting... This was for a bug already solved
+
 	if (romOriginal.Console == console::GBA)
 		tScriptTranslated->ConvertEOLs(STC_EOL_CRLF);
 	else
@@ -399,17 +388,9 @@ void cScriptEditor::OnSaveTextClick(wxCommandEvent& event)
 	{
 		UpdateText();
 	}
-
-	event.Skip();
 }
 
-void cScriptEditor::OnSaveScriptClick(wxCommandEvent& event)
-{
-	SaveScript();
-	event.Skip();
-}
-
-void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
+void cScriptEditor::InsertScript()
 {
 	SaveScript();
 	
@@ -451,45 +432,6 @@ void cScriptEditor::OnInsertScriptClick(wxCommandEvent& event)
 	wxMessageBox(message, succes ? "Yeah!!" : "Huh?", icon, this);
 }
 
-void cScriptEditor::EVT_MENU_FindText(wxCommandEvent& event)
-{
-	FindText();
-}
-
-void cScriptEditor::EVT_MENU_FindNextText(wxCommandEvent& event)
-{
-
-	event.Skip();
-}
-
-void cScriptEditor::EVT_MENU_RestoreString(wxCommandEvent& event)
-{
-	RestoreText();
-	event.Skip();
-}
-
-void cScriptEditor::OnMenuAlwaysOnTop(wxCommandEvent& event)
-{	
-	menuBar->Check(wxID_TOP, this->ToggleWindowStyle(wxSTAY_ON_TOP));
-	event.Skip();
-}
-
-void cScriptEditor::OnCheckAllCode(wxCommandEvent& event)
-{
-	CheckAllCode();
-	event.Skip();
-}
-
-void cScriptEditor::OnClosing(wxCloseEvent& event)
-{
-	event.Skip();
-}
-
-void cScriptEditor::OnOpenInHexEditorClick(wxCommandEvent& event)
-{
-	event.Skip();
-}
-
 void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 {
 	if (m_IndicatorPos.first != -1)
@@ -527,13 +469,11 @@ void cScriptEditor::OnResultClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnSetTextRange(wxCommandEvent& event)
+void cScriptEditor::SetTextRange()
 {
 	DialogTextRange dialog(this);
 	
-	dialog.ShowModal();
-	
-	event.Skip();
+	dialog.ShowModal();	
 }
 
 void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
@@ -619,64 +559,55 @@ void cScriptEditor::CreateGUIControls()
 		Menu creation starts
 
 	*******************************/
-	menuBar = new wxMenuBar();
 
 	//wxSub
 
-	menuScript = new wxMenu();
-	menuScript->Append(wxID_SAVE, _("Save\tCtrl-Shift-S"), nullptr, _("Save the current script"));
+	wxMenu* menuScript = new wxMenu();
 	menuScript->Append(wxID_OPEN, "Get text from...");
-	menuBar->Append(menuScript, _("File"));
+	menuScript->Append(wxID_SAVE, "Save\tCtrl-Shift-S", nullptr, "Save the current script");
+	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", nullptr, "Go to previous script");
+	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", nullptr, "Go to next script");
+	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", nullptr, "Insert the current script");
 
-	menuString = new wxMenu();
-	menuString->Append(ID_MENU_STRING_SAVE, _("Save\tCtrl-S"), nullptr, _("Save the current string"));
-	menuString->Append(ID_MENU_STRING_PREV, _("Prev\tAlt-Left"), nullptr, _("Loads the next string"));
-	menuString->Append(ID_MENU_STRING_PROX, _("Next\tAlt-Right"), nullptr, _("Loads the previous string"));
-	m_pMenuString_Restore = menuString->Append(ID_MENU_STRING_RESTORE, _("Restore\tAlt-Z"), nullptr, _("Restore a text not saved"));
-	menuBar->Append(menuString, _("String"));
+	wxMenu* menuString = new wxMenu();
+	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", nullptr, "Save the current string");
+	menuString->Append(ID_STRPREV, "Prev\tAlt-Left", nullptr, "Loads the previous string");
+	menuString->Append(ID_STRPROX, "Next\tAlt-Right", nullptr, "Loads the next string");
 
+	m_pMenuString_Restore = menuString->Append(ID_STRRESTORE, "Restore\tAlt-Z", nullptr, "Restore a text not saved");	
 	m_pMenuString_Restore->Enable(false);
 
-	menuEdit = new wxMenu();
-	menuEdit->Append(wxID_ANY, _("Move To"));
-	menuBar->Append(menuEdit, _("Edit"));
+	wxMenu* menuEdit = new wxMenu();
+	menuEdit->Append(wxID_ANY, _("Move To"));	
 
-	menuSearch = new wxMenu();
+	wxMenu* menuSearch = new wxMenu();
 	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
-	menuSearch->Append(ID_MENU_FIND_NEXT, "Find Next Text\tF3");
-	menuSearch->Append(wxID_ANY, "Find Next Script");
-	menuBar->Append(menuSearch, "Search");
+	menuSearch->Append(ID_FINDNEXT, "Find Next Text\tF3");
+	menuSearch->Append(wxID_ANY, "Find Next Script");	
 
-	menuTools = new wxMenu();
+	wxMenu* menuTools = new wxMenu();
 	menuTools->Append(wxID_ANY, "Check All Pointers");
 	menuTools->Append(wxID_ANY, "Check All Codes");
-	menuTools->Append(ID_MENU::TOOLS_TEXTRANGE, "Set Text And Insert Script Range");
+	menuTools->Append(ID_TEXTRANGE, "Set Text And Insert Script Range");
 	menuTools->Append(wxID_ANY, "Show Previwer");
 	menuTools->Append(wxID_ANY, "Show One By One");
-	menuTools->Append(ID_MENU_OPENHEX_ORIGINAL, "Open Original Hex Editor");
-	menuTools->Append(ID_MENU_OPENHEX_TRANSLATED, "Open Translated Hex Editor");
-	menuBar->Append(menuTools, "Tools");
+	menuTools->Append(ID_OPENORIG, "Open Original Hex Editor");
+	menuTools->Append(ID_OPENTRAN, "Open Translated Hex Editor");	
 
-	menuOptions = new wxMenu();
+	wxMenu* menuOptions = new wxMenu();
 	menuOptions->AppendCheckItem(wxID_TOP, "Always On Top");
-	menuOptions->Append(ID_MENU_HVMODE, "Horizontal Mode");
-	menuBar->Append(menuOptions, "Options");
+	menuOptions->Append(ID_HVMODE, "Horizontal Mode");	
 
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuGetTextFrom, this, wxID_OPEN);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveScriptClick, this, wxID_SAVE);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSaveTextClick, this, ID_MENU_STRING_SAVE);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnPrevTextClick, this, ID_MENU_STRING_PREV);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnProxTextClick, this, ID_MENU_STRING_PROX);	
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindText, this, wxID_FIND);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_FindNextText, this, ID_MENU_FIND_NEXT);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::EVT_MENU_RestoreString, this, ID_MENU_STRING_RESTORE);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuAlwaysOnTop, this, wxID_TOP);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuHorizontalMode, this, ID_MENU_HVMODE);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnOpenInHexEditorClick, this, ID_MENU_OPENHEX_ORIGINAL);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnOpenInHexEditorClick, this, ID_MENU_OPENHEX_TRANSLATED);
-	menuBar->Bind(wxEVT_MENU, &cScriptEditor::OnSetTextRange, this, ID_MENU::TOOLS_TEXTRANGE);
+	m_pMenuBar = new wxMenuBar();
+	m_pMenuBar->Append(menuScript, _("File"));
+	m_pMenuBar->Append(menuString, _("String"));
+	m_pMenuBar->Append(menuEdit, _("Edit"));
+	m_pMenuBar->Append(menuSearch, "Search");
+	m_pMenuBar->Append(menuTools, "Tools");
+	m_pMenuBar->Append(menuOptions, "Options");
 
-	SetMenuBar(menuBar);
+	m_pMenuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuClick, this);
+	SetMenuBar(m_pMenuBar);
 
 	statusBar = CreateStatusBar(5);
 	//statusBar->SetStatusText("Original Size: 0", 0);
@@ -712,13 +643,13 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_CHARADDED, &cScriptEditor::tScriptTranslatedCharAdded, this);
 #endif // Testing
 
-	editor_save_text = new wxButton(this, wxID_ANY, "Save");
-	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnSaveTextClick, this);
-	editor_prev_text = new wxButton(this, wxID_ANY, "<<");
-	editor_prev_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnPrevTextClick, this);
+	editor_save_text = new wxButton(this, ID_STRSAVE, "Save");
+	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
+	editor_prev_text = new wxButton(this, ID_STRPREV, "<<");
+	editor_prev_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
 	editor_prev_text->SetMinSize(button_min_size);
-	editor_next_text = new wxButton(this, wxID_ANY, ">>");
-	editor_next_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnProxTextClick, this);
+	editor_next_text = new wxButton(this, ID_STRPROX, ">>");
+	editor_next_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
 	editor_next_text->SetMinSize(button_min_size);
 
 	editor_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -734,9 +665,7 @@ void cScriptEditor::CreateGUIControls()
 	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
 	global_sizer = new wxBoxSizer(wxVERTICAL);	
-	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);	
-
-	this->Bind(wxEVT_CLOSE_WINDOW, &cScriptEditor::OnClosing, this);
+	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);		
 
 	SetSizer(global_sizer);
 	global_sizer->Fit(this);
@@ -771,6 +700,120 @@ void cScriptEditor::SetEditorHorizontal()
 	global_sizer->SetSizeHints(this);
 }
 
+void cScriptEditor::OnMenuClick(wxCommandEvent& event)
+{
+	int id = event.GetId();		
+
+	if (!ScriptMenuTools(id))
+	{
+		if (!StringMenuTools(id))
+		{
+			OthersMenuTools(id);
+		}
+	}
+
+	event.Skip();
+}
+
+void cScriptEditor::OnNavigationClick(wxCommandEvent& event)
+{	
+	StringMenuTools(event.GetId());
+
+	event.Skip();
+}
+
+void cScriptEditor::OnToolBarClick(wxCommandEvent& event)
+{	
+	ScriptMenuTools(event.GetId());
+
+	event.Skip();
+}
+
+bool cScriptEditor::ScriptMenuTools(int id)
+{
+	switch (id)
+	{
+	case wxID_OPEN:
+		GetTextFrom();
+		break;
+	case ID_SCRPREV:
+		CheckAndGoScript(m_Editor.GetNumber() - 1);		
+		break;
+	case ID_SCRPROX:
+		CheckAndGoScript(m_Editor.GetNumber() + 1);		
+		break;
+	case ID_SCRGO:
+		GoScript();		
+		break;
+	case ID_SCRSAVE:
+		SaveScript();		
+		break;
+	case ID_SCRINSERT:
+		InsertScript();
+		break;
+	case ID_SCRCODE:
+		CheckAllCode();
+		break;
+	default:
+		return false;
+		break;
+	}
+
+	return true;
+}
+
+bool cScriptEditor::StringMenuTools(int id)
+{
+	switch (id)
+	{
+	case ID_STRSAVE:
+		SaveText();
+		break;
+	case ID_STRPREV:
+		PrevText();
+		break;
+	case ID_STRPROX:
+		ProxText();
+		break;
+	case ID_STRRESTORE:
+		RestoreText();
+		break;
+	default:
+		return false;
+		break;
+	}
+
+	return true;
+}
+
+bool cScriptEditor::OthersMenuTools(int id)
+{
+	switch (id)
+	{
+	case wxID_FIND:
+		FindText();
+		break;
+	case ID_FINDNEXT:
+		break;
+	case ID_TEXTRANGE:
+		SetTextRange();
+		break;
+	case ID_OPENORIG:
+		break;
+	case wxID_TOP:
+		m_pMenuBar->Check(wxID_TOP, this->ToggleWindowStyle(wxSTAY_ON_TOP));
+		break;
+	case ID_HVMODE:
+		HorizontalMode();
+		break;
+	default:
+		return false;
+		break;
+	}
+
+	return true;
+}
+
 void cScriptEditor::CreateMyToolBar()
 {
 
@@ -795,21 +838,16 @@ void cScriptEditor::CreateMyToolBar()
 	this->GetToolBar()->SetMargins(2, 2);
 
 	m_pToolBar = this->GetToolBar();
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_PREV, "Previous script", wxImage(16, 16, prevScriptRgb, prevScriptAlpha, false), "Previous script");
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_PROX, "Following script", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, false), "Following script");
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_GO, "Got to script", wxImage(16, 16, goScriptRgb, goScriptAlpha, false), "Go to script");
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_SAVE, "Save the script", wxImage(16, 16, saveScriptRgb, saveScriptAlpha, false), "Save the script");
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_INSERT, "Insert script", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, false), "Insert script");
-	m_pToolBar->AddTool(ID_SCRIPT_NAV_CODE, "Test all script code", wxImage(16, 16, testCodeRgb, testCodeAlpha, false), "Test all script code");	
+	m_pToolBar->AddTool(ID_SCRPREV, "Previous script", wxImage(16, 16, prevScriptRgb, prevScriptAlpha, false), "Previous script");
+	m_pToolBar->AddTool(ID_SCRPROX, "Following script", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, false), "Following script");
+	m_pToolBar->AddTool(ID_SCRGO, "Got to script", wxImage(16, 16, goScriptRgb, goScriptAlpha, false), "Go to script");
+	m_pToolBar->AddTool(ID_SCRSAVE, "Save the script", wxImage(16, 16, saveScriptRgb, saveScriptAlpha, false), "Save the script");
+	m_pToolBar->AddTool(ID_SCRINSERT, "Insert script", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, false), "Insert script");
+	m_pToolBar->AddTool(ID_SCRCODE, "Test all script code", wxImage(16, 16, testCodeRgb, testCodeAlpha, false), "Test all script code");	
 
 	m_pToolBar->Realize();
 	
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnPrevScriptClick, this, ID_SCRIPT_NAV_PREV);
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnProxScriptClick, this, ID_SCRIPT_NAV_PROX);
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnGoScriptClick, this, ID_SCRIPT_NAV_GO);
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnSaveScriptClick, this, ID_SCRIPT_NAV_SAVE);
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnInsertScriptClick, this, ID_SCRIPT_NAV_INSERT);
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnCheckAllCode, this, ID_SCRIPT_NAV_CODE);
+	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnToolBarClick, this);
 }
 
 void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)

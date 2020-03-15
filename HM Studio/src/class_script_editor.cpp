@@ -502,8 +502,10 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	m_RomTranslated.Seek(m_Info.StartScript);
 	m_RomTranslated.Read(scriptBlock, m_Info.BlockLenght);
 	
+	uint8_t* a = (scriptBlock + (oldOffset - m_Info.StartScript));
+
 	if (IsInsideBlock(oldOffset))
-		memset(scriptBlock + (m_Info.StartScript - oldOffset), 0x00, oldSize);
+		memset(a, 0x00, oldSize);
 
 	bool trying = true;
 
