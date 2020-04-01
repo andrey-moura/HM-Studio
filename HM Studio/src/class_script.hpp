@@ -48,7 +48,7 @@ public:
 	bool operator!=(const Script& other) const;
 public:
 	//Gets the text of this script.
-	std::vector<std::string> GetText();	
+	std::vector<std::string> GetText();
 	bool m_IsGood = false;
 	void UpdateText(const std::vector<std::string>& text);
 	uint8_t* GetStartText() const { return m_pStartText; }

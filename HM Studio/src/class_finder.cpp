@@ -8,6 +8,20 @@ size_t Finder::Find(void* data, size_t dataSize, void* find, size_t findSize, ui
 	return _data.find(_find, start);
 }
 
+void Finder::FindAll(void* data, size_t dataSize, void* find, size_t findSize, std::vector<size_t>& output, uint32_t start)
+{		
+	std::string_view _data((char*)data, dataSize);
+	std::string_view _find((char*)find, findSize);
+
+	size_t index = _data.find(_find, start);
+
+	while (index != std::string::npos)
+	{
+		output.push_back(index);
+		index = _data.find(_find, index + findSize);
+	}
+}
+
 size_t Finder::FindBack(void* data, size_t dataSize, void* find, size_t findSize, uint32_t start)
 {
 	std::string_view _data((char*)data, dataSize);

@@ -4,6 +4,9 @@
 #include <wx/bitmap.h>
 #include <wx/dcmemory.h>
 
+#include "class_finder.hpp"
+#include "class_file.hpp"
+
 struct Color {
 	uint8_t red;
 	uint8_t green;
@@ -48,6 +51,11 @@ struct Palette {
 	{
 		return colors[index];
 	}
+
+	size_t FindColor(Color color)
+	{
+		return Finder::Find(colors, 16 * 3, &color, 3, 0);
+	}
 };
 
 struct Tile {
@@ -70,6 +78,7 @@ class Graphics
 {
 public:
 	Graphics(uint8_t* bytes, const uint8_t bpp, const uint32_t width, const uint32_t height, const bool reversed = true, const bool planar = false);
+	Graphics() = default;
 	~Graphics();
 
 private:
@@ -83,13 +92,14 @@ public:
 
 	uint8_t* m_data = nullptr;
 	Palette m_pal;
-	uint32_t m_palIndex;
+	uint32_t m_palIndex = 0;
 public:
 	//Returns a 24 bits rgb data	
 	void SetPalette(const Palette& palette, const int index);
 	void SetPaletteIndex(const int index) { m_palIndex = index; }
 public:
 	Tile* Decode();
+	uint8_t* Encode(const wxImage& image);
 	void DecodePalette(uint8_t* bytes);
 	wxImage ToImage();	
 };

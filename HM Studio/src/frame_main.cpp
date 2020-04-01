@@ -36,6 +36,7 @@ void MainFrame::CreateGUIControls()
 	m_pEditorScript = new wxButton(this, wxNewId(), "Script Editor");
 	m_pEditorItem = new wxButton(this, wxNewId(), "Item Editor");
 	m_pEditorText = new wxButton(this, wxNewId(), "Text Block Editor");
+	m_pEditorGraphics = new wxButton(this, wxNewId(), "Graphics Editor");
 
 	wxStaticBox* editorsBox = new wxStaticBox(this, wxID_ANY, "Editors");
 	wxStaticBoxSizer* editorsSizer = new wxStaticBoxSizer(editorsBox, wxVERTICAL);
@@ -43,6 +44,7 @@ void MainFrame::CreateGUIControls()
 	m_pEditorScript->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 	m_pEditorItem->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 	m_pEditorText->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
+	m_pEditorGraphics->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorScript, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);	
@@ -50,6 +52,8 @@ void MainFrame::CreateGUIControls()
 	editorsSizer->Add(m_pEditorItem, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorText, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
+	editorsSizer->AddSpacer(4);
+	editorsSizer->Add(m_pEditorGraphics, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
 	rootSizer->AddSpacer(4);
@@ -75,6 +79,26 @@ void MainFrame::OnTestClick(wxCommandEvent& event)
 	//path.AppendDir("Dics");
 
 	//SpellChecker spellChecker("pt_BR", path.GetPath(true).ToStdString());
+
+	Rom rom = Rom(GetCurrentId(), false);
+	Rom rom2 = Rom(GetCurrentId(), true);
+	ScriptEditor editor(rom, rom2);
+
+	std::string format = editor.PathFormat(rom);
+
+	std::string output;
+	
+	for (size_t i = 0; i < 1415; ++i)
+	{
+		std::vector<uint8_t> bytes = File::ReadAllBytes(editor.FormatPath(i, format));
+		
+		if (bytes[0x1a] == 0x22)
+		{
+			output.append(std::to_string(i) + " is compatible\n");
+		}
+	}
+
+	wxMessageBox(output);
 }
 
 id MainFrame::GetCurrentId()
@@ -100,7 +124,7 @@ id MainFrame::GetCurrentId()
 void MainFrame::OnEditorClick(wxCommandEvent& event)
 {
 	wxWindowID id = event.GetId();
-	
+
 	if (id == m_pEditorScript->GetId())
 	{
 		cScriptEditor* scriptEditor = new cScriptEditor(GetCurrentId());
@@ -115,6 +139,11 @@ void MainFrame::OnEditorClick(wxCommandEvent& event)
 	{
 		TextBlockEditor* textBlockEditor = new TextBlockEditor(GetCurrentId());
 		textBlockEditor->Show();
+	}
+	else if (id == m_pEditorGraphics->GetId())
+	{
+		GraphicsEditorFrame* graphicsEditor = new GraphicsEditorFrame(GetCurrentId());
+		graphicsEditor->Show();
 	}
 
 	event.Skip();

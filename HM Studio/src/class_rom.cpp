@@ -63,51 +63,53 @@ std::string Rom::GetTablePath()
 
 void Rom::InputTextWithVariables(std::vector<std::string>& text)
 {
-	std::string rawPlayer;
-	std::string rawFarm;
-	std::string rawAnimal;
-	std::string rawVar2;
-
-	std::string player;
-	std::string farm;
-	std::string animal;
-	std::string var2;
-
-	std::string playerVar;
-	std::string farmVar;
-	std::string animalVar;
-	std::string var2Var;
+	std::vector<std::string> raw;
+	std::vector<std::string> spaced;
+	std::vector<std::string> var;
 
 	std::string endLine;
 
 	switch (Console)
 	{
 	case console::GBA:
-		rawPlayer = "ÿ!";
-		rawFarm   = "ÿ#";
-		rawAnimal = "ÿ%";
-		rawVar2   = "ÿ\'";
+		raw.push_back("ÿ!");
+		raw.push_back("ÿ#");
+		raw.push_back("ÿ%");
+		raw.push_back("ÿ\'");
+		raw.push_back("ÿ)");
+		raw.push_back("ÿ*");
+		raw.push_back("ÿ,");
+		raw.push_back("ÿ-");
+		raw.push_back("ÿ+");
 
-		player = " PlayerName ";
-		farm   = " FarmName   ";
-		animal = " AnimalName ";
-		var2   = " Variable02 ";
+		spaced.push_back(" PlayerName ");
+		spaced.push_back(" FarmName   ");
+		spaced.push_back(" AnimalName ");
+		spaced.push_back(" Variable02 ");
+		spaced.push_back(" CustomName ");
+		spaced.push_back(" InfantName ");
+		spaced.push_back(" ValleyName ");
+		spaced.push_back(" ValleyBaby ");
+		spaced.push_back(" ValleyFarm ");
 
-		playerVar = "<PlayerName>";
-		farmVar   = "<FarmName  >";
-		animalVar = "<AnimalName>";
-		var2Var   = "<Variable02>";
+		var.push_back("<PlayerName>");
+		var.push_back("<FarmName  >");
+		var.push_back("<AnimalName>");
+		var.push_back("<Variable02>");
+		var.push_back("<CustomName>");
+		var.push_back("<InfantName>");
+		var.push_back("<ValleyName>");
+		var.push_back("<ValleyBaby>");
+		var.push_back("<ValleyFarm>");
 
 		endLine = "\r\n";
 		break;
 	case console::DS:
-		rawPlayer = "ÿ$";
-		//rawFarm = "ÿ#";
+		raw.push_back("ÿ$");
 
-		player = "Player";
+		spaced.push_back("Player");
 
-		playerVar = "<Player>";
-		//farm =   "Farm  ";
+		var.push_back("<Player>");
 
 		endLine = "\n";
 		break;
@@ -117,10 +119,10 @@ void Rom::InputTextWithVariables(std::vector<std::string>& text)
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(rawPlayer, player, text[i]);
-		StringUtil::Replace(rawFarm, farm, text[i]);
-		StringUtil::Replace(rawAnimal, animal, text[i]);
-		StringUtil::Replace(rawVar2, var2, text[i]);
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(raw[z], spaced[z], text[i]);
+		}
 	}
 
 	std::string tablePath = GetTablePath();
@@ -128,16 +130,16 @@ void Rom::InputTextWithVariables(std::vector<std::string>& text)
 	if (wxFile::Exists(tablePath))
 		Table::InputTable(File::ReadAllText(tablePath), text);
 
+	std::string hex050c;
+	hex050c.append(1, 0x05);
+	hex050c.append(1, 0x0c);
+
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(player, playerVar, text[i]);
-		StringUtil::Replace(farm, farmVar, text[i]);
-		StringUtil::Replace(animal, animalVar, text[i]);
-		StringUtil::Replace(var2, var2Var, text[i]);
-
-		std::string hex050c;
-		hex050c.append(1, 0x05);
-		hex050c.append(1, 0x0c);
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(spaced[z], var[z], text[i]);
+		}		
 
 		StringUtil::Replace(hex050c, hex050c + endLine, text[i]);
 	}
@@ -145,51 +147,53 @@ void Rom::InputTextWithVariables(std::vector<std::string>& text)
 
 void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 {
-	std::string rawPlayer;
-	std::string rawFarm;
-	std::string rawAnimal;
-	std::string rawVar2;
-
-	std::string player;
-	std::string farm;
-	std::string animal;
-	std::string var2;
-
-	std::string playerVar;
-	std::string farmVar;
-	std::string animalVar;
-	std::string var2Var;
+	std::vector<std::string> raw;
+	std::vector<std::string> spaced;
+	std::vector<std::string> var;
 
 	std::string endLine;
 
 	switch (Console)
 	{
 	case console::GBA:
-		rawPlayer = "ÿ!";
-		rawFarm =   "ÿ#";
-		rawAnimal = "ÿ%";
-		rawVar2 =   "ÿ\'";
+		raw.push_back("ÿ!");
+		raw.push_back("ÿ#");
+		raw.push_back("ÿ%");
+		raw.push_back("ÿ\'");
+		raw.push_back("ÿ)");
+		raw.push_back("ÿ*");
+		raw.push_back("ÿ,");
+		raw.push_back("ÿ-");
+		raw.push_back("ÿ+");
 
-		player = " PlayerName ";
-		farm =   " FarmName   ";
-		animal = " AnimalName ";
-		var2 =   " Variable02 ";
+		spaced.push_back(" PlayerName ");
+		spaced.push_back(" FarmName   ");
+		spaced.push_back(" AnimalName ");
+		spaced.push_back(" Variable02 ");
+		spaced.push_back(" CustomName ");
+		spaced.push_back(" InfantName ");
+		spaced.push_back(" ValleyName ");
+		spaced.push_back(" ValleyBaby ");
+		spaced.push_back(" ValleyFarm ");
 
-		playerVar = "<PlayerName>";
-		farmVar =   "<FarmName  >";
-		animalVar = "<AnimalName>";
-		var2Var =   "<Variable02>";
+		var.push_back("<PlayerName>");
+		var.push_back("<FarmName  >");
+		var.push_back("<AnimalName>");
+		var.push_back("<Variable02>");
+		var.push_back("<CustomName>");
+		var.push_back("<InfantName>");
+		var.push_back("<ValleyName>");
+		var.push_back("<ValleyBaby>");
+		var.push_back("<ValleyFarm>");
 
 		endLine = "\r\n";
 		break;
 	case console::DS:
-		rawPlayer = "ÿ$";
-		//rawFarm = "ÿ#";
+		raw.push_back("ÿ$");		
 
-		player = "Player";
+		spaced.push_back("Player");		
 
-		playerVar = "<Player>";
-		//farm =   "Farm  ";
+		var.push_back("<Player>");
 
 		endLine = "\n";
 		break;
@@ -197,16 +201,16 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 		return;
 	}
 
-	for (size_t i = 0; i < text.size(); ++i)
-	{
-		StringUtil::Replace(playerVar, player, text[i]);
-		StringUtil::Replace(farmVar, farm, text[i]);
-		StringUtil::Replace(animalVar, animal, text[i]);
-		StringUtil::Replace(var2Var, var2, text[i]);
+	std::string hex050c;
+	hex050c.append(1, 0x05);
+	hex050c.append(1, 0x0c);
 
-		std::string hex050c;
-		hex050c.append(1, 0x05);
-		hex050c.append(1, 0x0c);
+	for (size_t i = 0; i < text.size(); ++i)
+	{		
+		for (size_t z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(var[z], spaced[z], text[i]);
+		}		
 
 		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
 	}	
@@ -215,17 +219,16 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace(player, rawPlayer, text[i]);
-		StringUtil::Replace(farm, rawFarm, text[i]);
-		StringUtil::Replace(animal, rawAnimal, text[i]);
-
 		if (Console == console::GBA)
 		{
 			StringUtil::ReplaceMatching('\"', 0xcf, text[i], false);
 			StringUtil::ReplaceMatching('\'', 0xd0, text[i], true);
-		}
+		}		
 
-		StringUtil::Replace(var2, rawVar2, text[i]);
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(spaced[z], raw[z], text[i]);
+		}
 	}	
 }
 

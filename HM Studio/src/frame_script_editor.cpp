@@ -37,6 +37,11 @@ void cScriptEditor::SetupRom()
 		vars.push_back("<PlayerName>");
 		vars.push_back("<AnimalName>");
 		vars.push_back("<Variable02>");
+		vars.push_back("<CustomName>");
+		vars.push_back("<InfantName>");
+		vars.push_back("<ValleyName>");
+		vars.push_back("<ValleyBaby>");
+		vars.push_back("<ValleyFarm>");
 		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptOriginal);
 		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptTranslated);
 		break;
@@ -564,7 +569,7 @@ void cScriptEditor::CreateGUIControls()
 
 	wxMenu* menuScript = new wxMenu();
 	menuScript->Append(wxID_OPEN, "Get text from...");
-	menuScript->Append(wxID_SAVE, "Save\tCtrl-Shift-S", nullptr, "Save the current script");
+	menuScript->Append(ID_SCRSAVE, "Save\tCtrl-Shift-S", nullptr, "Save the current script");
 	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", nullptr, "Go to previous script");
 	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", nullptr, "Go to next script");
 	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", nullptr, "Insert the current script");

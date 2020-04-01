@@ -9,6 +9,7 @@
 #include "frame_script_editor.hpp"
 #include "frame_item_editor.hpp"
 #include "frame_text_block_editor.hpp"
+#include "frame_graphics_editor.hpp"
 
 class MainFrame : public wxFrame
 {
@@ -33,6 +34,7 @@ private:
 	wxButton* m_pEditorScript = nullptr;
 	wxButton* m_pEditorItem = nullptr;
 	wxButton* m_pEditorText = nullptr;
+	wxButton* m_pEditorGraphics = nullptr;
 
 #ifdef _DEBUG
 	wxButton* m_pTestButton = nullptr;

@@ -13,3 +13,6 @@ MinimalSpellSTC/
 HM Studio/resource.h
 *.aps
 *.rc
+/HM Studio/8bpp.bin
+/HM Studio/img.png
+/HM Studio/image.png

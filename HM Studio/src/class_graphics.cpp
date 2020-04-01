@@ -42,6 +42,65 @@ Tile* Graphics::Decode()
 	return tiles;
 }
 
+uint8_t* Graphics::Encode(const wxImage& image)
+{
+	char bpp = 8;
+
+	uint8_t bits = 8 / bpp;
+	uint8_t mask = (1 << bpp) - 1;
+	uint32_t tileCount = (image.GetWidth() / 8) * (image.GetHeight() / 8);
+	uint32_t totalBytes = image.GetWidth() * image.GetHeight();
+	uint32_t totalEncodedBytes = totalBytes / bits;
+	
+	std::vector<uint8_t> holder;
+
+	size_t x = 0;
+	size_t y = 0;
+	size_t curIndex = 0;	
+
+	for (size_t curTile = 0; curTile < tileCount; ++curTile)
+	{		
+		wxImage tile = image.GetSubImage(wxRect(x, y, 8, 8));
+
+		Color* tileColors = (Color*)tile.GetData();
+
+		for (size_t i = 0; i < (8 * 8); i++)
+		{						
+			uint8_t byte = 0;			
+
+			for (size_t bit = 0; bit < bits; ++bit)
+			{				
+				uint8_t index = m_pal.FindColor(tileColors[i]);
+
+				if (index != 0)
+					std::string();
+
+
+				byte |= index;
+
+				if (bits != 1 && bit != bits - 1)
+					byte = byte << bpp;
+
+				++i;
+			}
+
+			holder.push_back(byte);
+		}		
+
+		x += 8;
+
+		if (x == image.GetWidth())
+		{
+			x = 0;
+			y += 8;
+		}
+	}
+
+	File::WriteAllBytes("8bpp.bin", holder.data(), holder.size());
+
+	return nullptr;
+}
+
 void Graphics::DecodePalette(uint8_t* bytes)
 {
 	uint8_t mask = 31;

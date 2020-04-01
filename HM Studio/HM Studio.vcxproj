@@ -24,6 +24,7 @@
     <ClCompile Include="src\class_bit_converter.cpp" />
     <ClCompile Include="src\class_finder.cpp" />
     <ClCompile Include="src\class_graphics.cpp" />
+    <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
     <ClCompile Include="src\class_letter_editor.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="src\class_file.cpp" />
     <ClCompile Include="src\dialog_script_text.cpp" />
     <ClCompile Include="src\FishEditor.cpp" />
+    <ClCompile Include="src\frame_graphics_editor.cpp" />
     <ClCompile Include="src\frame_search_script.cpp" />
     <ClCompile Include="src\frame_main.cpp" />
     <ClCompile Include="src\frame_script_editor.cpp" />
@@ -56,6 +58,7 @@
     <ClInclude Include="src\class_bit_converter.hpp" />
     <ClInclude Include="src\class_finder.hpp" />
     <ClInclude Include="src\class_graphics.hpp" />
+    <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />
     <ClInclude Include="src\class_letter_editor.hpp" />
@@ -66,6 +69,7 @@
     <ClInclude Include="src\class_file.hpp" />
     <ClInclude Include="src\dialog_script_text.hpp" />
     <ClInclude Include="src\FishEditor.hpp" />
+    <ClInclude Include="src\frame_graphics_editor.hpp" />
     <ClInclude Include="src\frame_search_script.hpp" />
     <ClInclude Include="src\frame_main.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />

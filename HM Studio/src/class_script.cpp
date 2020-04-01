@@ -72,14 +72,9 @@ std::vector<std::string> Script::GetText()
 {
 	std::vector<std::string> text;	
 
-	size_t this_size = 0;
-
 	for (size_t i = 0; i < *m_pStrCount; ++i)
 	{
-		this_size = 0;
-		uint8_t* pointer = m_pStrPointers[i] + m_pStartText;
-		
-		text.push_back((const char*)pointer);
+		text.push_back((const char*)(m_pStrPointers[i] + m_pStartText));
 	}
 
 	return text;
@@ -176,7 +171,7 @@ void Script::UpdateText(const std::vector<std::string>& text)
 
 std::string Script::operator[](int index) const
 {
-	return std::string((const char*)(m_pStartText + m_pStrPointers[index]));
+	return (const char*)(m_pStartText + m_pStrPointers[index]);
 }
 
 bool Script::operator==(const Script& other) const

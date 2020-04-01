@@ -331,7 +331,6 @@ void ScriptEditor::SetOffsets(uint32_t* offets)
 		for (size_t i = 0; i < m_Info.ScriptCount; ++i)
 		{
 			offets[i] |= ROM_BUS;
-
 		}
 	}
 }
@@ -339,7 +338,7 @@ void ScriptEditor::SetOffsets(uint32_t* offets)
 inline uint32_t ScriptEditor::ScriptSize(uint32_t* value)
 {
 	if (value[0] != SCRIPT_RIFF)
-		return 0xffffffff;
+		return std::string::npos;
 
 	return value[1];
 }
@@ -451,8 +450,9 @@ void ScriptEditor::InsertSmaller(Script& script, uint32_t offset, uint32_t oldSi
 {	
 	uint8_t* data = new uint8_t[oldSize];
 
-	memset(data, 0x00, oldSize);
-	memcpy(data, script.GetData(), oldSize);
+	memset(data, 0x00, oldSize);	
+
+	memcpy(data, script.GetData(), script.GetRiffLenght());
 
 	m_RomTranslated.Seek(offset);
 	m_RomTranslated.Write(data, oldSize);
@@ -504,8 +504,9 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	
 	uint8_t* a = (scriptBlock + (oldOffset - m_Info.StartScript));
 
-	if (IsInsideBlock(oldOffset))
-		memset(a, 0x00, oldSize);
+	if (oldSize != std::string::npos)
+		if (IsInsideBlock(oldOffset))
+			memset(a, 0x00, oldSize);
 
 	bool trying = true;
 
@@ -553,11 +554,11 @@ ScriptFlags ScriptEditor::Insert(Rom& rom, Script& script, uint32_t number)
 	
 	uint32_t oldOffset = GetOffset(rom);
 	uint32_t oldSize = ScriptSize(oldOffset, rom);
-	uint32_t newSize = script.GetRiffLenght();
+	uint32_t newSize = script.GetRiffLenght();	
 
 	if (newSize <= oldSize)
 	{
-		if (oldSize != 0xffffffff)
+		if (oldSize != std::string::npos)
 		{
 			InsertSmaller(script, oldOffset, oldSize);
 			return ScriptFlags::INSERT_LESS;

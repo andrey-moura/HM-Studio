@@ -61,9 +61,8 @@ void TextFromScriptDialog::GetScriptText(const std::string& path)
 		wxMessageBox("Script count is not the same.", "Huh?", wxICON_ERROR | wxSTAY_ON_TOP, this);
 		return;
 	}
-
 	m_Text = script.GetText();
-
+	
 	EndModal(wxOK);
 }
 
