@@ -15,7 +15,7 @@
 
 #include "class_stc.hpp"
 #include "class_item.hpp"
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 
 #define m_Item m_Itens[m_Index]
 #define m_ItemOriginal m_ItensOriginais[m_Index]
@@ -31,8 +31,8 @@ private:
 	std::vector<Item> m_ItensOriginais;
 	wxImage m_ItemIcon;
 
-	Rom m_RomOriginal;
-	Rom m_RomTranslated;
+	RomFile m_RomOriginal;
+	RomFile m_RomTranslated;
 
 	size_t m_Index;
 	ITEM_DATA m_ItemData;

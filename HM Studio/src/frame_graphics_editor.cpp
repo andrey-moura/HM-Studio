@@ -99,7 +99,7 @@ void GraphicsEditorFrame::OnSelChanged(wxTreeEvent& event)
 	event.Skip();
 }
 
-void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, Rom& rom)
+void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 {	
 	uint8_t* bytes = new uint8_t[(info.m_Width * info.m_Height) / 2];
 	

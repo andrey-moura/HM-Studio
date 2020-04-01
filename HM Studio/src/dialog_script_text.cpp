@@ -91,8 +91,8 @@ void TextFromScriptDialog::OnGoButton(wxCommandEvent& event)
 		}
 		else
 		{
-			Rom rom(i, true);
-			Rom romOri(i, false);
+			RomFile rom(i, true);
+			RomFile romOri(i, false);
 			ScriptEditor editor(romOri, rom);
 			path = editor.GetPath(number, true);
 		}	

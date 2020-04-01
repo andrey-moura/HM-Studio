@@ -5,7 +5,7 @@
 
 #include <wx/filename.h>
 
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 #include "class_script.hpp"
 #include "class_file.hpp"
 #include "class_finder.hpp"
@@ -35,33 +35,33 @@ enum class ScriptFlags
 class ScriptEditor
 {
 public:
-	ScriptEditor(Rom& original, Rom& translated);
+	ScriptEditor(RomFile& original, RomFile& translated);
 
 	~ScriptEditor() = default;
 public:
 	static std::string FormatPath(size_t number, const std::string& format);
-	static std::string PathFormat(const Rom& rom);
-	static std::string NameFormat(const Rom& rom);
+	static std::string PathFormat(const RomFile& rom);
+	static std::string NameFormat(const RomFile& rom);
 
 	std::string GetPath(bool translated);
 	std::string GetPath(size_t number, bool translated);
 public:
-	Rom& GetRom(bool translated);
+	RomFile& GetRom(bool translated);
 public:
-	uint32_t GetOffset(Rom& rom, size_t number);
-	uint32_t GetOffset(Rom& rom);
-	uint32_t* GetOffsets(Rom& rom);
+	uint32_t GetOffset(RomFile& rom, size_t number);
+	uint32_t GetOffset(RomFile& rom);
+	uint32_t* GetOffsets(RomFile& rom);
 	void SetOffset(uint32_t offset);
 	void SetOffsets(uint32_t* offets);
 	
 	inline uint32_t ScriptSize(uint32_t* value);
-	inline uint32_t ScriptSize(const uint32_t& offset, Rom& rom);
+	inline uint32_t ScriptSize(const uint32_t& offset, RomFile& rom);
 	uint32_t ScriptSize(const uint32_t& offset, uint8_t* bytes);
 
-	static RomInfo GetRomInformation(const Rom& rom);
+	static RomInfo GetRomInformation(const RomFile& rom);
 
-	void Dump(Rom& rom);
-	ScriptFlags Insert(Rom& rom, Script& script, uint32_t number);
+	void Dump(RomFile& rom);
+	ScriptFlags Insert(RomFile& rom, Script& script, uint32_t number);
 	void Insert();
 private:
 	void InsertSmaller(Script& script, uint32_t offset, uint32_t oldSize);
@@ -114,8 +114,8 @@ private:
 	size_t m_Size;
 	size_t m_Number;	
 
-	Rom& m_RomOriginal;
-	Rom& m_RomTranslated;
+	RomFile& m_RomOriginal;
+	RomFile& m_RomTranslated;
 
 	std::string m_TextBackup;
 	size_t m_IndexBackup = -1;

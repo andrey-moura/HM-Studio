@@ -10,7 +10,7 @@
 #include <wx/menu.h>
 #include <wx/statbmp.h>
 
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 #include "class_graphics.hpp"
 
 #include "control_graphics_view.hpp"
@@ -25,7 +25,7 @@ struct GraphicsInfo
 	short m_Height;
 	uint32_t m_ImageAdress;
 	uint32_t m_PaletteAdress;
-	void(GraphicsEditorFrame:: * m_Function)(const Rom&) = nullptr;
+	void(GraphicsEditorFrame:: * m_Function)(const RomFile&) = nullptr;
 	char m_Bpp;
 	bool m_Reversed;
 	bool m_Planar;	
@@ -45,8 +45,8 @@ private:
 
 	void GetGraphicsList();	
 	
-	Rom m_RomOriginal;
-	Rom m_RomTranslated;	
+	RomFile m_RomOriginal;
+	RomFile m_RomTranslated;	
 	Graphics m_Graphic;
 
 	void ExportImage();
@@ -54,7 +54,7 @@ private:
 	void FromOriginal();
 	void SaveImage();
 	void Zoom(int zoomMode);
-	void GetGraphics(const GraphicsInfo& info, Rom& rom);
+	void GetGraphics(const GraphicsInfo& info, RomFile& rom);
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);

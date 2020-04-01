@@ -8,7 +8,7 @@
 #include <wx/textctrl.h>
 #include <wx/button.h>
 
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 #include "class_stc.hpp"
 
 class TextBlockEditor : public wxFrame
@@ -17,8 +17,8 @@ public:
 	TextBlockEditor(const id i);
 	~TextBlockEditor() = default;
 private:
-	Rom m_RomTranslated;
-	Rom m_RomOriginal;
+	RomFile m_RomTranslated;
+	RomFile m_RomOriginal;
 //Events
 private:
 	void OnMenuClick(wxCommandEvent& event);

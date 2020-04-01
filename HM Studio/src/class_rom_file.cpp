@@ -1,6 +1,6 @@
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 
-Rom::Rom(id i, bool translated) : wxFile()
+RomFile::RomFile(id i, bool translated) : wxFile()
 {
 	State = translated ? "Translated" : "Original";		
 	Id = i;	
@@ -50,7 +50,7 @@ Rom::Rom(id i, bool translated) : wxFile()
 	this->Open(Path, wxFile::read_write);	
 }
 
-std::string Rom::GetTablePath()
+std::string RomFile::GetTablePath()
 {
 	wxFileName fileName = wxFileName(Path);
 	fileName.RemoveLastDir();
@@ -61,7 +61,7 @@ std::string Rom::GetTablePath()
 	return fileName.GetFullPath().ToStdString();
 }
 
-void Rom::InputTextWithVariables(std::vector<std::string>& text)
+void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 {
 	std::vector<std::string> raw;
 	std::vector<std::string> spaced;
@@ -145,7 +145,7 @@ void Rom::InputTextWithVariables(std::vector<std::string>& text)
 	}
 }
 
-void Rom::OutputTextWithVariables(std::vector<std::string>& text)
+void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 {
 	std::vector<std::string> raw;
 	std::vector<std::string> spaced;
@@ -232,55 +232,55 @@ void Rom::OutputTextWithVariables(std::vector<std::string>& text)
 	}	
 }
 
-int8_t Rom::ReadInt8()
+int8_t RomFile::ReadInt8()
 {
 	int8_t value = 0;
 	this->Read(&value, 1);
 	return value;
 }
 
-int16_t Rom::ReadInt16()
+int16_t RomFile::ReadInt16()
 {
 	int16_t value = 0;
 	this->Read(&value, 2);
 	return value;
 }
 
-int32_t Rom::ReadInt32()
+int32_t RomFile::ReadInt32()
 {		
 	int32_t value = 0;
 	this->Read(&value, 4);
 	return value;
 }
 
-uint8_t Rom::ReadUInt8()
+uint8_t RomFile::ReadUInt8()
 {
 	uint8_t value = 0;
 	this->Read(&value, 1);
 	return value;
 }
 
-uint16_t Rom::ReadUInt16()
+uint16_t RomFile::ReadUInt16()
 {
 	uint16_t value = 0;
 	this->Read(&value, 2);
 	return value;
 }
 
-uint16_t Rom::ReadUInt16(uint32_t off)
+uint16_t RomFile::ReadUInt16(uint32_t off)
 {
 	this->Seek(off);
 	return ReadUInt16();
 }
 
-uint32_t Rom::ReadUInt32()
+uint32_t RomFile::ReadUInt32()
 {
 	uint32_t value = 0;
 	this->Read(&value, 4);
 	return value;
 }
 
-uint64_t Rom::ReadUint64(uint32_t off)
+uint64_t RomFile::ReadUint64(uint32_t off)
 {
 	Seek(off);
 	uint64_t value;
@@ -288,13 +288,13 @@ uint64_t Rom::ReadUint64(uint32_t off)
 	return value;
 }
 
-uint32_t Rom::ReadPointer32(uint32_t offset)
+uint32_t RomFile::ReadPointer32(uint32_t offset)
 {
 	Seek(offset);
 	return ReadUInt32() & ROM_BUS_NOT;
 }
 
-std::string Rom::ReadString()
+std::string RomFile::ReadString()
 {
 	size_t size = 0;
 
@@ -315,36 +315,36 @@ std::string Rom::ReadString()
 	return string;
 }
 
-void Rom::WriteUInt32(uint32_t number)
+void RomFile::WriteUInt32(uint32_t number)
 {
 	Write(&number, 4);
 }
 
-void Rom::WriteUInt32(uint32_t number, uint32_t offset)
+void RomFile::WriteUInt32(uint32_t number, uint32_t offset)
 {
 	Seek(offset);
 	WriteUInt32(number);
 }
 
-void Rom::ReadBytes(std::vector<uint8_t>& bytes, size_t size)
+void RomFile::ReadBytes(std::vector<uint8_t>& bytes, size_t size)
 {
 	bytes.resize(size, 0x00);
 	this->Read(bytes.data(), size);
 }
 
-void Rom::WriteBytes(std::vector<uint8_t> bytes)
+void RomFile::WriteBytes(std::vector<uint8_t> bytes)
 {
 	this->Write(bytes.data(), bytes.size());
 	this->Flush();
 }
 
-void Rom::WriteBytes(const void* bytes, const size_t size)
+void RomFile::WriteBytes(const void* bytes, const size_t size)
 {
 	this->Write(bytes, size);
 	this->Flush();
 }
 
-void Rom::BackupRom(const std::string& inform)
+void RomFile::BackupRom(const std::string& inform)
 {
 	wxFileName destination(Path);
 	destination.AppendDir("Backup");

@@ -25,11 +25,11 @@ enum class id {
 	DS
 };
 
-class Rom : public wxFile
+class RomFile : public wxFile
 {
 public:
-	Rom(id i, bool translated);
-	~Rom() = default;
+	RomFile(id i, bool translated);
+	~RomFile() = default;
 
 	id Id;
 	console Console;

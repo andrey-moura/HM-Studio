@@ -5,7 +5,7 @@
 
 #include <wx/file.h>
 
-#include "class_rom.hpp" 
+#include "class_rom_file.hpp" 
 #include "class_graphics.hpp"
 #include "class_util_string.hpp"
 
@@ -61,8 +61,8 @@ private:
 	static uint32_t m_sAdress4;
 	static uint32_t m_sAdress5;
 public:
-	static ITEM_DATA GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output);
-	static void GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);
-	static void GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);
-	static void GetItemImageOffset(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom);
+	static ITEM_DATA GetItems(RomFile& rom, ITEM_TYPE type, std::vector<Item>& output);
+	static void GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom);
+	static void GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom);
+	static void GetItemImageOffset(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom);
 };

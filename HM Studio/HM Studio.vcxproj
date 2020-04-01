@@ -40,7 +40,7 @@
     <ClCompile Include="src\frame_search_script.cpp" />
     <ClCompile Include="src\frame_main.cpp" />
     <ClCompile Include="src\frame_script_editor.cpp" />
-    <ClCompile Include="src\class_rom.cpp" />
+    <ClCompile Include="src\class_rom_file.cpp" />
     <ClCompile Include="src\frame_item_editor.cpp" />
     <ClCompile Include="src\class_script.cpp" />
     <ClCompile Include="src\class_option_window.cpp" />
@@ -79,7 +79,7 @@
     <ClInclude Include="src\class_option_window.hpp" />
     <ClInclude Include="src\namespace_math.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
-    <ClInclude Include="src\class_rom.hpp" />
+    <ClInclude Include="src\class_rom_file.hpp" />
     <ClInclude Include="src\class_script.hpp" />
     <ClInclude Include="src\class_stc.hpp" />
     <ClInclude Include="src\Studio.h" />

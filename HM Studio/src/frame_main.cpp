@@ -80,8 +80,8 @@ void MainFrame::OnTestClick(wxCommandEvent& event)
 
 	//SpellChecker spellChecker("pt_BR", path.GetPath(true).ToStdString());
 
-	Rom rom = Rom(GetCurrentId(), false);
-	Rom rom2 = Rom(GetCurrentId(), true);
+	RomFile rom = RomFile(GetCurrentId(), false);
+	RomFile rom2 = RomFile(GetCurrentId(), true);
 	ScriptEditor editor(rom, rom2);
 
 	std::string format = editor.PathFormat(rom);

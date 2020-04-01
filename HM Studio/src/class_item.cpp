@@ -10,7 +10,7 @@ Item::Item(const std::string& name, const std::string& description) : m_Name(nam
 {
 }
 
-ITEM_DATA Item::GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output)
+ITEM_DATA Item::GetItems(RomFile& rom, ITEM_TYPE type, std::vector<Item>& output)
 {	
 	ITEM_DATA data;
 
@@ -37,7 +37,7 @@ ITEM_DATA Item::GetItems(Rom& rom, ITEM_TYPE type, std::vector<Item>& output)
 	return data;
 }
 
-void Item::GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom)
+void Item::GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom)
 {
 	int32_t index = 0;
 
@@ -58,7 +58,7 @@ void Item::GetItensNames(std::vector<Item>& itens, const ITEM_DATA& data, Rom& r
 	}
 }
 
-void Item::GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom)
+void Item::GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom)
 {
 	int32_t index = 0;
 
@@ -79,7 +79,7 @@ void Item::GetItensDescription(std::vector<Item>& itens, const ITEM_DATA& data, 
 	}
 }
 
-void Item::GetItemImageOffset(std::vector<Item>& itens, const ITEM_DATA& data, Rom& rom)
+void Item::GetItemImageOffset(std::vector<Item>& itens, const ITEM_DATA& data, RomFile& rom)
 {
 	for (size_t i = 0; i < data.m_Count; ++i)
 	{

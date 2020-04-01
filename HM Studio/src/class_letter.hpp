@@ -2,13 +2,13 @@
 
 #include <vector>
 #include <string>
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 
 class Letter
 {
 public:
 	Letter() = default;
-	Letter(Rom& rom, uint32_t startPointers, uint32_t count);
+	Letter(RomFile& rom, uint32_t startPointers, uint32_t count);
 private:
 	std::vector<std::string> m_Lines;
 	uint32_t m_Start;

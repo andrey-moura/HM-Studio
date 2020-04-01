@@ -1,6 +1,6 @@
 #include "class_script_editor.hpp"
 
-ScriptEditor::ScriptEditor(Rom& original, Rom& translated) : m_RomOriginal(original), m_RomTranslated(translated)
+ScriptEditor::ScriptEditor(RomFile& original, RomFile& translated) : m_RomOriginal(original), m_RomTranslated(translated)
 {
 	m_Info = GetRomInformation(original);
 }
@@ -164,7 +164,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 	}
 }
 
-std::string ScriptEditor::NameFormat(const Rom& rom)
+std::string ScriptEditor::NameFormat(const RomFile& rom)
 {
 	std::string format = "Script_%s_%s.%s";
 
@@ -192,7 +192,7 @@ std::string ScriptEditor::NameFormat(const Rom& rom)
 	return name;
 }
 
-std::string ScriptEditor::PathFormat(const Rom& rom)
+std::string ScriptEditor::PathFormat(const RomFile& rom)
 {	
 	wxFileName fileName;
 	fileName.SetPath(rom.m_Dir);
@@ -224,12 +224,12 @@ std::string ScriptEditor::GetPath(bool translated)
 	return GetPath(m_Number, translated);
 }
 
-Rom& ScriptEditor::GetRom(bool translated)
+RomFile& ScriptEditor::GetRom(bool translated)
 {
 	return (translated ? m_RomTranslated : m_RomOriginal);
 }
 
-RomInfo ScriptEditor::GetRomInformation(const Rom& rom)
+RomInfo ScriptEditor::GetRomInformation(const RomFile& rom)
 {
 	RomInfo information;
 
@@ -261,7 +261,7 @@ RomInfo ScriptEditor::GetRomInformation(const Rom& rom)
 	return information;
 }
 
-uint32_t ScriptEditor::GetOffset(Rom& rom, size_t number)
+uint32_t ScriptEditor::GetOffset(RomFile& rom, size_t number)
 {			
 	uint32_t pointer = rom.ReadPointer32(m_Info.StartPointers + (number * 4));
 
@@ -273,12 +273,12 @@ uint32_t ScriptEditor::GetOffset(Rom& rom, size_t number)
 	return pointer;
 }
 
-uint32_t ScriptEditor::GetOffset(Rom& rom)
+uint32_t ScriptEditor::GetOffset(RomFile& rom)
 {
 	return GetOffset(rom, m_Number);
 }
 
-uint32_t* ScriptEditor::GetOffsets(Rom& rom)
+uint32_t* ScriptEditor::GetOffsets(RomFile& rom)
 {	
 	uint32_t* output = new uint32_t[m_Info.ScriptCount];
 
@@ -343,7 +343,7 @@ inline uint32_t ScriptEditor::ScriptSize(uint32_t* value)
 	return value[1];
 }
 
-inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, Rom& rom)
+inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, RomFile& rom)
 {
 	uint64_t data = rom.ReadUint64(offset);
 	return ScriptSize((uint32_t*)&data);
@@ -374,7 +374,7 @@ inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& si
 	return free;
 }
 
-void ScriptEditor::Dump(Rom& rom)
+void ScriptEditor::Dump(RomFile& rom)
 {
 	uint32_t* offsets = GetOffsets(rom);
 
@@ -548,7 +548,7 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	return flag;
 }
 
-ScriptFlags ScriptEditor::Insert(Rom& rom, Script& script, uint32_t number)
+ScriptFlags ScriptEditor::Insert(RomFile& rom, Script& script, uint32_t number)
 {
 	RomInfo information = GetRomInformation(rom);
 	

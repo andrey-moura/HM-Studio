@@ -1,6 +1,6 @@
 #include "class_letter.hpp"
 
-Letter::Letter(Rom& rom, uint32_t startPointers, uint32_t count)
+Letter::Letter(RomFile& rom, uint32_t startPointers, uint32_t count)
 {
 	uint32_t* pointers = new uint32_t[count];
 

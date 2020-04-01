@@ -12,7 +12,7 @@
 #include "frame_search_script.hpp"
 #include "dialog_script_text.hpp"
 
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 #include "class_script.hpp"
 #include "Studio.h"
 #include "class_stc.hpp"
@@ -62,8 +62,8 @@ private:
 	void RestoreText();
 //Rom manipulation
 private:
-	Rom romOriginal;
-	Rom romTranslated;
+	RomFile romOriginal;
+	RomFile romTranslated;
 //Script manipulation
 private:
 	void OpenScript(size_t index);

@@ -11,7 +11,7 @@
 
 #include "class_script.hpp"
 #include "class_script_editor.hpp"
-#include "class_rom.hpp"
+#include "class_rom_file.hpp"
 #include "class_file.hpp"
 #include "Studio.h"
 
