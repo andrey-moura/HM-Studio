@@ -64,3 +64,9 @@ private:
 	
 	wxBoxSizer* m_pRootSizer = nullptr;
 };
+
+//m_pGUI_whichItens = new wxChoice(this, wxID_ANY);
+//m_pGUI_whichItens->Append("Tool");
+//m_pGUI_whichItens->Append("Fridge");
+//m_pGUI_whichItens->Append("Shelf");
+//m_pGUI_whichItens->Bind(wxEVT_CHOICE, &ItemEditorFrame::OnChoiceChanged, this);

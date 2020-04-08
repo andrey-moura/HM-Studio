@@ -24,7 +24,6 @@
     <ClCompile Include="src\class_bit_converter.cpp" />
     <ClCompile Include="src\class_finder.cpp" />
     <ClCompile Include="src\class_graphics.cpp" />
-    <ClCompile Include="src\class_rom.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
@@ -59,7 +58,6 @@
     <ClInclude Include="src\class_bit_converter.hpp" />
     <ClInclude Include="src\class_finder.hpp" />
     <ClInclude Include="src\class_graphics.hpp" />
-    <ClInclude Include="src\class_rom.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />
@@ -77,6 +75,7 @@
     <ClInclude Include="src\frame_script_editor.hpp" />
     <ClInclude Include="src\frame_item_editor.hpp" />
     <ClInclude Include="src\frame_text_block_editor.hpp" />
+    <ClInclude Include="src\Images\delete_icon.h" />
     <ClInclude Include="src\class_option_window.hpp" />
     <ClInclude Include="src\namespace_math.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />

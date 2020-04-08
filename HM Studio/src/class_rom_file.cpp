@@ -1,191 +1,236 @@
 #include "class_rom_file.hpp"
 
-RomFile::RomFile(const std::string& path) : wxFile(path, wxFile::read_write)
-{		
+RomFile::RomFile(id i, bool translated) : wxFile()
+{
+	State = translated ? "Translated" : "Original";		
+	Id = i;	
 
+	switch (i)
+	{
+	case id::FoMT:			
+		Name = "FoMT";
+		Console = console::GBA;
+		break;
+	case id::MFoMT:		
+		Name = "MFoMT";
+		Console = console::GBA;
+		break;
+	case id::DS:		
+		Name = "DS";
+		Console = console::DS;
+		break;
+	default:
+		break;
+	}		
+
+	wxFileName path = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+	path.AppendDir(Name);
+
+	m_Dir = path.GetPath().ToStdString();
+
+	path.AppendDir("Rom");
+	path.SetName("Rom_" + State);
+
+	switch (Console)
+	{
+	case console::GBA:
+		path.SetExt("gba");
+		break;
+	case console::DS:
+		path.SetExt("nds");
+		break;
+	default:
+		break;
+	}
+
+	if (!path.DirExists())
+		path.Mkdir(511, wxPATH_MKDIR_FULL);
+
+	Path = path.GetFullPath();	
+	this->Open(Path, wxFile::read_write);	
 }
-//
-//std::string RomFile::GetTablePath()
-//{
-//	wxFileName fileName = wxFileName(Path);
-//	fileName.RemoveLastDir();
-//	fileName.AppendDir("Table");
-//	fileName.SetName(State);
-//	fileName.SetExt("tbl");
-//
-//	return fileName.GetFullPath().ToStdString();
-//}
 
-//void RomFile::InputTextWithVariables(std::vector<std::string>& text)
-//{
-//	std::vector<std::string> raw;
-//	std::vector<std::string> spaced;
-//	std::vector<std::string> var;
-//
-//	std::string endLine;
-//
-//	switch (Console)
-//	{
-//	case console::GBA:
-//		raw.push_back("ÿ!");
-//		raw.push_back("ÿ#");
-//		raw.push_back("ÿ%");
-//		raw.push_back("ÿ\'");
-//		raw.push_back("ÿ)");
-//		raw.push_back("ÿ*");
-//		raw.push_back("ÿ,");
-//		raw.push_back("ÿ-");
-//		raw.push_back("ÿ+");
-//
-//		spaced.push_back(" PlayerName ");
-//		spaced.push_back(" FarmName   ");
-//		spaced.push_back(" AnimalName ");
-//		spaced.push_back(" Variable02 ");
-//		spaced.push_back(" CustomName ");
-//		spaced.push_back(" InfantName ");
-//		spaced.push_back(" ValleyName ");
-//		spaced.push_back(" ValleyBaby ");
-//		spaced.push_back(" ValleyFarm ");
-//
-//		var.push_back("<PlayerName>");
-//		var.push_back("<FarmName  >");
-//		var.push_back("<AnimalName>");
-//		var.push_back("<Variable02>");
-//		var.push_back("<CustomName>");
-//		var.push_back("<InfantName>");
-//		var.push_back("<ValleyName>");
-//		var.push_back("<ValleyBaby>");
-//		var.push_back("<ValleyFarm>");
-//
-//		endLine = "\r\n";
-//		break;
-//	case console::DS:
-//		raw.push_back("ÿ$");
-//
-//		spaced.push_back("Player");
-//
-//		var.push_back("<Player>");
-//
-//		endLine = "\n";
-//		break;
-//	default:
-//		return;
-//	}
-//
-//	for (size_t i = 0; i < text.size(); ++i)
-//	{
-//		for (int z = 0; z < var.size(); ++z)
-//		{
-//			StringUtil::Replace(raw[z], spaced[z], text[i]);
-//		}
-//	}
-//
-//	std::string tablePath = GetTablePath();
-//
-//	if (wxFile::Exists(tablePath))
-//		Table::InputTable(File::ReadAllText(tablePath), text);
-//
-//	std::string hex050c;
-//	hex050c.append(1, 0x05);
-//	hex050c.append(1, 0x0c);
-//
-//	for (size_t i = 0; i < text.size(); ++i)
-//	{
-//		for (int z = 0; z < var.size(); ++z)
-//		{
-//			StringUtil::Replace(spaced[z], var[z], text[i]);
-//		}		
-//
-//		StringUtil::Replace(hex050c, hex050c + endLine, text[i]);
-//	}
-//}
-//
-//void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
-//{
-//	std::vector<std::string> raw;
-//	std::vector<std::string> spaced;
-//	std::vector<std::string> var;
-//
-//	std::string endLine;
-//
-//	switch (Console)
-//	{
-//	case console::GBA:
-//		raw.push_back("ÿ!");
-//		raw.push_back("ÿ#");
-//		raw.push_back("ÿ%");
-//		raw.push_back("ÿ\'");
-//		raw.push_back("ÿ)");
-//		raw.push_back("ÿ*");
-//		raw.push_back("ÿ,");
-//		raw.push_back("ÿ-");
-//		raw.push_back("ÿ+");
-//
-//		spaced.push_back(" PlayerName ");
-//		spaced.push_back(" FarmName   ");
-//		spaced.push_back(" AnimalName ");
-//		spaced.push_back(" Variable02 ");
-//		spaced.push_back(" CustomName ");
-//		spaced.push_back(" InfantName ");
-//		spaced.push_back(" ValleyName ");
-//		spaced.push_back(" ValleyBaby ");
-//		spaced.push_back(" ValleyFarm ");
-//
-//		var.push_back("<PlayerName>");
-//		var.push_back("<FarmName  >");
-//		var.push_back("<AnimalName>");
-//		var.push_back("<Variable02>");
-//		var.push_back("<CustomName>");
-//		var.push_back("<InfantName>");
-//		var.push_back("<ValleyName>");
-//		var.push_back("<ValleyBaby>");
-//		var.push_back("<ValleyFarm>");
-//
-//		endLine = "\r\n";
-//		break;
-//	case console::DS:
-//		raw.push_back("ÿ$");		
-//
-//		spaced.push_back("Player");		
-//
-//		var.push_back("<Player>");
-//
-//		endLine = "\n";
-//		break;
-//	default:
-//		return;
-//	}
-//
-//	std::string hex050c;
-//	hex050c.append(1, 0x05);
-//	hex050c.append(1, 0x0c);
-//
-//	for (size_t i = 0; i < text.size(); ++i)
-//	{		
-//		for (size_t z = 0; z < var.size(); ++z)
-//		{
-//			StringUtil::Replace(var[z], spaced[z], text[i]);
-//		}		
-//
-//		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
-//	}	
-//
-//	Table::OutPutTable(File::ReadAllText(GetTablePath()), text);
-//
-//	for (size_t i = 0; i < text.size(); ++i)
-//	{
-//		if (Console == console::GBA)
-//		{
-//			StringUtil::ReplaceMatching('\"', 0xcf, text[i], false);
-//			StringUtil::ReplaceMatching('\'', 0xd0, text[i], true);
-//		}		
-//
-//		for (int z = 0; z < var.size(); ++z)
-//		{
-//			StringUtil::Replace(spaced[z], raw[z], text[i]);
-//		}
-//	}	
-//}
+std::string RomFile::GetTablePath()
+{
+	wxFileName fileName = wxFileName(Path);
+	fileName.RemoveLastDir();
+	fileName.AppendDir("Table");
+	fileName.SetName(State);
+	fileName.SetExt("tbl");
+
+	return fileName.GetFullPath().ToStdString();
+}
+
+void RomFile::InputTextWithVariables(std::vector<std::string>& text)
+{
+	std::vector<std::string> raw;
+	std::vector<std::string> spaced;
+	std::vector<std::string> var;
+
+	std::string endLine;
+
+	switch (Console)
+	{
+	case console::GBA:
+		raw.push_back("ÿ!");
+		raw.push_back("ÿ#");
+		raw.push_back("ÿ%");
+		raw.push_back("ÿ\'");
+		raw.push_back("ÿ)");
+		raw.push_back("ÿ*");
+		raw.push_back("ÿ,");
+		raw.push_back("ÿ-");
+		raw.push_back("ÿ+");
+
+		spaced.push_back(" PlayerName ");
+		spaced.push_back(" FarmName   ");
+		spaced.push_back(" AnimalName ");
+		spaced.push_back(" Variable02 ");
+		spaced.push_back(" CustomName ");
+		spaced.push_back(" InfantName ");
+		spaced.push_back(" ValleyName ");
+		spaced.push_back(" ValleyBaby ");
+		spaced.push_back(" ValleyFarm ");
+
+		var.push_back("<PlayerName>");
+		var.push_back("<FarmName  >");
+		var.push_back("<AnimalName>");
+		var.push_back("<Variable02>");
+		var.push_back("<CustomName>");
+		var.push_back("<InfantName>");
+		var.push_back("<ValleyName>");
+		var.push_back("<ValleyBaby>");
+		var.push_back("<ValleyFarm>");
+
+		endLine = "\r\n";
+		break;
+	case console::DS:
+		raw.push_back("ÿ$");
+
+		spaced.push_back("Player");
+
+		var.push_back("<Player>");
+
+		endLine = "\n";
+		break;
+	default:
+		return;
+	}
+
+	for (size_t i = 0; i < text.size(); ++i)
+	{
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(raw[z], spaced[z], text[i]);
+		}
+	}
+
+	std::string tablePath = GetTablePath();
+
+	if (wxFile::Exists(tablePath))
+		Table::InputTable(File::ReadAllText(tablePath), text);
+
+	std::string hex050c;
+	hex050c.append(1, 0x05);
+	hex050c.append(1, 0x0c);
+
+	for (size_t i = 0; i < text.size(); ++i)
+	{
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(spaced[z], var[z], text[i]);
+		}		
+
+		StringUtil::Replace(hex050c, hex050c + endLine, text[i]);
+	}
+}
+
+void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
+{
+	std::vector<std::string> raw;
+	std::vector<std::string> spaced;
+	std::vector<std::string> var;
+
+	std::string endLine;
+
+	switch (Console)
+	{
+	case console::GBA:
+		raw.push_back("ÿ!");
+		raw.push_back("ÿ#");
+		raw.push_back("ÿ%");
+		raw.push_back("ÿ\'");
+		raw.push_back("ÿ)");
+		raw.push_back("ÿ*");
+		raw.push_back("ÿ,");
+		raw.push_back("ÿ-");
+		raw.push_back("ÿ+");
+
+		spaced.push_back(" PlayerName ");
+		spaced.push_back(" FarmName   ");
+		spaced.push_back(" AnimalName ");
+		spaced.push_back(" Variable02 ");
+		spaced.push_back(" CustomName ");
+		spaced.push_back(" InfantName ");
+		spaced.push_back(" ValleyName ");
+		spaced.push_back(" ValleyBaby ");
+		spaced.push_back(" ValleyFarm ");
+
+		var.push_back("<PlayerName>");
+		var.push_back("<FarmName  >");
+		var.push_back("<AnimalName>");
+		var.push_back("<Variable02>");
+		var.push_back("<CustomName>");
+		var.push_back("<InfantName>");
+		var.push_back("<ValleyName>");
+		var.push_back("<ValleyBaby>");
+		var.push_back("<ValleyFarm>");
+
+		endLine = "\r\n";
+		break;
+	case console::DS:
+		raw.push_back("ÿ$");		
+
+		spaced.push_back("Player");		
+
+		var.push_back("<Player>");
+
+		endLine = "\n";
+		break;
+	default:
+		return;
+	}
+
+	std::string hex050c;
+	hex050c.append(1, 0x05);
+	hex050c.append(1, 0x0c);
+
+	for (size_t i = 0; i < text.size(); ++i)
+	{		
+		for (size_t z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(var[z], spaced[z], text[i]);
+		}		
+
+		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
+	}	
+
+	Table::OutPutTable(File::ReadAllText(GetTablePath()), text);
+
+	for (size_t i = 0; i < text.size(); ++i)
+	{
+		if (Console == console::GBA)
+		{
+			StringUtil::ReplaceMatching('\"', 0xcf, text[i], false);
+			StringUtil::ReplaceMatching('\'', 0xd0, text[i], true);
+		}		
+
+		for (int z = 0; z < var.size(); ++z)
+		{
+			StringUtil::Replace(spaced[z], raw[z], text[i]);
+		}
+	}	
+}
 
 int8_t RomFile::ReadInt8()
 {
@@ -301,12 +346,12 @@ void RomFile::WriteBytes(const void* bytes, const size_t size)
 
 void RomFile::BackupRom(const std::string& inform)
 {
-	//wxFileName destination(Path);
-	//destination.AppendDir("Backup");
-	//destination.SetName(inform);
-	//
-	//if (!destination.DirExists())
-	//	destination.Mkdir();
+	wxFileName destination(Path);
+	destination.AppendDir("Backup");
+	destination.SetName(inform);
+	
+	if (!destination.DirExists())
+		destination.Mkdir();
 
-	//wxCopyFile(Path, destination.GetFullPath(), true);
+	wxCopyFile(Path, destination.GetFullPath(), true);	
 }
