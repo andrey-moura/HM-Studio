@@ -51,6 +51,8 @@ private:
 	void OnMenuClick(wxCommandEvent& event);
 	void OnNavigationClick(wxCommandEvent& event);
 	void OnToolBarClick(wxCommandEvent& event);
+	
+	void OpenScriptHexEditor(int id);
 //Text Editor Globals					
 	std::pair<int, int> m_IndicatorPos;	
 
@@ -129,14 +131,14 @@ private:
 		ID_SCRSAVE,
 		ID_SCRINSERT,
 		ID_SCRCODE,
+		ID_SCRORIHEX,
+		ID_SCRTRANSHEX,
 		ID_STRSAVE,
 		ID_STRPREV,
 		ID_STRPROX,
 		ID_STRRESTORE,
 		ID_FINDNEXT,		
-		ID_HVMODE,
-		ID_OPENORIG,
-		ID_OPENTRAN,
+		ID_HVMODE,		
 		ID_TEXTRANGE
 	};
 };

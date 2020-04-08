@@ -14,34 +14,16 @@
 #define ROM_BUS 0x8000000
 #define ROM_BUS_NOT 0xF7FFFFFF
 
-enum class console {
-	GBA,
-	DS
-};
-
-enum class id {
-	FoMT,
-	MFoMT,
-	DS
-};
-
 class RomFile : public wxFile
 {
 public:
-	RomFile(id i, bool translated);
+	RomFile(const std::string& path);
+	RomFile() = default;
 	~RomFile() = default;
-
-	id Id;
-	console Console;
-	std::string Path;
-	std::string m_Dir;
-	std::string Name;
-	std::string State;
-
 public:
-	std::string GetTablePath();
-	void InputTextWithVariables(std::vector<std::string>& text);
-	void OutputTextWithVariables(std::vector<std::string>& text);
+	//std::string GetTablePath();
+	//void InputTextWithVariables(std::vector<std::string>& text);
+	//void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);				
 //File
 public:

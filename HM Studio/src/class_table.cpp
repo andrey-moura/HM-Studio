@@ -1,5 +1,43 @@
 #include "class_table.hpp"
 
+Table::Table(const std::string& path)
+{
+	OpenFile(path);
+}
+
+void Table::OpenFile(const std::string& path)
+{
+	m_Path = path;
+
+	std::vector<std::string> lines;
+	StringUtil::SplitLines(File::ReadAllText(path), lines);
+
+	m_Left.reserve(lines.size());
+	m_Right.reserve(lines.size());
+
+	for (const std::string& line : lines)
+	{
+		m_Left.push_back(std::stoi(line, nullptr, 16));
+		m_Right.push_back(line[3]);
+	}
+}
+
+std::string Table::InputText(std::string& text)
+{
+	if (text.size() == 0)
+		return;
+
+	Replace(m_Right, m_Left, text);
+}
+
+std::string Table::OutputText(std::string& text)
+{
+	if (text.size() == 0)
+		return;
+
+	Replace(m_Left, m_Right, text);
+}
+
 void Table::InputTable(const std::string &table, std::vector<std::string> &text)
 {	
 	if (text.size() <= 0 && table.size() < 3)

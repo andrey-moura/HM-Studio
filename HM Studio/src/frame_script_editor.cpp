@@ -26,7 +26,7 @@ void cScriptEditor::SetupRom()
 		std::vector<std::string> varsDS;
 		varsDS.push_back("<Player>");
 		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptOriginal);
-		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptTranslated);
+		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptTranslated);		
 		break;
 	}
 	case console::GBA:
@@ -573,6 +573,8 @@ void cScriptEditor::CreateGUIControls()
 	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", nullptr, "Go to previous script");
 	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", nullptr, "Go to next script");
 	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", nullptr, "Insert the current script");
+	menuScript->Append(ID_SCRORIGHEX, "HexEditor Original", nullptr, "Show hex of script");
+	menuScript->Append(ID_SCRTRANGHEX, "HexEditor Translated", nullptr, "Show hex of script");
 
 	wxMenu* menuString = new wxMenu();
 	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", nullptr, "Save the current string");
@@ -595,9 +597,7 @@ void cScriptEditor::CreateGUIControls()
 	menuTools->Append(wxID_ANY, "Check All Codes");
 	menuTools->Append(ID_TEXTRANGE, "Set Text And Insert Script Range");
 	menuTools->Append(wxID_ANY, "Show Previwer");
-	menuTools->Append(wxID_ANY, "Show One By One");
-	menuTools->Append(ID_OPENORIG, "Open Original Hex Editor");
-	menuTools->Append(ID_OPENTRAN, "Open Translated Hex Editor");	
+	menuTools->Append(wxID_ANY, "Show One By One");	
 
 	wxMenu* menuOptions = new wxMenu();
 	menuOptions->AppendCheckItem(wxID_TOP, "Always On Top");
@@ -705,6 +705,13 @@ void cScriptEditor::SetEditorHorizontal()
 	global_sizer->SetSizeHints(this);
 }
 
+void OpenScriptHexEditor(int id)
+{
+	wxString path = m_Editor.GetPath(id == ID_SCRTRANGHEX);
+	
+	wxExecute(wxString("../RomHexEditor -f ") + path);
+}
+
 void cScriptEditor::OnMenuClick(wxCommandEvent& event)
 {
 	int id = event.GetId();		
@@ -742,22 +749,28 @@ bool cScriptEditor::ScriptMenuTools(int id)
 		GetTextFrom();
 		break;
 	case ID_SCRPREV:
-		CheckAndGoScript(m_Editor.GetNumber() - 1);		
+		CheckAndGoScript(m_Editor.GetNumber() - 1);
 		break;
 	case ID_SCRPROX:
-		CheckAndGoScript(m_Editor.GetNumber() + 1);		
+		CheckAndGoScript(m_Editor.GetNumber() + 1);
 		break;
 	case ID_SCRGO:
-		GoScript();		
+		GoScript();
 		break;
 	case ID_SCRSAVE:
-		SaveScript();		
+		SaveScript();
 		break;
 	case ID_SCRINSERT:
 		InsertScript();
 		break;
 	case ID_SCRCODE:
 		CheckAllCode();
+		break;
+	case ID_SCRORIGHEX:
+		OpenScriptHexEditor(id);
+		break;
+	case ID_SCRTRANGHEX:
+		OpenScriptHexEditor(id);
 		break;
 	default:
 		return false;
