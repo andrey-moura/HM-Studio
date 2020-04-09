@@ -75,8 +75,7 @@ private:
 public:
 	void ScriptTextRange(size_t from, size_t to, size_t script);
 private:
-	ScriptEditor m_Editor;
-
+	ScriptEditor m_Editor;	
 //Forms
 
 //Text manipulation
@@ -97,6 +96,7 @@ private:
 
 	void SetEditorVertical();
 	void SetEditorHorizontal();
+	void OpenInHexEditor(int id);
 	bool m_Vertical = true;	
 
 	wxMenuItem* m_pMenuString_Restore = nullptr;
@@ -133,10 +133,10 @@ private:
 		ID_STRPREV,
 		ID_STRPROX,
 		ID_STRRESTORE,
-		ID_FINDNEXT,		
+		ID_FINDNEXT,
 		ID_HVMODE,
-		ID_OPENORIG,
-		ID_OPENTRAN,
+		ID_HEXORIG,
+		ID_HEXTRANS,
 		ID_TEXTRANGE
 	};
 };

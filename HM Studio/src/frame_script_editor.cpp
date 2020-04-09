@@ -251,9 +251,7 @@ void cScriptEditor::FindText()
 
 	else if (result == FrameSearchScript::SearchInScripts)
 	{
-		std::vector<FindResult> results;
-
-		std::string format = ScriptEditor::PathFormat(romTranslated);
+		std::vector<FindResult> results;		
 
 		/*for (int i = 0; i < romOriginal.Offset.Script_count; ++i)
 		{			
@@ -399,7 +397,7 @@ void cScriptEditor::InsertScript()
 {
 	SaveScript();
 	
-	ScriptFlags flag = m_Editor.Insert(romTranslated, m_Editor.GetScript(), m_Editor.GetNumber());
+	ScriptFlags flag = m_Editor.Insert(m_Editor.GetScript(), m_Editor.GetNumber());
 
 	std::string message;	
 
@@ -573,6 +571,8 @@ void cScriptEditor::CreateGUIControls()
 	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", nullptr, "Go to previous script");
 	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", nullptr, "Go to next script");
 	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", nullptr, "Insert the current script");
+	menuScript->Append(ID_HEXORIG, "Original in HexEditor", nullptr);
+	menuScript->Append(ID_HEXTRANS, "Translated in HexEditor", nullptr);
 
 	wxMenu* menuString = new wxMenu();
 	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", nullptr, "Save the current string");
@@ -595,9 +595,7 @@ void cScriptEditor::CreateGUIControls()
 	menuTools->Append(wxID_ANY, "Check All Codes");
 	menuTools->Append(ID_TEXTRANGE, "Set Text And Insert Script Range");
 	menuTools->Append(wxID_ANY, "Show Previwer");
-	menuTools->Append(wxID_ANY, "Show One By One");
-	menuTools->Append(ID_OPENORIG, "Open Original Hex Editor");
-	menuTools->Append(ID_OPENTRAN, "Open Translated Hex Editor");	
+	menuTools->Append(wxID_ANY, "Show One By One");	
 
 	wxMenu* menuOptions = new wxMenu();
 	menuOptions->AppendCheckItem(wxID_TOP, "Always On Top");
@@ -705,6 +703,21 @@ void cScriptEditor::SetEditorHorizontal()
 	global_sizer->SetSizeHints(this);
 }
 
+void cScriptEditor::OpenInHexEditor(int id)
+{
+	wxString path = m_Editor.GetPath(id == ID_HEXTRANS);
+	wxFileName hexEditorPath(wxStandardPaths::Get().GetExecutablePath());
+	hexEditorPath.RemoveLastDir();
+	hexEditorPath.SetName("RomHexEditor");
+
+	wxString command = wxString(hexEditorPath.GetFullPath() + " -f " + "\"" + path + "\"");
+
+	std::string stdCommand = command.ToStdString();
+	char* pointer = stdCommand.data();
+
+	wxExecute(command);
+}
+
 void cScriptEditor::OnMenuClick(wxCommandEvent& event)
 {
 	int id = event.GetId();		
@@ -759,6 +772,12 @@ bool cScriptEditor::ScriptMenuTools(int id)
 	case ID_SCRCODE:
 		CheckAllCode();
 		break;
+	case ID_HEXORIG:
+		OpenInHexEditor(id);
+		break;
+	case ID_HEXTRANS:
+		OpenInHexEditor(id);
+		break;
 	default:
 		return false;
 		break;
@@ -802,9 +821,7 @@ bool cScriptEditor::OthersMenuTools(int id)
 		break;
 	case ID_TEXTRANGE:
 		SetTextRange();
-		break;
-	case ID_OPENORIG:
-		break;
+		break;	
 	case wxID_TOP:
 		m_pMenuBar->Check(wxID_TOP, this->ToggleWindowStyle(wxSTAY_ON_TOP));
 		break;

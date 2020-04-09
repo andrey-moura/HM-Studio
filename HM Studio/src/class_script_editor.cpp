@@ -2,19 +2,46 @@
 
 ScriptEditor::ScriptEditor(RomFile& original, RomFile& translated) : m_RomOriginal(original), m_RomTranslated(translated)
 {
-	m_Info = GetRomInformation(original);
+	m_Info = GetRomInformation();
+
+	wxFileName pathLeft(original.Path);
+	pathLeft.RemoveLastDir();
+	pathLeft.AppendDir("Script");
+	pathLeft.AppendDir("Original");
+	pathLeft.ClearExt();
+	pathLeft.SetName("Script_Original_");
+	m_PathOrigLeft = pathLeft.GetFullPath();
+	pathLeft.RemoveLastDir();
+	pathLeft.AppendDir("Translated");
+	pathLeft.SetName("Script_Translated_");
+	m_PathTransLeft = pathLeft.GetFullPath();
+
+	switch (original.Id)
+	{
+	case id::FoMT:
+		m_PathRight = ".fsf";
+		break;
+	case id::MFoMT:
+		m_PathRight = ".msf";
+		break;
+	case id::DS:
+		m_PathRight = ".dsf";
+		break;
+	default:
+		break;
+	}
 }
 
 ScriptFlags ScriptEditor::OpenScript(size_t scriptNum)
 {
-	std::vector<uint8_t> dataOri = File::ReadAllBytes(FormatPath(scriptNum, PathFormat(m_RomOriginal)));
+	std::vector<uint8_t> dataOri = File::ReadAllBytes(GetPath(scriptNum, false));
 
 	Script script(dataOri);
 
 	if (!script.HaveText())	
 		return ScriptFlags::ERROR_NOTEXT;
 		
-	std::vector<uint8_t> data = File::ReadAllBytes(FormatPath(scriptNum, PathFormat(m_RomTranslated)));
+	std::vector<uint8_t> data = File::ReadAllBytes(GetPath(scriptNum, true));
 
 	m_ScriptOriginal.SetData(dataOri);
 	m_ScriptTranslated.SetData(data);
@@ -134,7 +161,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
 	{
 		std::string path = GetPath(true);	
-		outPut.SetFullName(FormatPath(i, NameFormat(m_RomTranslated)));
+		outPut.SetFullName(GetPath(i, true));
 
 		Script script(File::ReadAllBytes(path));
 
@@ -164,59 +191,9 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 	}
 }
 
-std::string ScriptEditor::NameFormat(const RomFile& rom)
-{
-	std::string format = "Script_%s_%s.%s";
-
-	std::string scriptExt = "";
-
-	switch (rom.Id)
-	{
-	case id::FoMT:
-		scriptExt = "fsf";
-		break;
-	case id::MFoMT:
-		scriptExt = "msf";
-		break;
-	case id::DS:
-		scriptExt = "dsf";
-		break;
-	default:
-		break;
-	}
-
-	std::string name(25, '\0');
-
-	sprintf((char*)name.c_str(), format.c_str(), rom.State.c_str(), "%i", scriptExt.c_str());
-
-	return name;
-}
-
-std::string ScriptEditor::PathFormat(const RomFile& rom)
-{	
-	wxFileName fileName;
-	fileName.SetPath(rom.m_Dir);
-	fileName.AppendDir("Script");
-	fileName.AppendDir(rom.State);
-
-	std::string name = NameFormat(rom);
-	fileName.SetFullName(name);
-
-	return fileName.GetFullPath().ToStdString();
-}
-
-std::string ScriptEditor::FormatPath(size_t number, const std::string& format)
-{
-	std::string buffer(format.size() + 2, '\0');
-	sprintf((char*)buffer.c_str(), format.c_str(), number);
-
-	return buffer;
-}
-
 std::string ScriptEditor::GetPath(size_t number, bool translated)
-{
-	std::string path = PathFormat(translated ? m_RomTranslated : m_RomOriginal);
-	return FormatPath(number, path);
+{			
+	return (translated ? m_PathTransLeft : m_PathOrigLeft) + std::to_string(number) + m_PathRight;
 }
 
 std::string ScriptEditor::GetPath(bool translated)
@@ -229,14 +206,13 @@ RomFile& ScriptEditor::GetRom(bool translated)
 	return (translated ? m_RomTranslated : m_RomOriginal);
 }
 
-RomInfo ScriptEditor::GetRomInformation(const RomFile& rom)
+RomInfo ScriptEditor::GetRomInformation()
 {
 	RomInfo information;
 
-	switch (rom.Id)
+	switch (m_RomOriginal.Id)
 	{
 	case id::FoMT:
-
 		information.StartPointers = 0xF89D8;
 		information.ScriptCount = 1328;
 		information.StartScript = 0x2AC0B0;
@@ -261,8 +237,9 @@ RomInfo ScriptEditor::GetRomInformation(const RomFile& rom)
 	return information;
 }
 
-uint32_t ScriptEditor::GetOffset(RomFile& rom, size_t number)
+uint32_t ScriptEditor::GetOffset(bool translated, size_t number)
 {			
+	RomFile& rom = GetRom(translated);
 	uint32_t pointer = rom.ReadPointer32(m_Info.StartPointers + (number * 4));
 
 	if (rom.Console == console::DS)
@@ -273,13 +250,15 @@ uint32_t ScriptEditor::GetOffset(RomFile& rom, size_t number)
 	return pointer;
 }
 
-uint32_t ScriptEditor::GetOffset(RomFile& rom)
+uint32_t ScriptEditor::GetOffset(bool translated)
 {
-	return GetOffset(rom, m_Number);
+	return GetOffset(translated, m_Number);
 }
 
-uint32_t* ScriptEditor::GetOffsets(RomFile& rom)
+uint32_t* ScriptEditor::GetOffsets(bool translated)
 {	
+	RomFile& rom = GetRom(translated);
+
 	uint32_t* output = new uint32_t[m_Info.ScriptCount];
 
 	rom.Seek(m_Info.StartPointers);
@@ -343,8 +322,9 @@ inline uint32_t ScriptEditor::ScriptSize(uint32_t* value)
 	return value[1];
 }
 
-inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, RomFile& rom)
+inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, bool translated)
 {
+	RomFile& rom = GetRom(translated);
 	uint64_t data = rom.ReadUint64(offset);
 	return ScriptSize((uint32_t*)&data);
 }
@@ -374,32 +354,31 @@ inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& si
 	return free;
 }
 
-void ScriptEditor::Dump(RomFile& rom)
+void ScriptEditor::Dump(bool translated)
 {
-	uint32_t* offsets = GetOffsets(rom);
+	uint32_t* offsets = GetOffsets(translated);
 
 	//More memmory, less seeks
 	uint8_t* scriptBlock = new uint8_t[m_Info.BlockLenght];
 
-	rom.Seek(m_Info.StartScript);
-	rom.Read(scriptBlock, m_Info.BlockLenght);
+	RomFile& rom = GetRom(translated);
 
-	std::string pathFormat = PathFormat(rom);
+	rom.Seek(m_Info.StartScript);
+	rom.Read(scriptBlock, m_Info.BlockLenght);	
 
 	uint32_t maxPosition = m_Info.StartScript + m_Info.BlockLenght;
 
-	File::CreateDir(pathFormat);	
+	//File::CreateDir(pathFormat);
 
 	for (uint32_t i = 0; i < m_Info.ScriptCount; ++i)
 	{
 		size_t size = 0;
-		std::string path = FormatPath(i, pathFormat);
+		std::string path = GetPath(i, true); 
 
 		if (IsInsideBlock(offsets[i]))
 		{
 			//The script has been moved to another location
-
-			size = ScriptSize(offsets[i], rom);
+			size = ScriptSize(offsets[i], translated);
 
 			if (size != 0xffffffff)
 			{
@@ -548,12 +527,12 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	return flag;
 }
 
-ScriptFlags ScriptEditor::Insert(RomFile& rom, Script& script, uint32_t number)
+ScriptFlags ScriptEditor::Insert(Script& script, uint32_t number)
 {
-	RomInfo information = GetRomInformation(rom);
+	RomInfo information = GetRomInformation();
 	
-	uint32_t oldOffset = GetOffset(rom);
-	uint32_t oldSize = ScriptSize(oldOffset, rom);
+	uint32_t oldOffset = GetOffset(true);
+	uint32_t oldSize = ScriptSize(oldOffset, true);
 	uint32_t newSize = script.GetRiffLenght();	
 
 	if (newSize <= oldSize)
@@ -582,17 +561,15 @@ ScriptFlags ScriptEditor::Insert(RomFile& rom, Script& script, uint32_t number)
 void ScriptEditor::Insert()
 {
 	uint8_t* scriptBlock = new uint8_t[m_Info.BlockLenght];
-	uint32_t* offset = GetOffsets(m_RomTranslated);
+	uint32_t* offset = GetOffsets(true);
 
 	uint32_t currentOffset = 0;
 
-	memset(scriptBlock, 0x00, m_Info.BlockLenght);
-
-	std::string format = PathFormat(m_RomTranslated);
+	memset(scriptBlock, 0x00, m_Info.BlockLenght);	
 
 	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
 	{
-		std::string path = FormatPath(i, format);
+		std::string path = GetPath(i, true);
 
 		wxFile file;
 
@@ -612,7 +589,7 @@ void ScriptEditor::Insert()
 		if (currentOffset >= m_Info.BlockLenght && i != (m_Info.ScriptCount - 1))
 			return;
 
-		uint32_t oldOffset = GetOffset(m_RomTranslated, i);
+		uint32_t oldOffset = GetOffset(true, i);
 
 		if (!IsInsideBlock(oldOffset))
 		{

@@ -87,9 +87,6 @@
     <ClInclude Include="src\wxUtil\window_find_results.hpp" />
     <ClInclude Include="src\wxUtil\wxRefereceCheckBox.hpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="HM Studio.rc" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{3FD40E94-91F5-4319-8F02-93D2C2B986B2}</ProjectGuid>
@@ -144,22 +141,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <OutDir>C:\Users\Moonslate\Desktop\Moonslate\HM Studio</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <OutDir>C:\Users\Moonslate\Desktop\Moonslate\HM Studio</OutDir>
     <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <OutDir>C:\Users\Moonslate\Desktop\Moonslate\HM Studio</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\Users\Moonslate\Desktop\HM Studio</OutDir>
+    <OutDir>C:\Users\Moonslate\Desktop\Moonslate\HM Studio</OutDir>
     <TargetName>HM Studio2</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -182,6 +179,9 @@
       <AdditionalLibraryDirectories>$(Hunspell)/msvc/$(Configuration)/libhunspell;$(wxWIN)\lib\vc_lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);libhunspell.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -198,6 +198,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(wxWIN)\lib\vc_lib</AdditionalLibraryDirectories>
     </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -225,6 +228,9 @@
       <Version>4.0</Version>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);libhunspell.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -245,6 +251,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(wxWIN)\lib\vc_lib</AdditionalLibraryDirectories>
     </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName />
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

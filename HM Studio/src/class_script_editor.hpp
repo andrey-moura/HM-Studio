@@ -38,30 +38,26 @@ public:
 	ScriptEditor(RomFile& original, RomFile& translated);
 
 	~ScriptEditor() = default;
-public:
-	static std::string FormatPath(size_t number, const std::string& format);
-	static std::string PathFormat(const RomFile& rom);
-	static std::string NameFormat(const RomFile& rom);
-
+public:	
 	std::string GetPath(bool translated);
 	std::string GetPath(size_t number, bool translated);
 public:
 	RomFile& GetRom(bool translated);
 public:
-	uint32_t GetOffset(RomFile& rom, size_t number);
-	uint32_t GetOffset(RomFile& rom);
-	uint32_t* GetOffsets(RomFile& rom);
+	uint32_t GetOffset(bool translated, size_t number);
+	uint32_t GetOffset(bool translated);
+	uint32_t* GetOffsets(bool translated);
 	void SetOffset(uint32_t offset);
 	void SetOffsets(uint32_t* offets);
 	
 	inline uint32_t ScriptSize(uint32_t* value);
-	inline uint32_t ScriptSize(const uint32_t& offset, RomFile& rom);
+	inline uint32_t ScriptSize(const uint32_t& offset, bool translated);
 	uint32_t ScriptSize(const uint32_t& offset, uint8_t* bytes);
 
-	static RomInfo GetRomInformation(const RomFile& rom);
+	RomInfo GetRomInformation();
 
-	void Dump(RomFile& rom);
-	ScriptFlags Insert(RomFile& rom, Script& script, uint32_t number);
+	void Dump(bool translated);
+	ScriptFlags Insert(Script& script, uint32_t number);
 	void Insert();
 private:
 	void InsertSmaller(Script& script, uint32_t offset, uint32_t oldSize);
@@ -76,6 +72,10 @@ private:
 	inline bool IsFreeSpace(const uint32_t& offset, const uint32_t& size);
 private:
 	RomInfo m_Info;
+
+	std::string m_PathOrigLeft;
+	std::string m_PathTransLeft;
+	std::string m_PathRight;
 public:
 	ScriptFlags OpenScript(size_t scriptNum);
 	ScriptFlags CheckAndGoScript(size_t index);

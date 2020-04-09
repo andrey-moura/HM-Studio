@@ -82,15 +82,13 @@ void MainFrame::OnTestClick(wxCommandEvent& event)
 
 	RomFile rom = RomFile(GetCurrentId(), false);
 	RomFile rom2 = RomFile(GetCurrentId(), true);
-	ScriptEditor editor(rom, rom2);
-
-	std::string format = editor.PathFormat(rom);
+	ScriptEditor editor(rom, rom2);	
 
 	std::string output;
 	
 	for (size_t i = 0; i < 1415; ++i)
 	{
-		std::vector<uint8_t> bytes = File::ReadAllBytes(editor.FormatPath(i, format));
+		std::vector<uint8_t> bytes = File::ReadAllBytes(editor.GetPath(i, true));
 		
 		if (bytes[0x1a] == 0x22)
 		{
