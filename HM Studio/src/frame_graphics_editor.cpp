@@ -2,7 +2,8 @@
 
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
-	CreateGUIControls();
+	CreateGUIControls();	
+	m_Root = m_pNavigator->AddRoot("Graphics");
 	GetGraphicsList();
 }
 
@@ -24,25 +25,25 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 //}
 
 void GraphicsEditorFrame::GetGraphicsList()
-{
-	wxTreeItemId root = m_pNavigator->AddRoot("Graphics");
+{	
+	GraphicsTreeParent calendary("Calendary");
+	calendary.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));
+	AppendGraphics(calendary);
 
-	wxTreeItemId calendaryRoot = m_pNavigator->AppendItem(root ,"Calendary");
+	GraphicsTreeItem clock("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32));
+	AppendGraphics(clock);
+
+	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 480));
+	AppendGraphics(balloons);
+
+/*	wxTreeItemId calendaryRoot = m_pNavigator->AppendItem(root ,"Calendary");
 	wxTreeItemId numbers = m_pNavigator->AppendItem(calendaryRoot, "Numbers");	
 	wxTreeItemId mon = m_pNavigator->AppendItem(calendaryRoot, "Mon");
 	wxTreeItemId tue = m_pNavigator->AppendItem(calendaryRoot, "Tue");
 	wxTreeItemId wed = m_pNavigator->AppendItem(calendaryRoot, "Wed");
 	wxTreeItemId thu = m_pNavigator->AppendItem(calendaryRoot, "Thu");
 	wxTreeItemId fri = m_pNavigator->AppendItem(calendaryRoot, "Fri");
-	wxTreeItemId sat = m_pNavigator->AppendItem(calendaryRoot, "Sat");	
-	
-	wxTreeItemId clock = m_pNavigator->AppendItem(root, "Clock");
-
-	wxTreeItemId balloons = m_pNavigator->AppendItem(root, "Balloons");
-
-	m_LookUp.insert(std::make_pair(numbers, GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));	
-	m_LookUp.insert(std::make_pair(clock, GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));	
-	m_LookUp.insert(std::make_pair(balloons, GraphicsInfo(0x6C316c, 0x6C40F0, 16, 480)));
+	wxTreeItemId sat = m_pNavigator->AppendItem(calendaryRoot, "Sat");	*/
 }
 
 void GraphicsEditorFrame::FromOriginal()
@@ -123,6 +124,26 @@ void GraphicsEditorFrame::SaveImage()
 	m_Graphic.Encode(m_ImageView->GetImage());
 }
 
+inline void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
+{
+	m_LookUp.insert(std::make_pair(m_pNavigator->AppendItem(id, item.m_Name), item.m_Info));
+}
+
+void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item)
+{	
+	AppendGraphics(item, m_Root);
+}
+
+void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeParent& parent)
+{
+	wxTreeItemId id = m_pNavigator->AppendItem(m_Root, parent.GetName());
+
+	for (const GraphicsTreeItem& item : parent)
+	{
+		AppendGraphics(item, id);
+	}
+}
+
 void GraphicsEditorFrame::Zoom(int zoomMode)
 {
 	int newZoom = 0;
@@ -196,12 +217,24 @@ void GraphicsEditorFrame::CreateGUIControls()
 	SetSizer(rootSizer);
 }
 
-GraphicsInfo::GraphicsInfo() : m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(false), m_Planar(false)
+GraphicsInfo::GraphicsInfo() : 
+	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(false), m_Planar(false)
 {
 
 }
 
-GraphicsInfo::GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width, short height) : m_ImageAdress(imageAdress), m_PaletteAdress(paletteOffset), m_Width(width), m_Height(height), m_Bpp(4), m_Reversed(false), m_Planar(false)
+GraphicsInfo::GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width, short height)
+	: m_ImageAdress(imageAdress), m_PaletteAdress(paletteOffset), m_Width(width), m_Height(height), m_Bpp(4), m_Reversed(false), m_Planar(false)
+{
+
+}
+
+GraphicsTreeItem::GraphicsTreeItem(const std::string& name, const GraphicsInfo& info) : m_Name(name), m_Info(info)
+{
+
+}
+
+GraphicsTreeParent::GraphicsTreeParent(const std::string& name) : m_Name(name), std::vector<GraphicsTreeItem>()
 {
 
 }
