@@ -71,6 +71,7 @@ private:
 	void FromOriginal();
 	void SaveImage();
 	void Zoom(int zoomMode);
+	void ToggleMenu(int id, bool check);
 	void GetGraphics(const GraphicsInfo& info, RomFile& rom);
 	inline void AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id);
 	void AppendGraphics(const GraphicsTreeItem& item);
@@ -102,5 +103,8 @@ private:
 		ID_ZOOM_8,
 		ID_ZOOM_16,
 		ID_ZOOM_32,
+		ID_PIXEL_GRID,
+		ID_TILE_GRID,
+		ID_BLOCK_GRID,
 	};
 };

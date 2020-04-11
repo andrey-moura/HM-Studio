@@ -3,8 +3,10 @@
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
 	CreateGUIControls();	
-	m_Root = m_pNavigator->AddRoot("Graphics");
+	m_Root = m_pNavigator->AddRoot("Graphics");	
 	GetGraphicsList();
+
+	GetGraphics(GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496), m_RomTranslated);
 }
 
 //void GraphicsEditorFrame::RomFromDialog()
@@ -33,22 +35,23 @@ void GraphicsEditorFrame::GetGraphicsList()
 	GraphicsTreeItem clock("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32));
 	AppendGraphics(clock);
 
-	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 480));
+	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496));
 	AppendGraphics(balloons);
-
-/*	wxTreeItemId calendaryRoot = m_pNavigator->AppendItem(root ,"Calendary");
-	wxTreeItemId numbers = m_pNavigator->AppendItem(calendaryRoot, "Numbers");	
-	wxTreeItemId mon = m_pNavigator->AppendItem(calendaryRoot, "Mon");
-	wxTreeItemId tue = m_pNavigator->AppendItem(calendaryRoot, "Tue");
-	wxTreeItemId wed = m_pNavigator->AppendItem(calendaryRoot, "Wed");
-	wxTreeItemId thu = m_pNavigator->AppendItem(calendaryRoot, "Thu");
-	wxTreeItemId fri = m_pNavigator->AppendItem(calendaryRoot, "Fri");
-	wxTreeItemId sat = m_pNavigator->AppendItem(calendaryRoot, "Sat");	*/
 }
 
 void GraphicsEditorFrame::FromOriginal()
 {
 	GetGraphics(m_Index->second, m_RomOriginal);
+}
+
+void GraphicsEditorFrame::ExportImage()
+{
+	wxFileDialog dialog(nullptr, "Select output path", wxEmptyString, "image.png");
+
+	if (dialog.ShowModal() != wxID_CANCEL)
+	{
+		m_ImageView->GetImage().SaveFile(dialog.GetPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
+	}
 }
 
 void GraphicsEditorFrame::OnMenuBarClick(wxCommandEvent& event)
@@ -73,9 +76,19 @@ void GraphicsEditorFrame::OnMenuBarClick(wxCommandEvent& event)
 		case ID_IMPORT:
 			break;
 		case ID_EXPORT:
+			ExportImage();
 			break;
 		case wxID_COPY:
 			FromOriginal();
+			break;
+		case ID_PIXEL_GRID:			
+			ToggleMenu(id, m_ImageView->TogglePixelGrid());
+			break;
+		case ID_TILE_GRID:			
+			ToggleMenu(id, m_ImageView->ToggleTileGrid());
+			break;
+		case ID_BLOCK_GRID:			
+			ToggleMenu(id, m_ImageView->ToggleBlockGrid());
 			break;
 		default:
 			break;
@@ -170,6 +183,11 @@ void GraphicsEditorFrame::Zoom(int zoomMode)
 	m_ImageView->SetScale(newZoom);
 }
 
+void GraphicsEditorFrame::ToggleMenu(int id, bool check)
+{
+	GetMenuBar()->FindItem(id)->Check(check);	
+}
+
 void GraphicsEditorFrame::CreateGUIControls()
 {
 	wxMenu* menuFile = new wxMenu();
@@ -190,10 +208,14 @@ void GraphicsEditorFrame::CreateGUIControls()
 	zoomMenu->Append(ID_ZOOM_4, "4x");
 	zoomMenu->Append(ID_ZOOM_8, "8x");
 	zoomMenu->Append(ID_ZOOM_16, "16x");
-	zoomMenu->Append(ID_ZOOM_32, "32x");
+	zoomMenu->Append(ID_ZOOM_32, "32x");	
 
 	wxMenu* viewMenu = new wxMenu();
 	viewMenu->AppendSubMenu(zoomMenu, "Zoom");
+	viewMenu->AppendSeparator();
+	viewMenu->AppendCheckItem(ID_PIXEL_GRID, "Pixel Grid");
+	viewMenu->AppendCheckItem(ID_TILE_GRID, "Tile Grid");
+	viewMenu->AppendCheckItem(ID_BLOCK_GRID, "Block Grid");
 
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(menuFile, "File");
@@ -212,7 +234,7 @@ void GraphicsEditorFrame::CreateGUIControls()
 	m_ImageView = new GraphicsView(this);	
 
 	rootSizer->Add(m_pNavigator, 0, wxEXPAND, 0);
-	rootSizer->Add(m_ImageView,  0, wxEXPAND, 0);
+	rootSizer->Add(m_ImageView,  1, wxEXPAND, 0);
 
 	SetSizer(rootSizer);
 }
