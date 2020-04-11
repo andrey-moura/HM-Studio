@@ -24,6 +24,7 @@
     <ClCompile Include="src\class_bit_converter.cpp" />
     <ClCompile Include="src\class_finder.cpp" />
     <ClCompile Include="src\class_graphics.cpp" />
+    <ClCompile Include="src\class_graphics_editor.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
@@ -34,6 +35,7 @@
     <ClCompile Include="src\class_table.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_file.cpp" />
+    <ClCompile Include="src\graphicsinfoviewer.cpp" />
     <ClCompile Include="src\dialog_script_text.cpp" />
     <ClCompile Include="src\FishEditor.cpp" />
     <ClCompile Include="src\frame_graphics_editor.cpp" />
@@ -58,6 +60,7 @@
     <ClInclude Include="src\class_bit_converter.hpp" />
     <ClInclude Include="src\class_finder.hpp" />
     <ClInclude Include="src\class_graphics.hpp" />
+    <ClInclude Include="src\class_graphics_editor.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />
@@ -67,6 +70,7 @@
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_file.hpp" />
+    <ClInclude Include="src\graphicsinfoviewer.hpp" />
     <ClInclude Include="src\dialog_script_text.hpp" />
     <ClInclude Include="src\FishEditor.hpp" />
     <ClInclude Include="src\frame_graphics_editor.hpp" />

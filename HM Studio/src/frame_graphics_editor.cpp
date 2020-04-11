@@ -6,25 +6,12 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 	m_Root = m_pNavigator->AddRoot("Graphics");	
 	GetGraphicsList();
 
-	GetGraphics(GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496), m_RomTranslated);
-}
+	wxSize navigatorSize = m_pNavigator->GetSize();
+	navigatorSize.SetWidth(navigatorSize.GetWidth() + 30);
+	m_pNavigator->SetMinSize(navigatorSize);	
 
-//void GraphicsEditorFrame::RomFromDialog()
-//{
-//	wxFileDialog dialog(nullptr, "Select a valid Harvest Moon game");
-//
-//	if (dialog.ShowModal() == wxCANCEL)
-//		return;
-//
-//	std::string path = dialog.GetPath().ToStdString();
-//
-//	//Rom rom = Rom(path);
-//
-//	if (rom.IsOpened())
-//	{
-//		GetGraphicsList();
-//	}
-//}
+	Layout();
+}
 
 void GraphicsEditorFrame::GetGraphicsList()
 {	
@@ -36,7 +23,7 @@ void GraphicsEditorFrame::GetGraphicsList()
 	AppendGraphics(clock);
 
 	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496));
-	AppendGraphics(balloons);
+	AppendGraphics(balloons);			
 }
 
 void GraphicsEditorFrame::FromOriginal()
@@ -129,7 +116,10 @@ void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 	m_Graphic.DecodePalette((uint8_t*)palette);
 		
 	m_ImageView->UpdateImage(m_Graphic);
-	Layout();
+
+	m_InfoViewer->SetInfo(info);
+
+//	Layout();
 }
 
 void GraphicsEditorFrame::SaveImage()
@@ -221,42 +211,24 @@ void GraphicsEditorFrame::CreateGUIControls()
 	menuBar->Append(menuFile, "File");
 	menuBar->Append(menuImage, "Image");
 	menuBar->Append(viewMenu, "View");
-
 	menuBar->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnMenuBarClick, this);
 
 	SetMenuBar(menuBar);
 
+	SetBackgroundColour(wxColour(240, 240, 240));
+
 	m_pNavigator = new wxTreeCtrl(this, wxID_ANY);
-	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);
+	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);	
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	m_ImageView = new GraphicsView(this);	
+	m_InfoViewer = new GraphicsInfoViewer(this);
 
 	rootSizer->Add(m_pNavigator, 0, wxEXPAND, 0);
 	rootSizer->Add(m_ImageView,  1, wxEXPAND, 0);
+	rootSizer->AddSpacer(4);
+	rootSizer->Add(m_InfoViewer);
 
 	SetSizer(rootSizer);
-}
-
-GraphicsInfo::GraphicsInfo() : 
-	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(false), m_Planar(false)
-{
-
-}
-
-GraphicsInfo::GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width, short height)
-	: m_ImageAdress(imageAdress), m_PaletteAdress(paletteOffset), m_Width(width), m_Height(height), m_Bpp(4), m_Reversed(false), m_Planar(false)
-{
-
-}
-
-GraphicsTreeItem::GraphicsTreeItem(const std::string& name, const GraphicsInfo& info) : m_Name(name), m_Info(info)
-{
-
-}
-
-GraphicsTreeParent::GraphicsTreeParent(const std::string& name) : m_Name(name), std::vector<GraphicsTreeItem>()
-{
-
 }

@@ -3,6 +3,7 @@
 GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_ANY), m_BlockSize(2, 2)
 {
 	Bind(wxEVT_PAINT, &GraphicsView::OnPaintEvent, this);
+	SetBackgroundColour(parent->GetBackgroundColour());
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
@@ -30,9 +31,7 @@ void GraphicsView::SetScale(size_t scale)
 	m_Scale = scale;	
 
 	wxVarHScrollHelper::RefreshAll();
-	wxVarVScrollHelper::RefreshAll();
-	
-	//GetParent()->Layout();
+	wxVarVScrollHelper::RefreshAll();	
 
 	Refresh();
 }
