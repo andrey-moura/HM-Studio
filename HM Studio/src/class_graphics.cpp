@@ -1,153 +1,146 @@
 #include "class_graphics.hpp"
 
-Graphics::Graphics(uint8_t* bytes, const uint8_t bitsPerPixel, const uint32_t width, const uint32_t height, const bool reversed, const bool planar)
-	: m_bpp(bitsPerPixel), m_width(width), m_height(height), m_reversed(reversed), m_planar(planar), m_data(bytes), m_pal()
-{	
-
-}
-
 Graphics::~Graphics()
 {
-
+	delete[] m_8bppData;
 }
 
-Tile* Graphics::Decode()
-{	
-	uint8_t bits = 8 / m_bpp;
-	uint8_t mask = (1 << m_bpp) - 1;
-
-	uint32_t totalBytes = m_width * m_height;
-	uint32_t totalEncodedBytes = totalBytes / bits;
-	uint32_t totalTileBytes = 64;
-	uint32_t tileCount = totalBytes / totalTileBytes;
-
-	Color* bpp24 = new Color[totalBytes * 3];
-
-	int index = 0;
-
-	for (size_t i = 0; i < totalEncodedBytes; ++i)
-	{
-		uint8_t byte = m_data[i];
-
-		for (int z = 0; z < bits; ++z)
-		{
-			bpp24[index] = m_pal[(byte & mask) + (m_palIndex * 16)];
-			byte = byte >> m_bpp;
-			++index;
-		}
-	}	
-
-	Tile* tiles = (Tile*)bpp24;
-
-	return tiles;
-}
-
-uint8_t* Graphics::Encode(const wxImage& image)
+void Graphics::LoadFromRom(RomFile& file)
 {
-	char bpp = 8;
+	uint8_t bits = 8 / m_Bpp;
+	uint8_t mask = (1 << m_Bpp) - 1;
+	uint32_t newSize = m_Width * m_Height;
+	uint32_t rawSize = newSize / bits;
+	uint32_t palSize = (1 << m_Bpp) * 2;	
 
-	uint8_t bits = 8 / bpp;
-	uint8_t mask = (1 << bpp) - 1;
-	uint32_t tileCount = (image.GetWidth() / 8) * (image.GetHeight() / 8);
-	uint32_t totalBytes = image.GetWidth() * image.GetHeight();
-	uint32_t totalEncodedBytes = totalBytes / bits;
-	
-	std::vector<uint8_t> holder;
+	uint8_t* linear8bpp = new uint8_t[newSize];
 
-	size_t x = 0;
-	size_t y = 0;
-	size_t curIndex = 0;	
+	file.Seek(m_ImgOffset);
 
-	for (size_t curTile = 0; curTile < tileCount; ++curTile)
-	{		
-		wxImage tile = image.GetSubImage(wxRect(x, y, 8, 8));
+	if (m_Bpp == 8)
+	{
+		file.Read(linear8bpp, rawSize);
+	}
+	else
+	{
+		uint8_t* raw = new uint8_t[rawSize];
+		file.Read(raw, rawSize);
 
-		Color* tileColors = (Color*)tile.GetData();
+		uint32_t curByte = 0;
 
-		for (size_t i = 0; i < (8 * 8); i++)
-		{						
-			uint8_t byte = 0;			
+		for (size_t i = 0; i < rawSize; ++i)
+		{
+			uint8_t byte = raw[i];
 
 			for (size_t bit = 0; bit < bits; ++bit)
-			{				
-				uint8_t index = m_pal.FindColor(tileColors[i]);
-
-				if (index != 0)
-					std::string();
-
-
-				byte |= index;
-
-				if (bits != 1 && bit != bits - 1)
-					byte = byte << bpp;
-
-				++i;
-			}
-
-			holder.push_back(byte);
-		}		
-
-		x += 8;
-
-		if (x == image.GetWidth())
-		{
-			x = 0;
-			y += 8;
-		}
-	}
-
-	File::WriteAllBytes("8bpp.bin", holder.data(), holder.size());
-
-	return nullptr;
-}
-
-void Graphics::DecodePalette(uint8_t* bytes)
-{
-	uint8_t mask = 31;
-
-	uint16_t* bytes16 = (uint16_t*)bytes;
-
-	for (int i = 0; i < 256; ++i)
-	{
-		uint16_t byte = bytes16[i];
-
-		m_pal.SetColor(i, (byte & mask) << 3, ((byte >> 5) & mask) << 3, ((byte >> 10) & mask) << 3);
-	}
-}
-
-wxImage Graphics::ToImage()
-{
-	wxBitmap background = wxBitmap(m_width, m_height, 24);
-
-	Tile* offset = Decode();
-
-	{
-		wxMemoryDC dc(background);
-
-		wxPoint point(0, 0);	
-
-		dc.DrawBitmap(wxBitmap(wxImage(8, 8, (uint8_t*)offset, true)), 0, 0);
-
-		for (size_t i = 0; i < (m_width * m_height) / 64; ++i)
-		{			
-			++offset;
-
-			++point.x;
-
-			if (point.x >= (m_width / 8))
 			{
-				point.y++;
-				point.x = 0;
-			}			
-
-			dc.DrawBitmap(wxBitmap(wxImage(8, 8, (uint8_t*)offset, true)), point.x * 8, point.y * 8);
+				linear8bpp[curByte] = byte & mask;
+				byte = byte >> m_Bpp;
+				++curByte;
+			}
 		}
-		      
-		dc.SelectObject(wxNullBitmap);
-	}
-	
-	offset -= (m_width * m_height / 64);
-	delete[] offset;	
 
-	return background.ConvertToImage();
+		delete[] raw;
+	}
+
+	//ToDo: Maybe a swap that don't copy?
+
+	size_t xTiles = m_Width / 8;
+	size_t yTiles = m_Height / 8;
+
+	if (GetAllocation())
+		m_8bppData = new uint8_t[newSize];
+
+	uint8_t* dst = m_8bppData;
+
+	size_t xCount = m_Width / 8;
+
+	for (size_t tileY = 0; tileY < m_Height / 8; ++tileY)
+	{
+		for (size_t y = 0; y < 8; ++y)
+		{
+			for (size_t tileX = 0; tileX < xCount; ++tileX)
+			{
+				memcpy(dst, linear8bpp + (tileX * 64) + (y * 8) + (tileY*(64*xCount)), 8);
+				dst += 8;
+			}
+		}
+	}
+
+	delete[] linear8bpp;
+
+	uint8_t* rawPal = new uint8_t[palSize];
+	file.Seek(m_PalOffset);
+	file.Read(rawPal, palSize);
+
+	m_Palette.DecodeColors((uint16_t*)rawPal, m_Bpp);
+
+	ClearAllocation();
+}
+
+Palette::Palette(uint16_t* colors, uint8_t bpp)
+{
+	DecodeColors(colors, bpp);
+}
+
+void Palette::DecodeColors(uint16_t* colors, uint8_t bpp)
+{
+	char palCount = 1 << bpp;
+
+	if (m_Colors != nullptr)
+		delete[] m_Colors;
+
+	m_Colors = new Color[palCount];
+
+	for (size_t index = 0; index < palCount; ++index)
+	{
+		SetColor(index, (colors[index] & 31) << 3, ((colors[index] >> 5) & 31) << 3, ((colors[index] >> 10) & 31) << 3);
+	}
+
+	delete[] colors;
+}
+
+void Graphics::SetWidth(uint32_t width)
+{
+	VerifyAndSet(width, m_Width);
+}
+
+void Graphics::SetHeight(uint32_t height)
+{
+	VerifyAndSet(height, m_Height);
+}
+
+void Graphics::SetImgOffset(uint32_t offset)
+{
+	m_ImgOffset = offset;
+}
+
+void Graphics::SetPalOffset(uint32_t offset)
+{
+	m_PalOffset = offset;
+}
+
+void Graphics::SetBpp(uint8_t bpp)
+{
+	VerifyAndSet(bpp, m_Bpp);
+}
+
+void Graphics::SetPlanar(bool planar)
+{
+	VerifyAndSet(planar, m_Planar);
+}
+
+void Graphics::SetReversed(bool reversed)
+{
+	VerifyAndSet(reversed, m_Planar);
+}
+
+template <class T>
+inline void Graphics::VerifyAndSet(const T& verify, T& set)
+{
+	if (verify != set)
+	{
+		SetAllocation();
+		set = verify;
+	}
 }

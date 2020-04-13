@@ -6,13 +6,14 @@
 
 #include "class_finder.hpp"
 #include "class_file.hpp"
+#include "class_rom_file.hpp"
 
 struct Color {
 	uint8_t red;
 	uint8_t green;
 	uint8_t blue;
 
-	Color(const uint8_t r, const uint8_t g, const uint8_t b)
+	Color(const uint8_t& r, const uint8_t& g, const uint8_t& b)
 	{
 		red = r;
 		green = g;
@@ -26,59 +27,30 @@ struct Color {
 		blue = 00;
 	}
 
-	Color& operator=(const Color color)
-	{
-		memcpy(this, &color, 3);
-
-		return *this;
-	}
+	uint32_t GetRGB() const { return (red << 16) | (green << 8) | blue; }
+	uint32_t GetBGR() const { return (blue << 16) |(green << 8) | red; }
 };
 
 struct Palette {
-	Color* colors = nullptr;
+	Color* m_Colors = nullptr;
 
-	Palette()
+	Palette(uint16_t* colors, uint8_t bpp);
+	Palette() = default;
+
+	~Palette() { delete[] m_Colors; }
+
+	void DecodeColors(uint16_t* colors, uint8_t bpp);
+
+	void SetColor(const int& index, const uint8_t& red, const uint8_t& green, const uint8_t& blue)
 	{
-		colors = new Color[256];
+		m_Colors[index] = Color(red, green, blue);
 	}
 
-	//This was already deleted, I don't remember when it's deleted
-	//~Palette()
-	//{
-	//	delete[] colors;
-	//}
-
-	void SetColor(const int index, const uint8_t red, const uint8_t green, const uint8_t blue)
+	const Color& operator[](const int& index) const
 	{
-		colors[index] = Color(red, green, blue);
-	}
-
-	Color& operator[](const int index)
-	{
-		return colors[index];
-	}
-
-	size_t FindColor(Color color)
-	{
-		return Finder::Find(colors, 16 * 3, &color, 3, 0);
+		return m_Colors[index];
 	}
 };
-
-struct Tile {
-	Color colors[64];
-
-	Color& operator[](const int index)
-	{
-		return colors[index];
-	}
-
-	Tile& operator=(uint8_t* rawData)
-	{
-		memcpy(&rawData, rawData, 64 * 3);
-		return *this;
-	}
-};
-
 
 class Graphics
 {
@@ -86,26 +58,48 @@ public:
 	Graphics(uint8_t* bytes, const uint8_t bpp, const uint32_t width, const uint32_t height, const bool reversed = true, const bool planar = false);
 	Graphics() = default;
 	~Graphics();
-
 private:
+	uint32_t m_Width;
+	uint32_t m_Height;
+	Palette m_Pal;	
+	uint32_t m_ImgOffset;
+	uint32_t m_PalOffset;
 
-public:
-	uint8_t m_bpp;
-	bool m_reversed = false;
-	bool m_planar = false;
-	uint32_t m_width;
-	uint32_t m_height;
+	Palette m_Palette;
+	uint8_t* m_8bppData = nullptr;
+	uint8_t m_Bpp;
+	bool m_Reversed = false;
+	bool m_Planar = false;
+	bool m_New = true;
+/*
+	Bitmaps should load very fast, so we're going to not allocate new data
+	if not needed. See below.
+*/
+private:
+	bool GetAllocation() { return m_New; }
+	void SetAllocation() { m_New = true; }
+	void ClearAllocation() { m_New = false; }
 
-	uint8_t* m_data = nullptr;
-	Palette m_pal;
-	uint32_t m_palIndex = 0;
+	template <class T>
+	inline void VerifyAndSet(const T& verify, T& set);
 public:
-	//Returns a 24 bits rgb data	
-	void SetPalette(const Palette& palette, const int index);
-	void SetPaletteIndex(const int index) { m_palIndex = index; }
-public:
-	Tile* Decode();
-	uint8_t* Encode(const wxImage& image);
-	void DecodePalette(uint8_t* bytes);
-	wxImage ToImage();	
+	size_t GetWidth() const { return m_Width; }
+	size_t GetHeight() const { return m_Height; }
+	uint32_t GetImgOffset() const { return m_ImgOffset; }
+	uint32_t GetPalOffset() const { return m_PalOffset; }
+	uint8_t GetBpp() const { return m_Bpp; }
+	const Palette& GetPalette() const { return m_Palette; }
+	const uint8_t* GetData() const { return m_8bppData; }
+	bool IsPlanar() const { return m_Planar; }
+	bool IsReversed() const { return m_Reversed; }
+
+	void SetWidth(uint32_t width);
+	void SetHeight(uint32_t height);
+	void SetImgOffset(uint32_t offset);
+	void SetPalOffset(uint32_t offset);
+	void SetBpp(uint8_t bpp);
+	void SetPlanar(bool planar);
+	void SetReversed(bool reversed);
+
+	void LoadFromRom(RomFile& file);
 };

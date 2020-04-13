@@ -33,7 +33,7 @@ void PalCtrl::SetPal(const Palette& pal)
 
 	for (size_t i = 0; i < 16; ++i)
 	{
-		m_Colours[i] = wxColour(pal.colors[i].red, pal.colors[i].green, pal.colors[i].blue);
+		m_Colours[i] = pal[i].GetBGR();
 	}
 
 	m_Color1 = 1;

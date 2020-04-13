@@ -17,18 +17,16 @@ class GraphicsView : public wxHVScrolledWindow
 {
 public:
 	GraphicsView(wxWindow* parent);
-private:
-	wxBitmap m_Image;	
+private:	
 	size_t m_Scale = 1;
-	
+	Graphics* m_Graphic = nullptr;
 	bool m_PixelGrid = false;
 	bool m_TileGrid = false;
 	bool m_BlockGrid = false;
 
 	wxSize m_BlockSize;
-public:	
-	void UpdateImage(Graphics& graphics);
-	wxImage GetImage() const;
+public:
+	void SetGraphics(Graphics* graphic);	
 	void SetScale(size_t scale);
 	size_t GetScale() const { return m_Scale; }
 

@@ -22,26 +22,26 @@ void ItemEditorFrame::GetItens(size_t index)
 
 void ItemEditorFrame::UpdateItem()
 {
-	m_pOrigItemName->SetLabel(m_ItemOriginal.GetName());
-	m_pOrigItemDescription->SetLabel(m_ItemOriginal.GetDescription());
+	//m_pOrigItemName->SetLabel(m_ItemOriginal.GetName());
+	//m_pOrigItemDescription->SetLabel(m_ItemOriginal.GetDescription());
 
-	m_pItemName->SetLabel(m_Item.GetName());	
-	
-	m_pItemText->SetText(m_Item.GetDescription());
+	//m_pItemName->SetLabel(m_Item.GetName());	
+	//
+	//m_pItemText->SetText(m_Item.GetDescription());
 
-	uint8_t* image = new uint8_t[256];
-    uint8_t* pal = new uint8_t[256];
+	//uint8_t* image = new uint8_t[256];
+ //   uint8_t* pal = new uint8_t[256];
 
-	m_RomTranslated.Seek(m_Item.GetImageOffset());
-	m_RomTranslated.Read(image, 256);
+	//m_RomTranslated.Seek(m_Item.GetImageOffset());
+	//m_RomTranslated.Read(image, 256);
 
-	m_RomTranslated.Seek(m_Item.GetPalOffset());
-	m_RomTranslated.Read(pal, 256);
+	//m_RomTranslated.Seek(m_Item.GetPalOffset());
+	//m_RomTranslated.Read(pal, 256);
 
-	Graphics graphics(image, 4, 16, 16);
-	graphics.DecodePalette(pal);
-	m_ItemIcon = graphics.ToImage().Scale(64, 64);
-	m_pItemIconView->SetBitmap(m_ItemIcon);
+	//Graphics graphics(image, 4, 16, 16);
+	//graphics.DecodePalette(pal);
+	//m_ItemIcon = graphics.ToImage().Scale(64, 64);
+	//m_pItemIconView->SetBitmap(m_ItemIcon);
 }
 
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)

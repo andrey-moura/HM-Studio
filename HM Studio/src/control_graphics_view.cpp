@@ -7,17 +7,12 @@ GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_A
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
-void GraphicsView::UpdateImage(Graphics& graphics)
+void GraphicsView::SetGraphics(Graphics* graphic)
 {				
-	m_Image = graphics.ToImage();	
-	SetRowColumnCount(m_Image.GetHeight(), m_Image.GetWidth());
+	m_Graphic = graphic;
+	SetRowColumnCount(m_Graphic->GetHeight(), m_Graphic->GetWidth());
 
 	Refresh();
-}
-
-wxImage GraphicsView::GetImage() const
-{
-	return m_Image.ConvertToImage();
 }
 
 void GraphicsView::SetScale(size_t scale)
@@ -79,8 +74,8 @@ void GraphicsView::OnDraw(wxDC& dc)
 {
 	dc.Clear();
 
-	if (!m_Image.IsOk())
-		return;		
+	if (m_Graphic == nullptr)
+		return;
 
 	if((m_PixelGrid && m_Scale >= 8))
 	{		
@@ -93,24 +88,21 @@ void GraphicsView::OnDraw(wxDC& dc)
 	}	
 
 	wxBrush brush = dc.GetBrush();
-	brush.SetStyle(wxBRUSHSTYLE_SOLID);
-
-	wxMemoryDC memoryDC(m_Image);
+	brush.SetStyle(wxBRUSHSTYLE_SOLID);	
 
 	wxPosition posStart = GetVisibleBegin();
 	wxPosition posEnd = GetVisibleEnd();
+
+	const uint8_t* data = m_Graphic->GetData();
+	const Palette& pal = m_Graphic->GetPalette();
 
 	for (size_t y = posStart.GetRow(); y < posEnd.GetRow(); ++y)
 	{		
 		for (size_t x = posStart.GetCol(); x < posEnd.GetCol(); ++x)
 		{
-			wxColour colour;
-			if (memoryDC.GetPixel(x, y, &colour))
-			{								
-				brush.SetColour(colour);
-				dc.SetBrush(brush);				
-				dc.DrawRectangle(wxPoint(x * m_Scale, y * m_Scale), wxSize(m_Scale, m_Scale));
-			}			
+			brush.SetColour(pal[data[x+y*m_Graphic->GetWidth()]].GetBGR());
+			dc.SetBrush(brush);
+			dc.DrawRectangle(wxPoint(x * m_Scale, y * m_Scale), wxSize(m_Scale, m_Scale));
 		}
 	}
 

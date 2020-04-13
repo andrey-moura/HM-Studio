@@ -2,13 +2,7 @@
 
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
-	CreateGUIControls();	
-
-	//wxSize navigatorSize = m_pNavigator->GetSize();
-	//navigatorSize.SetWidth(navigatorSize.GetWidth() + 30);
-	//m_pNavigator->SetMinSize(navigatorSize);	
-
-	//Layout();
+	CreateGUIControls();
 }
 
 void GraphicsEditorFrame::GetGraphicsList()
@@ -35,7 +29,29 @@ void GraphicsEditorFrame::ExportImage()
 
 	if (dialog.ShowModal() != wxID_CANCEL)
 	{
-		m_ImageView->GetImage().SaveFile(dialog.GetPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
+		const uint8_t* data = m_Graphic.GetData();
+		const Palette& palette = m_Graphic.GetPalette();
+
+		wxBitmap bitmap(wxSize(m_Graphic.GetWidth(), m_Graphic.GetHeight()), 24);
+	
+		wxMemoryDC dc(bitmap);
+
+		dc.SetPen(*wxTRANSPARENT_PEN);
+
+		wxBrush brush(*wxBLACK, wxBRUSHSTYLE_SOLID);
+
+		for (size_t y = 0; y < m_Graphic.GetHeight(); ++y)
+		{
+			for (size_t x = 0; x < m_Graphic.GetWidth(); ++x)
+			{								
+				brush.SetColour(palette[*(data + x + y * m_Graphic.GetWidth())].GetBGR());
+				dc.SetBrush(brush);
+
+				dc.DrawRectangle(x, y, 1, 1);
+			}
+		}
+
+		bitmap.SaveFile(dialog.GetPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -100,29 +116,23 @@ void GraphicsEditorFrame::OnSelChanged(wxTreeEvent& event)
 
 void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 {	
-	uint8_t* bytes = new uint8_t[(info.m_Width * info.m_Height) / 2];
-	
-	rom.Seek(info.m_ImageAdress);
-	rom.Read(bytes, (info.m_Width * info.m_Height) / 2);
+	m_Graphic.SetWidth(info.m_Width);
+	m_Graphic.SetHeight(info.m_Height);
+	m_Graphic.SetImgOffset(info.m_ImageAdress);
+	m_Graphic.SetPalOffset(info.m_PaletteAdress);
+	m_Graphic.SetBpp(info.m_Bpp);
+	m_Graphic.SetReversed(info.m_Reversed);
+	m_Graphic.SetPlanar(info.m_Planar);
 
-	uint16_t* palette = new uint16_t[256];
+	m_Graphic.LoadFromRom(rom);
 
-	rom.Seek(info.m_PaletteAdress);
-	rom.Read(palette, 256 * 2);
-
-	m_Graphic = Graphics(bytes, 4, info.m_Width, info.m_Height);
-	m_Graphic.DecodePalette((uint8_t*)palette);
-		
-	m_ImageView->UpdateImage(m_Graphic);
-
-	m_InfoViewer->SetInfo(info);
-	m_PalCtrl->SetPal(m_Graphic.m_pal);
-	Layout();
+	m_ImageView->SetGraphics(&m_Graphic);
+	m_PalCtrl->SetPal(m_Graphic.GetPalette());
 }
 
 void GraphicsEditorFrame::SaveImage()
 {
-	m_Graphic.Encode(m_ImageView->GetImage());
+	//m_Graphic.Encode(m_ImageView->GetImage());
 }
 
 inline void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)

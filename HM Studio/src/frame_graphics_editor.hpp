@@ -9,6 +9,7 @@
 #include <wx/filedlg.h>
 #include <wx/menu.h>
 #include <wx/statbmp.h>
+#include <wx/dcmemory.h>
 
 #include "class_rom_file.hpp"
 #include "class_graphics.hpp"
