@@ -16,6 +16,7 @@
 #include "control_graphics_view.hpp"
 #include "graphicsinfoviewer.hpp"
 #include "class_graphics_editor.hpp"
+#include "palctrl.hpp"
 
 #define MAP std::map<wxTreeItemId, GraphicsInfo>
 
@@ -55,6 +56,7 @@ private:
 
 	GraphicsView* m_ImageView = nullptr;
 	GraphicsInfoViewer* m_InfoViewer = nullptr;
+	PalCtrl* m_PalCtrl = nullptr;
 
 	MAP m_LookUp;
 	MAP::iterator m_Index;

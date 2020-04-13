@@ -3,14 +3,12 @@
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
 	CreateGUIControls();	
-	m_Root = m_pNavigator->AddRoot("Graphics");	
-	GetGraphicsList();
 
-	wxSize navigatorSize = m_pNavigator->GetSize();
-	navigatorSize.SetWidth(navigatorSize.GetWidth() + 30);
-	m_pNavigator->SetMinSize(navigatorSize);	
+	//wxSize navigatorSize = m_pNavigator->GetSize();
+	//navigatorSize.SetWidth(navigatorSize.GetWidth() + 30);
+	//m_pNavigator->SetMinSize(navigatorSize);	
 
-	Layout();
+	//Layout();
 }
 
 void GraphicsEditorFrame::GetGraphicsList()
@@ -118,8 +116,8 @@ void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 	m_ImageView->UpdateImage(m_Graphic);
 
 	m_InfoViewer->SetInfo(info);
-
-//	Layout();
+	m_PalCtrl->SetPal(m_Graphic.m_pal);
+	Layout();
 }
 
 void GraphicsEditorFrame::SaveImage()
@@ -198,7 +196,7 @@ void GraphicsEditorFrame::CreateGUIControls()
 	zoomMenu->Append(ID_ZOOM_4, "4x");
 	zoomMenu->Append(ID_ZOOM_8, "8x");
 	zoomMenu->Append(ID_ZOOM_16, "16x");
-	zoomMenu->Append(ID_ZOOM_32, "32x");	
+	zoomMenu->Append(ID_ZOOM_32, "32x");
 
 	wxMenu* viewMenu = new wxMenu();
 	viewMenu->AppendSubMenu(zoomMenu, "Zoom");
@@ -217,18 +215,44 @@ void GraphicsEditorFrame::CreateGUIControls()
 
 	SetBackgroundColour(wxColour(240, 240, 240));
 
-	m_pNavigator = new wxTreeCtrl(this, wxID_ANY);
-	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);	
+	m_pLeftPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_RAISED);
+
+	m_pNavigator = new wxTreeCtrl(m_pLeftPanel, wxID_ANY);
+	m_Root = m_pNavigator->AddRoot("Graphics");
+	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);
+	GetGraphicsList();
+
+	m_InfoViewer = new GraphicsInfoViewer(m_pLeftPanel);
+
+	wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
+	leftSizer->Add(m_pNavigator, 1, wxEXPAND);
+	leftSizer->Add(m_InfoViewer, 0, wxEXPAND);
+
+	m_pLeftPanel->SetSizer(leftSizer);
+	leftSizer->SetSizeHints(m_pLeftPanel);
+
+	m_ImageView = new GraphicsView(this);
+
+	wxPanel* bottomPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_RAISED);
+	bottomPanel->SetBackgroundColour(*wxWHITE);
+
+	m_PalCtrl = new PalCtrl(bottomPanel);
+	m_PalCtrl->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
+
+	wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
+	bottomSizer->Add(m_PalCtrl, 0, wxTOP | wxBOTTOM, 4);
+
+	bottomPanel->SetSizer(bottomSizer);
+	bottomSizer->SetSizeHints(bottomPanel);
+
+	wxBoxSizer* editorSizer = new wxBoxSizer(wxVERTICAL);
+	editorSizer->Add(m_ImageView, 1, wxEXPAND, 0);
+	editorSizer->Add(bottomPanel, 0, wxEXPAND, 0);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
-
-	m_ImageView = new GraphicsView(this);	
-	m_InfoViewer = new GraphicsInfoViewer(this);
-
-	rootSizer->Add(m_pNavigator, 0, wxEXPAND, 0);
-	rootSizer->Add(m_ImageView,  1, wxEXPAND, 0);
-	rootSizer->AddSpacer(4);
-	rootSizer->Add(m_InfoViewer);
+	rootSizer->Add(m_pLeftPanel, 0, wxEXPAND);
+	rootSizer->Add(editorSizer, 1, wxEXPAND);
 
 	SetSizer(rootSizer);
+	rootSizer->SetSizeHints(this);
 }

@@ -42,6 +42,12 @@ struct Palette {
 		colors = new Color[256];
 	}
 
+	//This was already deleted, I don't remember when it's deleted
+	//~Palette()
+	//{
+	//	delete[] colors;
+	//}
+
 	void SetColor(const int index, const uint8_t red, const uint8_t green, const uint8_t blue)
 	{
 		colors[index] = Color(red, green, blue);
