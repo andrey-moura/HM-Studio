@@ -1,11 +1,5 @@
 #pragma once
 
-#include <wx/image.h>
-#include <wx/bitmap.h>
-#include <wx/dcmemory.h>
-
-#include "class_finder.hpp"
-#include "class_file.hpp"
 #include "class_rom_file.hpp"
 
 struct Color {
@@ -89,7 +83,7 @@ public:
 	uint32_t GetPalOffset() const { return m_PalOffset; }
 	uint8_t GetBpp() const { return m_Bpp; }
 	const Palette& GetPalette() const { return m_Palette; }
-	const uint8_t* GetData() const { return m_8bppData; }
+	uint8_t* GetData() { return m_8bppData; }
 	bool IsPlanar() const { return m_Planar; }
 	bool IsReversed() const { return m_Reversed; }
 

@@ -48,6 +48,7 @@ private:
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);
+	void OnPalChanged(PaletteEvent& event);
 private:
 	void CreateGUIControls();	
 

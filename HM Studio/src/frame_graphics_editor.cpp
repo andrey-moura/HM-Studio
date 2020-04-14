@@ -186,6 +186,14 @@ void GraphicsEditorFrame::ToggleMenu(int id, bool check)
 	GetMenuBar()->FindItem(id)->Check(check);	
 }
 
+void GraphicsEditorFrame::OnPalChanged(PaletteEvent& event)
+{
+	m_ImageView->SetColor1(event.GetFirst());
+	m_ImageView->SetColor2(event.GetSecond());
+
+	event.Skip();
+}
+
 void GraphicsEditorFrame::CreateGUIControls()
 {
 	wxMenu* menuFile = new wxMenu();
@@ -248,6 +256,7 @@ void GraphicsEditorFrame::CreateGUIControls()
 
 	m_PalCtrl = new PalCtrl(bottomPanel);
 	m_PalCtrl->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
+	m_PalCtrl->Bind(EVT_PAL_CHANGED, &GraphicsEditorFrame::OnPalChanged, this);
 
 	wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
 	bottomSizer->Add(m_PalCtrl, 0, wxTOP | wxBOTTOM, 4);

@@ -1,5 +1,9 @@
 #include "palctrl.hpp"
 
+wxIMPLEMENT_DYNAMIC_CLASS(PaletteEvent, wxNotifyEvent);
+
+wxDEFINE_EVENT(EVT_PAL_CHANGED, PaletteEvent);
+
 PalCtrl::PalCtrl(wxWindow* parent) : wxWindow(parent, wxID_ANY)
 {	
 	CreateGUIControls();	
@@ -43,19 +47,23 @@ void PalCtrl::SetPal(const Palette& pal)
 	m_Selector->Refresh();
 }
 
-size_t PalCtrl::GetSelColour1() const
+void PalCtrl::SendSelChangedEvent(char color1, char color2)
 {
-	return m_Color1;
-}
+	PaletteEvent toSend(EVT_PAL_CHANGED, this->GetId());
+	toSend.SetEventObject(this);
+	toSend.SetFirst(color1);
+	toSend.SetSecond(color2);
+	ProcessWindowEvent(toSend);	
+	
+	m_Color1 = color1;
+	m_Color2 = color2;
 
-size_t PalCtrl::GetSelColour2() const
-{
-	return m_Color2;
+	m_Selector->Refresh();
 }
 
 void PalCtrl::FlipSelColours()
 {
-	std::swap(m_Color1, m_Color2);
+	SendSelChangedEvent(m_Color2, m_Color1);	
 }
 
 void PalCtrl::OnPalViewDraw(wxDC& dc)
@@ -102,11 +110,9 @@ void PalCtrl::OnPalViewDown(wxMouseEvent& event)
 	if (index > 15) return;
 
 	if (event.GetButton() == wxMOUSE_BTN_RIGHT)
-		m_Color2 = index;
+		SendSelChangedEvent(m_Color1, index);
 	else if (event.GetButton() == wxMOUSE_BTN_LEFT)
-		m_Color1 = index;
-
-	m_Selector->Refresh();
+		SendSelChangedEvent(index, m_Color2);	
 
 	event.Skip();
 }
@@ -143,4 +149,15 @@ void PalCtrl::OnSelectorDraw(wxDC& dc)
 
 	dc.SetBrush(brush2);
 	dc.DrawRectangle(wxRect(32, 32, 32, 32));
+}
+
+PaletteEvent::PaletteEvent(wxEventType commandType, int id)
+	: wxNotifyEvent(commandType, id)
+{
+	
+}
+
+PaletteEvent::PaletteEvent(const PaletteEvent& event) : wxNotifyEvent(event), m_Sel1(event.m_Sel1), m_Sel2(event.m_Sel2)
+{
+	
 }

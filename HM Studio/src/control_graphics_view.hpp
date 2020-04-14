@@ -20,11 +20,15 @@ public:
 private:	
 	size_t m_Scale = 1;
 	Graphics* m_Graphic = nullptr;
+	uint8_t* m_8bppData = nullptr;
 	bool m_PixelGrid = false;
 	bool m_TileGrid = false;
 	bool m_BlockGrid = false;
 
 	wxSize m_BlockSize;
+
+	uint8_t m_Color1 = 1;
+	uint8_t m_Color2 = 0;	
 public:
 	void SetGraphics(Graphics* graphic);	
 	void SetScale(size_t scale);
@@ -33,6 +37,9 @@ public:
 	void SetPixelGrid(bool use = true);
 	void SetTileGrid(bool use = true);
 	void SetBlockGrid(bool use = true);
+
+	void SetColor1(uint8_t color) { m_Color1 = color; }
+	void SetColor2(uint8_t color) { m_Color2 = color; }
 
 	bool GetPixelGrid() const { return m_PixelGrid; }
 	bool GetTileGrid() const { return m_TileGrid; }
@@ -44,13 +51,17 @@ public:
 
 	void DrawTileGrid(wxDC& dc);
 	void DrawBlockGrid(wxDC& dc);
+//static helpers
+	static bool IsTouchingGrid(wxPoint pixel, size_t grid);
 //override
 private:
 	virtual wxCoord OnGetRowHeight(size_t row) const;
-	virtual wxCoord OnGetColumnWidth(size_t col) const;
+	virtual wxCoord OnGetColumnWidth(size_t col) const;	
+//drawing
 private:
-	//void DrawTileGrid(wxDC& dc);
-private:
-	void OnPaintEvent(wxPaintEvent& event);
 	void OnDraw(wxDC& dc);
+//events
+private:
+	void OnPaintEvent(wxPaintEvent& event);	
+	void OnMouseDown(wxMouseEvent& event);
 };
