@@ -74,29 +74,7 @@ void MainFrame::CreateGUIControls()
 
 void MainFrame::OnTestClick(wxCommandEvent& event)
 {
-	//wxFileName path(wxStandardPaths::Get().GetExecutablePath());
-	//path.AppendDir("Spellchecker");
-	//path.AppendDir("Dics");
 
-	//SpellChecker spellChecker("pt_BR", path.GetPath(true).ToStdString());
-
-	RomFile rom = RomFile(GetCurrentId(), false);
-	RomFile rom2 = RomFile(GetCurrentId(), true);
-	ScriptEditor editor(rom, rom2);	
-
-	std::string output;
-	
-	for (size_t i = 0; i < 1415; ++i)
-	{
-		std::vector<uint8_t> bytes = File::ReadAllBytes(editor.GetPath(i, true));
-		
-		if (bytes[0x1a] == 0x22)
-		{
-			output.append(std::to_string(i) + " is compatible\n");
-		}
-	}
-
-	wxMessageBox(output);
 }
 
 id MainFrame::GetCurrentId()

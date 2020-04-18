@@ -310,7 +310,7 @@ std::string RomFile::ReadString()
 	string.resize(size);
 
 	this->Seek(this->Tell() - size - 1);
-	this->Read(string.data(), size);
+	this->Read((void*)string.data(), size);
 
 	return string;
 }

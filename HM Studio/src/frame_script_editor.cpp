@@ -567,19 +567,19 @@ void cScriptEditor::CreateGUIControls()
 
 	wxMenu* menuScript = new wxMenu();
 	menuScript->Append(wxID_OPEN, "Get text from...");
-	menuScript->Append(ID_SCRSAVE, "Save\tCtrl-Shift-S", nullptr, "Save the current script");
-	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", nullptr, "Go to previous script");
-	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", nullptr, "Go to next script");
-	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", nullptr, "Insert the current script");
-	menuScript->Append(ID_HEXORIG, "Original in HexEditor", nullptr);
-	menuScript->Append(ID_HEXTRANS, "Translated in HexEditor", nullptr);
+	menuScript->Append((int)ID_SCRSAVE, "Save\tCtrl-Shift-S", "Save the current script");
+	menuScript->Append((int)ID_SCRPREV, "Previous\tCtrl-Shift-Left", "Go to previous script");
+	menuScript->Append((int)ID_SCRPROX, "Previous\tCtrl-Shift-Right", "Go to next script");
+	menuScript->Append((int)ID_SCRINSERT, "Insert\tCtrl-Shift-E", "Insert the current script");
+	menuScript->Append((int)ID_HEXORIG, "Original in HexEditor");
+	menuScript->Append((int)ID_HEXTRANS, "Translated in HexEditor");
 
 	wxMenu* menuString = new wxMenu();
-	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", nullptr, "Save the current string");
-	menuString->Append(ID_STRPREV, "Prev\tAlt-Left", nullptr, "Loads the previous string");
-	menuString->Append(ID_STRPROX, "Next\tAlt-Right", nullptr, "Loads the next string");
+	menuString->Append((int)ID_STRSAVE, "Save\tCtrl-S", "Save the current string");
+	menuString->Append((int)ID_STRPREV, "Prev\tAlt-Left", "Loads the previous string");
+	menuString->Append((int)ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
 
-	m_pMenuString_Restore = menuString->Append(ID_STRRESTORE, "Restore\tAlt-Z", nullptr, "Restore a text not saved");	
+	m_pMenuString_Restore = menuString->Append((int)ID_STRRESTORE, "Restore\tAlt-Z", "Restore a text not saved");	
 	m_pMenuString_Restore->Enable(false);
 
 	wxMenu* menuEdit = new wxMenu();

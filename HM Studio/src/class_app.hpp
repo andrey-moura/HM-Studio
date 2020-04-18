@@ -9,9 +9,6 @@ class App : public wxApp
 public:
 	App();
 	~App();
-
-private:
-	MainFrame* frame1 = nullptr;
 public:
 	virtual bool OnInit();
 };

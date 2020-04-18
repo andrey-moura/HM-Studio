@@ -98,25 +98,19 @@ test_for_selected_wxbuild:
 bin/linux/hmstudio: $(HM_STUDIO_OBJECTS)
 	$(CXX) -o $@ $(HM_STUDIO_OBJECTS)   $(LDFLAGS)  `$(WX_CONFIG) $(WX_CONFIG_FLAGS) --libs core,base,richtext,html,xml`
 
-build/hm_studio_app.o: ./App.cpp
+build/hm_studio_app.o: ./src/class_app.cpp
 	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
 
-build/hm_studio_cmain.o: ./cMain.cpp
+build/hm_studio_cmain.o: ./src/frame_main.cpp
 	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
 
-build/hm_studio_cscripteditor.o: ./cScriptEditor.cpp
+build/hm_studio_cscripteditor.o: ./src/frame_script_editor.cpp
 	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
 
-build/hm_studio_cdumper.o: ./cDumper.cpp
+build/hm_studio_rom.o: ./src/class_rom_file.cpp
 	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
 
-build/hm_studio_rom.o: ./Rom.cpp
-	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
-
-build/hm_studio_mfomt.o: ./MFoMT.cpp
-	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
-
-build/hm_studio_script.o: ./Script.cpp
+build/hm_studio_script.o: ./src/class_script.cpp
 	$(CXX) -c -o $@ $(HM_STUDIO_CXXFLAGS) $(CPPDEPS) $<
 
 

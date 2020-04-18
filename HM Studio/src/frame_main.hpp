@@ -5,6 +5,11 @@
 #include <wx/statbox.h>
 #include <wx/sizer.h>
 #include <wx/stdpaths.h>
+#include <wx/choice.h>
+#include <wx/checkbox.h>
+#include <wx/msgdlg.h>
+
+#include "class_rom_file.hpp"
 //Frames
 #include "frame_script_editor.hpp"
 #include "frame_item_editor.hpp"

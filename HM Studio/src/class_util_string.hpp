@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstring>
 #include <string>
 #include <vector>
 #include <string_view>
 
+#include <wx/platform.h>
 
 class StringUtil
 {

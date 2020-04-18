@@ -1,11 +1,11 @@
 #include "class_util_string.hpp"
 
-#ifdef _WIN32
+#ifdef __WXMSW__
 std::string StringUtil::eol = "\r\n";
 #endif // _WIN32
-#ifdef _linux_
+#ifdef __WXGTK__
 std::string StringUtil::eol = "\n";
-#endif // _WIN32
+#endif // linux
 
 
 void StringUtil::FindAllOccurances(const std::string& str, const std::string& toSearch, std::vector<size_t>& output)

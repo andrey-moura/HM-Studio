@@ -12,10 +12,8 @@ App::~App()
 
 bool App::OnInit()
 {
-	wxImage::AddHandler(new wxPNGHandler);
-
-	frame1 = new MainFrame();
-	frame1->Show();
+	MainFrame* frame = new MainFrame();
+	frame->Show();
 	
 	return true;
 }

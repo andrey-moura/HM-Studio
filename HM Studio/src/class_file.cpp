@@ -61,7 +61,7 @@ std::string File::ReadAllText(const std::string& path)
 		size_t size = file.Length();
 		s.resize(size);
 
-		file.Read(s.data(), size);
+		file.Read((void*)s.data(), size);
 		file.Close();
 	}	
 	

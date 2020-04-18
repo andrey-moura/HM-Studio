@@ -1,6 +1,6 @@
 #include "class_finder.hpp"
 
-size_t Finder::Find(void* data, size_t dataSize, void* find, size_t findSize, uint32_t start)
+size_t Finder::Find(void* data, size_t dataSize, void* find, size_t findSize, size_t start)
 {
 	std::string_view _data((char*)data, dataSize);
 	std::string_view _find((char*)find, findSize);
@@ -8,7 +8,7 @@ size_t Finder::Find(void* data, size_t dataSize, void* find, size_t findSize, ui
 	return _data.find(_find, start);
 }
 
-void Finder::FindAll(void* data, size_t dataSize, void* find, size_t findSize, std::vector<size_t>& output, uint32_t start)
+void Finder::FindAll(void* data, size_t dataSize, void* find, size_t findSize, std::vector<size_t>& output, size_t start)
 {		
 	std::string_view _data((char*)data, dataSize);
 	std::string_view _find((char*)find, findSize);
@@ -22,7 +22,7 @@ void Finder::FindAll(void* data, size_t dataSize, void* find, size_t findSize, s
 	}
 }
 
-size_t Finder::FindBack(void* data, size_t dataSize, void* find, size_t findSize, uint32_t start)
+size_t Finder::FindBack(void* data, size_t dataSize, void* find, size_t findSize, size_t start)
 {
 	std::string_view _data((char*)data, dataSize);
 	std::string_view _find((char*)find, findSize);
@@ -30,14 +30,14 @@ size_t Finder::FindBack(void* data, size_t dataSize, void* find, size_t findSize
 	return _data.rfind(_find, start);
 }
 
-size_t Finder::FindFilledBlock(char fill, size_t count, void* data, size_t size, uint32_t start)
+size_t Finder::FindFilledBlock(char fill, size_t count, void* data, size_t size, size_t start)
 {	
 	std::string filledBlock;
 	filledBlock.resize(count, fill);
 	return Find(data, size, filledBlock.data(), filledBlock.size());
 }
 
-size_t Finder::FindFilledAlingBlock(char fill, size_t count, void* data, size_t size, uint32_t start, size_t align)
+size_t Finder::FindFilledAlingBlock(char fill, size_t count, void* data, size_t size, size_t start, size_t align)
 {	
 	size_t offset = start;
 

@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include <wx/radiobut.h>
 #include <wx/msgdlg.h>
+#include <wx/button.h>
 
 #include "class_script.hpp"
 #include "class_script_editor.hpp"

@@ -7,15 +7,17 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 
 void GraphicsEditorFrame::GetGraphicsList()
 {	
+	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496));
+	AppendGraphics(balloons);
+
 	GraphicsTreeParent calendary("Calendary");
 	calendary.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));
 	AppendGraphics(calendary);
 
 	GraphicsTreeItem clock("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32));
-	AppendGraphics(clock);
-
-	GraphicsTreeItem balloons("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496));
-	AppendGraphics(balloons);			
+	AppendGraphics(clock);	
+	
+	GraphicsTreeParent font("Font");
 }
 
 void GraphicsEditorFrame::FromOriginal()
@@ -128,6 +130,7 @@ void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 
 	m_ImageView->SetGraphics(&m_Graphic);
 	m_PalCtrl->SetPal(m_Graphic.GetPalette());
+	m_InfoViewer->SetInfo(info);
 }
 
 void GraphicsEditorFrame::SaveImage()

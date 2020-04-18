@@ -45,7 +45,6 @@
     <ClCompile Include="src\class_rom_file.cpp" />
     <ClCompile Include="src\frame_item_editor.cpp" />
     <ClCompile Include="src\class_script.cpp" />
-    <ClCompile Include="src\class_option_window.cpp" />
     <ClCompile Include="src\frame_text_block_editor.cpp" />
     <ClCompile Include="src\namespace_math.cpp" />
     <ClCompile Include="src\palctrl.cpp" />
@@ -80,7 +79,6 @@
     <ClInclude Include="src\frame_item_editor.hpp" />
     <ClInclude Include="src\frame_text_block_editor.hpp" />
     <ClInclude Include="src\Images\delete_icon.h" />
-    <ClInclude Include="src\class_option_window.hpp" />
     <ClInclude Include="src\namespace_math.hpp" />
     <ClInclude Include="src\resource_frame_tile_editor.hpp" />
     <ClInclude Include="src\class_rom_file.hpp" />
