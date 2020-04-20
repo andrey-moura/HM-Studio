@@ -15,6 +15,8 @@ bool App::OnInit()
 	MainFrame* frame = new MainFrame();
 	frame->Show();
 	
+	SetTopWindow(frame);
+
 	return true;
 }
 

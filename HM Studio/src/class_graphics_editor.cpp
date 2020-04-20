@@ -2,7 +2,7 @@
 
 
 GraphicsInfo::GraphicsInfo() :
-	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(false), m_Planar(false)
+	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(true), m_Planar(false)
 {
 
 }

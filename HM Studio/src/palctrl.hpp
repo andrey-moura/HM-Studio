@@ -38,7 +38,8 @@ public:
 	PalCtrl(wxWindow* parent);
 //private members
 private:
-	wxColour* m_Colours = nullptr;
+	wxColour* m_Colors = nullptr;
+	uint8_t m_Count = 0;
 	uint8_t m_Color1 = 1;
 	uint8_t m_Color2 = 0;
 //public accesors	

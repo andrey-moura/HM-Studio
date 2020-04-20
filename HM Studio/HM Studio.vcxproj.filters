@@ -60,9 +60,6 @@
     <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="src\class_option_window.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
     <ClCompile Include="src\tabctrl.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
@@ -165,9 +162,6 @@
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\Images\delete_icon.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="src\class_option_window.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\wxUtil\window_find_results.hpp">

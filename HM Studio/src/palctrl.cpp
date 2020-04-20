@@ -6,7 +6,7 @@ wxDEFINE_EVENT(EVT_PAL_CHANGED, PaletteEvent);
 
 PalCtrl::PalCtrl(wxWindow* parent) : wxWindow(parent, wxID_ANY)
 {	
-	CreateGUIControls();	
+	CreateGUIControls();
 }
 
 void PalCtrl::CreateGUIControls()
@@ -31,13 +31,17 @@ void PalCtrl::CreateGUIControls()
 }
 
 void PalCtrl::SetPal(const Palette& pal)
-{
-	if (m_Colours == nullptr)
-		m_Colours = new wxColour[16];
-
-	for (size_t i = 0; i < 16; ++i)
+{	
+	if (m_Count != pal.GetCount())
 	{
-		m_Colours[i] = pal[i].GetBGR();
+		delete[] m_Colors;
+		m_Count = pal.GetCount();
+		m_Colors = new wxColour[m_Count];
+	}
+
+	for (size_t i = 0; i < m_Count; ++i)
+	{
+		m_Colors[i] = pal[i].GetBGR();
 	}
 
 	m_Color1 = 1;
@@ -70,20 +74,33 @@ void PalCtrl::OnPalViewDraw(wxDC& dc)
 {
 	dc.Clear();	
 
+	if (m_Count == 0)
+		return;
+
+	dc.SetPen(*wxTRANSPARENT_PEN);
+
+	if (m_Count == 2)
+	{
+		wxBrush brush1(wxColour(m_Colors[0]), wxBRUSHSTYLE_SOLID);
+		wxBrush brush2(wxColour(m_Colors[1]), wxBRUSHSTYLE_SOLID);
+
+		dc.SetBrush(brush1);
+		dc.DrawRectangle(0, 0, 8 * 32, 2 * 32);
+
+		dc.SetBrush(brush2);
+		dc.DrawRectangle(4 * 32, 0, 4 * 32, 2 * 32);
+
+		return;
+	}
+
 	wxBrush brush(*wxBLACK, wxBRUSHSTYLE_SOLID);
-	
-	dc.SetBrush(brush);
-	dc.SetPen(*wxTRANSPARENT_PEN);	
 
 	for (size_t y = 0; y < 2; ++y)
 	{
 		for (size_t x = 0; x < 8; ++x)
-		{
-			if (m_Colours != nullptr)
-			{
-				brush.SetColour(m_Colours[x + 8*y]);
-				dc.SetBrush(brush);
-			}
+		{			
+			brush.SetColour(m_Colors[x + 8 * y]);
+			dc.SetBrush(brush);
 
 			dc.DrawRectangle(wxRect(x * 32, y * 32, 32, 32));
 		}
@@ -128,6 +145,9 @@ void PalCtrl::OnSelectorPaint(wxPaintEvent& event)
 void PalCtrl::OnSelectorDraw(wxDC& dc)
 {
 	dc.Clear();
+
+	if (m_Count == 0)
+		return;
 	
 	dc.SetPen(*wxTRANSPARENT_PEN);
 	wxBrush brush(GetParent()->GetBackgroundColour(), wxBRUSHSTYLE_SOLID);
@@ -138,11 +158,8 @@ void PalCtrl::OnSelectorDraw(wxDC& dc)
 	wxBrush brush1(*wxBLACK, wxBRUSHSTYLE_SOLID);	
 	wxBrush brush2(*wxBLACK, wxBRUSHSTYLE_SOLID);	
 
-	if (m_Colours != nullptr)
-	{
-		brush1.SetColour(m_Colours[m_Color1]);
-		brush2.SetColour(m_Colours[m_Color2]);
-	}
+	brush1.SetColour(m_Colors[m_Color1]);
+	brush2.SetColour(m_Colors[m_Color2]);
 
 	dc.SetBrush(brush1);
 	dc.DrawRectangle(wxRect(0, 0, 32, 32));

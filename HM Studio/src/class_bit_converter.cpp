@@ -32,3 +32,14 @@ std::string BitConverter::ToBooleanString(bool value)
 {
 	return std::string(value ? "True" : "False");
 }
+
+uint8_t BitConverter::ReverseBits(const uint8_t& value)
+{	
+	uint8_t output = value;
+
+	output = (output & 0xF0) >> 4 | (output & 0x0F) << 4;
+	output = (output & 0xCC) >> 2 | (output & 0x33) << 2;
+	output = (output & 0xAA) >> 1 | (output & 0x55) << 1;
+
+	return output;
+}

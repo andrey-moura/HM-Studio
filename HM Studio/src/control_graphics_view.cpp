@@ -7,6 +7,8 @@ GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_A
 	Bind(wxEVT_RIGHT_DOWN, &GraphicsView::OnMouseDown, this);
 	Bind(wxEVT_MOTION, &GraphicsView::OnMouseDown, this);
 	SetBackgroundColour(parent->GetBackgroundColour());	
+	SetBackgroundStyle(wxBG_STYLE_PAINT);
+	SetDoubleBuffered(true);
 }
 
 void GraphicsView::SetGraphics(Graphics* graphic)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "class_rom_file.hpp"
+#include "class_bit_converter.hpp"
 
 struct Color {
 	uint8_t red;
@@ -27,6 +28,7 @@ struct Color {
 
 struct Palette {
 	Color* m_Colors = nullptr;
+	uint8_t m_Count = 0;
 
 	Palette(uint16_t* colors, uint8_t bpp);
 	Palette() = default;
@@ -44,6 +46,10 @@ struct Palette {
 	{
 		return m_Colors[index];
 	}
+
+	uint8_t GetCount() const { return m_Count; }
+
+	void SetCount(uint8_t count);
 };
 
 class Graphics
@@ -95,5 +101,8 @@ public:
 	void SetPlanar(bool planar);
 	void SetReversed(bool reversed);
 
+	void OrderTiles(uint8_t* src, uint8_t* dst);
+
 	void LoadFromRom(RomFile& file);
+	void SaveToRom(RomFile& file);
 };

@@ -17,7 +17,10 @@ void GraphicsEditorFrame::GetGraphicsList()
 	GraphicsTreeItem clock("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32));
 	AppendGraphics(clock);	
 	
+	GraphicsTreeItem AZ("A-Z", GraphicsInfo(0x9ab734, 0x6F5D1C, 8, 304, 1, false));
 	GraphicsTreeParent font("Font");
+	font.push_back(AZ);
+	AppendGraphics(font);
 }
 
 void GraphicsEditorFrame::FromOriginal()
@@ -135,7 +138,7 @@ void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 
 void GraphicsEditorFrame::SaveImage()
 {
-	//m_Graphic.Encode(m_ImageView->GetImage());
+	m_Graphic.SaveToRom(m_RomTranslated);
 }
 
 inline void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
