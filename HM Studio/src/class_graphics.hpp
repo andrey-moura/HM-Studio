@@ -55,7 +55,7 @@ struct Palette {
 class Graphics
 {
 public:
-	Graphics(uint8_t* bytes, const uint8_t bpp, const uint32_t width, const uint32_t height, const bool reversed = true, const bool planar = false);
+	Graphics(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false);
 	Graphics() = default;
 	~Graphics();
 private:

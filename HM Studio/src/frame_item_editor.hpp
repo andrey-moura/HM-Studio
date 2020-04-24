@@ -16,29 +16,25 @@
 #include "class_stc.hpp"
 #include "class_item.hpp"
 #include "class_rom_file.hpp"
-
-#define m_Item m_Itens[m_Index]
-#define m_ItemOriginal m_ItensOriginais[m_Index]
+#include "class_item_editor.hpp"
+#include "control_graphics_view.hpp"
 
 class ItemEditorFrame : public wxFrame
 {
 public:
 	ItemEditorFrame(id id);
 	~ItemEditorFrame();
-
-private:
-	std::vector<Item> m_Itens;
-	std::vector<Item> m_ItensOriginais;
-	wxImage m_ItemIcon;
-
+private:		
 	RomFile m_RomOriginal;
 	RomFile m_RomTranslated;
 
-	size_t m_Index;
-	ITEM_DATA m_ItemData;
+	Graphics m_Graphics;
+
+	ItemEditor m_Editor;
+
+	bool m_IsOpen = false;
 
 	void UpdateItem();
-	void GetItens(size_t index);
 //Events
 private:
 	void OnFileClick(wxCommandEvent& event);
@@ -57,16 +53,10 @@ private:
 	wxStaticText* m_pOrigItemName = nullptr;
 	wxStaticText* m_pOrigItemDescription = nullptr;
 
-	wxStaticBitmap* m_pItemIconView = nullptr;	
+	GraphicsView* m_pItemIconView = nullptr;
 
 	wxStaticBox* m_pOrigBox = nullptr;
 	wxStaticBoxSizer* m_pOrigBoxSizer = nullptr;
 	
 	wxBoxSizer* m_pRootSizer = nullptr;
 };
-
-//m_pGUI_whichItens = new wxChoice(this, wxID_ANY);
-//m_pGUI_whichItens->Append("Tool");
-//m_pGUI_whichItens->Append("Fridge");
-//m_pGUI_whichItens->Append("Shelf");
-//m_pGUI_whichItens->Bind(wxEVT_CHOICE, &ItemEditorFrame::OnChoiceChanged, this);

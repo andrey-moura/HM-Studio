@@ -25,6 +25,7 @@
     <ClCompile Include="src\class_finder.cpp" />
     <ClCompile Include="src\class_graphics.cpp" />
     <ClCompile Include="src\class_graphics_editor.cpp" />
+    <ClCompile Include="src\class_item_editor.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
@@ -50,7 +51,7 @@
     <ClCompile Include="src\palctrl.cpp" />
     <ClCompile Include="src\Studio.cpp" />
     <ClCompile Include="src\tabctrl.cpp" />
-    <ClCompile Include="src\wxUtil\window_find_results.cpp" />
+    <ClCompile Include="src\window_find_results.cpp" />
     <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +62,7 @@
     <ClInclude Include="src\class_finder.hpp" />
     <ClInclude Include="src\class_graphics.hpp" />
     <ClInclude Include="src\class_graphics_editor.hpp" />
+    <ClInclude Include="src\class_item_editor.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />
@@ -70,6 +72,7 @@
     <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_file.hpp" />
+    <ClInclude Include="src\frame_script_editor.hpp" />
     <ClInclude Include="src\graphicsinfoviewer.hpp" />
     <ClInclude Include="src\dialog_script_text.hpp" />
     <ClInclude Include="src\FishEditor.hpp" />
@@ -87,7 +90,7 @@
     <ClInclude Include="src\class_stc.hpp" />
     <ClInclude Include="src\Studio.h" />
     <ClInclude Include="src\tabctrl.hpp" />
-    <ClInclude Include="src\wxUtil\window_find_results.hpp" />
+    <ClInclude Include="src\window_find_results.hpp" />
     <ClInclude Include="src\wxUtil\wxRefereceCheckBox.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -169,7 +169,7 @@ void Script::UpdateText(const std::vector<std::string>& text)
 	}		
 }
 
-std::string Script::operator[](int index) const
+const char* Script::operator[](int index) const
 {
 	return (const char*)(m_pStartText + m_pStrPointers[index]);
 }

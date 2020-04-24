@@ -13,7 +13,7 @@ public:
 	//Script is now the owner of this data. You don't to care about deleting.
 	Script(uint8_t* bytes, size_t size);
 	Script(std::vector<uint8_t> bytes);
-	~Script();	
+	~Script();
 
 	//Script is now the owner of this data. You don't to care about deleting.
 	void SetData(uint8_t* bytes, size_t size);
@@ -21,7 +21,7 @@ public:
 	bool CompareCode(const Script& other);
 private:
 	//RIFF
-	uint8_t* m_data = nullptr;	
+	uint8_t* m_data = nullptr;
 	//RIFF + 4
 	uint32_t* m_pRiffLenght = nullptr;
 	//SCR CODE + 4
@@ -35,16 +35,16 @@ private:
 	//STR + 12
 	uint32_t* m_pStrPointers = nullptr;
 	//STR + (4 * STRcount) + 12
-	uint8_t* m_pStartText = nullptr;	
-private:	
+	uint8_t* m_pStartText = nullptr;
+private:
 	//Calculates the pointers
 	void GetPointers();
 	//const char* CStringAt(size_t index) { return (const char*)(m_pStartText + m_pStrPointers[index]); }
 	void ReleasePointers();
-//Operators
+	//Operators
 public:
 	//No checking!
-	std::string operator[](int index) const;
+	const char* operator[](int index) const;
 	bool operator==(const Script& other) const;
 	bool operator!=(const Script& other) const;
 public:
@@ -59,5 +59,6 @@ public:
 	uint32_t GetRiffLenght() const { return *m_pRiffLenght; }
 	//Take care
 	uint8_t* GetData() const { return m_data; }
+	uint32_t GetTextSize() const { return *m_pStrLenght - (*m_pStrCount * 4) - 4; }
 	size_t Count() const;
 };

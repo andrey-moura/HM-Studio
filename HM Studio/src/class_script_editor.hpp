@@ -2,14 +2,17 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
 
 #include <wx/filename.h>
+#include <wx/progdlg.h>
 
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
 #include "class_file.hpp"
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
+#include "window_find_results.hpp"
 
 struct RomInfo
 {
@@ -39,10 +42,10 @@ public:
 
 	~ScriptEditor() = default;
 public:	
-	std::string GetPath(bool translated);
-	std::string GetPath(size_t number, bool translated);
+	std::string GetPath(bool translated) const;
+	std::string GetPath(size_t number, bool translated) const;
 public:
-	RomFile& GetRom(bool translated);
+	RomFile& GetRom(bool translated) const;
 public:
 	uint32_t GetOffset(bool translated, size_t number);
 	uint32_t GetOffset(bool translated);
@@ -86,6 +89,7 @@ public:
 	bool IsOpened() { return m_Opened; }
 	bool ProxText();
 	bool PrevText();
+	bool SetIndex(size_t index);
 	size_t GetCount() { return m_ScriptOriginal.Count(); }
 	bool SaveText(const std::string& text);
 	void BackupText(const std::string& text);
@@ -96,10 +100,11 @@ public:
 	void SetSaved(bool saved) { m_Saved = saved; }
 	std::vector<std::string>& GetTranlated() { return m_Translated; }
 	void SaveScript();
-	std::string& operator[](size_t index) { return m_Translated[index]; }
-	void SetIndex(size_t index) { m_Index = index; }
+	std::string& operator[](size_t index) { return m_Translated[index]; }	
 	size_t GetIndex() { return m_Index; }
 	void ReplaceInAllScripts(const std::string& find, const std::string& replace);
+
+	FilesResults FindInScripts(const std::string& search, bool translated) const;
 
 	void UpdateScript();
 	Script& GetScript() { return m_ScriptTranslated; }

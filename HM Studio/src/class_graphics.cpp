@@ -1,5 +1,11 @@
 #include "class_graphics.hpp"
 
+Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar) :
+	m_Bpp(bpp), m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
+{
+
+}
+
 Graphics::~Graphics()
 {
 	delete[] m_8bppData;

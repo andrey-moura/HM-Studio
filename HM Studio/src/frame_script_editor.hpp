@@ -8,7 +8,7 @@
 #include <wx/textbuf.h>
 #include <wx/string.h>
 
-#include "wxUtil/window_find_results.hpp"
+#include "window_find_results.hpp"
 #include "frame_search_script.hpp"
 #include "dialog_script_text.hpp"
 
@@ -70,7 +70,7 @@ private:
 	void SaveScript();		
 	void UpdateScript();
 	void CheckAllCode();
-	void CheckAndGoScript(size_t index);
+	void CheckAndGoScript(size_t number, size_t index = 0);
 	void FindText();
 public:
 	void ScriptTextRange(size_t from, size_t to, size_t script);
@@ -84,8 +84,6 @@ private:
 
 	std::string m_lineEnding;
 	std::string m_lineLineEnding;
-private:
-	wxBitmap m_DeleteIcon;
 //GUI
 private:
 	void CreateMyToolBar();
@@ -137,7 +135,8 @@ private:
 		ID_HVMODE,
 		ID_HEXORIG,
 		ID_HEXTRANS,
-		ID_TEXTRANGE
+		ID_TEXTRANGE,
+		ID_SEARCHWINDOW
 	};
 };
 

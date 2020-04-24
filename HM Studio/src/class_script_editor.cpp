@@ -102,6 +102,17 @@ bool ScriptEditor::PrevText()
 	return false;
 }
 
+bool ScriptEditor::SetIndex(size_t index)
+{
+	if(index < GetCount())
+	{
+		m_Index = index;
+		return true;
+	}
+	
+	return false;
+}
+
 bool ScriptEditor::SaveText(const std::string& text)
 {
 	m_Saved = true;
@@ -191,17 +202,17 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 	}
 }
 
-std::string ScriptEditor::GetPath(size_t number, bool translated)
+std::string ScriptEditor::GetPath(size_t number, bool translated) const
 {			
 	return (translated ? m_PathTransLeft : m_PathOrigLeft) + std::to_string(number) + m_PathRight;
 }
 
-std::string ScriptEditor::GetPath(bool translated)
+std::string ScriptEditor::GetPath(bool translated) const
 {
 	return GetPath(m_Number, translated);
 }
 
-RomFile& ScriptEditor::GetRom(bool translated)
+RomFile& ScriptEditor::GetRom(bool translated) const
 {
 	return (translated ? m_RomTranslated : m_RomOriginal);
 }
@@ -352,6 +363,85 @@ inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& si
 	delete[] data;
 
 	return free;
+}
+
+FilesResults ScriptEditor::FindInScripts(const std::string& search, bool translated) const
+{
+	FilesResults results;
+
+	const char* ignore = "\x5\xff\r\n";
+
+	wxString state = translated ? "Translated" : "Original";	
+
+	wxString hit = " hit)";
+	wxString hits = " hits)";
+
+	size_t totalCount = 0;
+
+	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.ScriptCount);
+	dialog.Show();
+
+	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+	{				
+		Script script = File::ReadAllBytes(GetPath(i, translated));
+
+		//No text, next
+		if (!script.HaveText())
+			continue;		
+
+		//No find, continue
+
+		uint32_t lenght = script.GetTextSize();
+
+		if (std::string_view((const char*)script.GetStartText(), lenght).find(search) == std::string::npos)
+			continue;				
+
+		SearchResult match;
+
+		//Only 1 result per string
+		for (size_t z = 0; z < script.Count(); ++z)
+		{
+			const std::string_view& str = script[z];
+
+			size_t pos = str.find(search);
+
+			//No find, continue
+			if (pos == std::string::npos)
+				continue;			
+
+			size_t end = str.find_first_of(ignore, pos);
+
+			if (end != std::string::npos)
+			{
+				end -= pos;
+			}
+
+			else
+			{
+				end = str.size();
+			}
+
+			match.AppendResult(wxString("String ") << z << ": " << std::string(str.substr(pos, end)));
+		}
+
+		size_t count = match.GetCount();
+
+		if (count == 0)
+			continue;
+
+		totalCount += count;
+
+		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;
+		dialog.Update(i, name);
+
+		match.SetTitle(name << " (" << count <<  (count == 1 ? hit : hits));
+		results.AppendMatch(match);
+	}
+
+	dialog.Close();
+
+	results.SetSearchTitle(wxString("Search \"") << search << "\" (" << totalCount << " " << (totalCount == 1 ? hit : hits) << " in " << results.GetCount() << " script" << (results.GetCount() > 1 ? "s)" : ")"));
+	return results;
 }
 
 void ScriptEditor::Dump(bool translated)
