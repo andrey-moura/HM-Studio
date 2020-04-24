@@ -68,7 +68,7 @@ private:
 	void InsertOnly(const Script& script, uint32_t offset);
 	void InsertMove(const Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newOffset);
 	bool InsertVerify(Script& script, uint32_t offset, uint32_t oldSize);
-	bool InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);
+	bool InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);	
 	void EraseScript(uint32_t offset, uint32_t size);
 
 	inline bool IsInsideBlock(const uint32_t& offset);

@@ -24,6 +24,7 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	}		
 
 	wxFileName path = wxFileName(wxStandardPaths::Get().GetExecutablePath());
+	path.AppendDir("HM Studio");
 	path.AppendDir(Name);
 
 	m_Dir = path.GetPath().ToStdString();

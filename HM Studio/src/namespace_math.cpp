@@ -1,6 +1,6 @@
 #include "namespace_math.hpp"
 
-bool MathUtil::IsInsideBlock(int offset, int min, int size)
+bool MathUtil::IsInsideBlock(int index, int min, int count)
 {
-	return !((offset - min) <= (min - (min + size)));
+	return index >= min && index < (min + count);
 }

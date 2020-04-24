@@ -4,6 +4,8 @@
 
 #include "frame_main.hpp"
 
+#include "namespace_math.hpp"
+
 class App : public wxApp
 {
 public:

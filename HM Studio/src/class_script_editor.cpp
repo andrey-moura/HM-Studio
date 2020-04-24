@@ -347,7 +347,7 @@ inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, uint8_t* bytes)
 
 inline bool ScriptEditor::IsInsideBlock(const uint32_t& offset)
 {
-	return MathUtil::IsInsideBlock(offset, m_Info.StartPointers, m_Info.BlockLenght);
+	return MathUtil::IsInsideBlock(offset, m_Info.StartScript, m_Info.BlockLenght);
 }
 
 inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& size)
@@ -569,13 +569,13 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	uint8_t* scriptBlock = new uint8_t[m_Info.BlockLenght];
 
 	m_RomTranslated.Seek(m_Info.StartScript);
-	m_RomTranslated.Read(scriptBlock, m_Info.BlockLenght);
-	
-	uint8_t* a = (scriptBlock + (oldOffset - m_Info.StartScript));
+	m_RomTranslated.Read(scriptBlock, m_Info.BlockLenght);	
 
 	if (oldSize != std::string::npos)
+	{		
 		if (IsInsideBlock(oldOffset))
-			memset(a, 0x00, oldSize);
+			memset(scriptBlock + (oldOffset - m_Info.StartScript), 0x00, oldSize);
+	}		
 
 	bool trying = true;
 
