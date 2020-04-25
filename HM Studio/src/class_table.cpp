@@ -1,76 +1,96 @@
 #include "class_table.hpp"
 
-void Table::InputTable(const std::string &table, std::vector<std::string> &text)
-{	
-	if (text.size() <= 0 && table.size() < 3)
-		return;
-
-	std::string right_char;
-	std::string left_char;
-
-	Split(right_char, left_char, table);
-
-	for (std::string& thisText : text)
-		Replace(right_char, left_char, thisText);
+Table::Table(const std::string& path)
+{
+	OpenFile(path);
 }
 
-void Table::InputTable(const std::string& table, std::string text)
+void Table::OpenFile(const std::string& path)
 {
-	if (text.size() <= 0 && table.size() < 3)
-		return;
+	std::string file = File::ReadAllText(path);	
+	std::vector<std::string_view> lines = StringUtil::SplitLines(file);
 
-	std::string right_char;
-	std::string left_char;
+	uint8_t count = lines.size();
 
-	Split(right_char, left_char, table);
-
-	Replace(right_char, left_char, text);
-}
-
-void Table::OutPutTable(const std::string& table, std::vector<std::string>& text)
-{
-	if (text.size() <= 0 && table.size() < 3)
-		return;
-
-	std::string right_char;
-	std::string left_char;
-
-	Split(right_char, left_char, table);
-
-	for (std::string& thisText : text)
-		Replace(left_char, right_char, thisText);
-}
-
-void Table::Split(std::string& right, std::string& left, const std::string &table)
-{
-	std::vector<std::string> lines;
-	StringUtil::SplitLines(table, lines);
-
-	right.reserve(lines.size());
-	left.reserve(lines.size());
-
-	for (size_t i = 0; i < lines.size(); ++i)
+	if (count != m_Left.size())
 	{
-		std::string left_char_byte;
-		left_char_byte.reserve(2);
-
-		left_char_byte = lines[i][0];
-		left_char_byte += lines[i][1];		
-
-		right.push_back(lines[i][3]);
-		left.push_back(std::stoi(left_char_byte, nullptr, 16));
+		m_Left.resize(count);
+		m_Right.resize(count);
 	}	
+
+	for (uint8_t i = 0; i < count; ++i)
+	{
+		m_Left[i] = BitConverter::FromHexString(lines[i].data());
+		m_Right[i] = lines[i][3];
+	}
 }
 
-void Table::Replace(const std::string& replace, const std::string& search, std::string& text)
+void Table::Input(std::string& text) const
 {
+	if (m_Left.size() == 0)
+		return;
+
 	for (char& c : text)
 	{
-		size_t pos = search.find(c);
+		size_t pos = m_Left.find(c);
 
 		if (pos != std::string::npos)
 		{
-			c = replace[pos];
+			c = m_Right[pos];
+		}
+	}
+}
+
+void Table::Input(std::vector<std::string>& texts) const
+{
+	if (m_Left.size() == 0)
+		return;
+
+	for (std::string& text : texts)
+	{
+		for (char& c : text)
+		{
+			size_t pos = m_Left.find(c);
+
+			if (pos != std::string::npos)
+			{
+				c = m_Right[pos];
+			}
+		}
+	}
+}
+
+void Table::Output(std::vector<std::string>& texts) const
+{
+	if (m_Left.size() == 0)
+		return;
+
+	for (std::string& text : texts)
+	{
+		for (char& c : text)
+		{
+			size_t pos = m_Right.find(c);
+
+			if (pos != std::string::npos)
+			{
+				c = m_Left[pos];
+			}
+		}
+	}
+}
+
+void Table::Output(std::string& text) const
+{
+	if (m_Left.size() == 0)
+		return;
+
+	for (char& c : text)
+	{
+		size_t pos = m_Right.find(c);
+
+		if (pos != std::string::npos)
+		{
+			c = m_Left[pos];
 		}
 	}
 }

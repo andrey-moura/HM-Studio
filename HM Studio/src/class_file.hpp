@@ -14,6 +14,8 @@ private:
 	~File() = default;
 
 public:
+	static wxArrayString ReadAllLines(const wxString& path);
+
 	static std::vector<uint8_t> ReadAllBytes(const std::string &path);
 	static size_t ReadAllBytes(const std::string &path, void** bytes);
 	static void WriteAllBytes(const std::string &path, const std::vector<uint8_t> &bytes);

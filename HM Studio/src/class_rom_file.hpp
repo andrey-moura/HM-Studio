@@ -10,6 +10,7 @@
 #include "class_util_string.hpp"
 #include "class_table.hpp"
 #include "class_script.hpp"
+#include "class_stop_watch.hpp"
 
 #define ROM_BUS 0x8000000
 #define ROM_BUS_NOT 0xF7FFFFFF
@@ -38,6 +39,7 @@ public:
 	std::string Name;
 	std::string State;
 
+	Table m_Table;	
 public:
 	std::string GetTablePath();
 	void InputTextWithVariables(std::vector<std::string>& text);

@@ -48,7 +48,9 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 		path.Mkdir(511, wxPATH_MKDIR_FULL);
 
 	Path = path.GetFullPath();	
-	this->Open(Path, wxFile::read_write);	
+	this->Open(Path, wxFile::read_write);
+
+	m_Table.OpenFile(GetTablePath());
 }
 
 std::string RomFile::GetTablePath()
@@ -116,20 +118,17 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 		break;
 	default:
 		return;
-	}
+	}	
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
 		for (int z = 0; z < var.size(); ++z)
 		{
 			StringUtil::Replace(raw[z], spaced[z], text[i]);
-		}
-	}
+		}		
+	}		
 
-	std::string tablePath = GetTablePath();
-
-	if (wxFile::Exists(tablePath))
-		Table::InputTable(File::ReadAllText(tablePath), text);
+	m_Table.Input(text);	
 
 	std::string hex050c;
 	hex050c.append(1, 0x05);
@@ -216,7 +215,7 @@ void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
 	}	
 
-	Table::OutPutTable(File::ReadAllText(GetTablePath()), text);
+	m_Table.Output(text);
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{

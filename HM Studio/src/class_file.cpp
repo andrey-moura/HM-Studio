@@ -82,7 +82,7 @@ void File::AppendLine(const std::string& path, const std::string& line)
 		file.SeekEnd(0);
 
 		if (file.Length() > 0)
-			file.Write(StringUtil::eol.data(), StringUtil::eol.size());
+			file.Write("\\r\n");
 
 		file.Write(line.data(), line.size());
 	}

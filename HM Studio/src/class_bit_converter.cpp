@@ -28,6 +28,30 @@ std::string BitConverter::ToHexString(uint8_t value)
 	return byteText;
 }
 
+uint8_t BitConverter::FromHexNibble(const char& value)
+{
+	uint8_t output = 0;
+
+	if (value >= 0x30 && value <= 0x46)
+	{
+		if (value < 0x40)
+		{
+			output = value - 0x30;
+		}
+		else if (value > 0x40)
+		{
+			output = value - 0x37;
+		}
+	}
+
+	return output;
+}
+
+uint8_t BitConverter::FromHexString(const char* value)
+{
+	return FromHexNibble(value[0]) << 4 | FromHexNibble(value[1]);	
+}
+
 std::string BitConverter::ToBooleanString(bool value)
 {
 	return std::string(value ? "True" : "False");

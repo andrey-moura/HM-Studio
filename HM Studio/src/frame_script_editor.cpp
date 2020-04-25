@@ -629,14 +629,9 @@ void cScriptEditor::OpenInHexEditor(int id)
 	wxString path = m_Editor.GetPath(id == ID_HEXTRANS);
 	wxFileName hexEditorPath(wxStandardPaths::Get().GetExecutablePath());
 	hexEditorPath.RemoveLastDir();
-	hexEditorPath.SetName("RomHexEditor");
+	hexEditorPath.SetName("RomHexEditor");	
 
-	wxString command = wxString(hexEditorPath.GetFullPath() + " -f " + "\"" + path + "\"");
-
-	std::string stdCommand = command.ToStdString();
-	char* pointer = stdCommand.data();
-
-	wxExecute(command);
+	wxExecute(wxString("RomHexEditor -f ") << "\"" << path << "\"");
 }
 
 void cScriptEditor::OnMenuClick(wxCommandEvent& event)

@@ -42,6 +42,7 @@
     <ClCompile Include="src\class_graphics.cpp" />
     <ClCompile Include="src\class_graphics_editor.cpp" />
     <ClCompile Include="src\class_item_editor.cpp" />
+    <ClCompile Include="src\class_stop_watch.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="src\class_graphics.hpp" />
     <ClInclude Include="src\class_graphics_editor.hpp" />
     <ClInclude Include="src\class_item_editor.hpp" />
+    <ClInclude Include="src\class_stop_watch.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />

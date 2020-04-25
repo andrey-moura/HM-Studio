@@ -4,19 +4,24 @@
 #include <vector>
 
 #include "class_util_string.hpp"
+#include "class_file.hpp"
+#include "class_bit_converter.hpp"
 
 class Table
 {
-private:
-	Table();
-	~Table();
-
 public:
-	static void InputTable(const std::string &table, std::vector<std::string> &text);
-	static void InputTable(const std::string &table, std::string text);
-	static void OutPutTable(const std::string &table, std::vector<std::string> &text);
-private:
-	static void Split(std::string& right, std::string& left, const std::string &table);
-	static void Replace(const std::string& right, const std::string& left, std::string& text);
+	Table(const std::string& path);
+	Table() = default;
+	~Table() = default;
+private:	
+	std::string m_Left;
+	std::string m_Right;
+public:
+	void OpenFile(const std::string& path);
+
+	void Input(std::string& text) const;
+	void Input(std::vector<std::string>& texts) const;
+	void Output(std::string& text) const;
+	void Output(std::vector<std::string>& texts) const;
 };
 
