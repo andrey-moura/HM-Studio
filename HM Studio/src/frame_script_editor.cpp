@@ -472,7 +472,8 @@ void cScriptEditor::UpdateText()
 
 void cScriptEditor::CreateGUIControls()
 {
-	this->SetBackgroundColour(Studio::GetFrameColour());
+	this->SetBackgroundColour(wxColour(240, 240, 240));
+//	this->SetBackgroundColour(Studio::GetFrameColour());
 	this->SetForegroundColour(Studio::GetFontColour());
 
 	/******************************
@@ -626,12 +627,9 @@ void cScriptEditor::SetEditorHorizontal()
 
 void cScriptEditor::OpenInHexEditor(int id)
 {
-	wxString path = m_Editor.GetPath(id == ID_HEXTRANS);
-	wxFileName hexEditorPath(wxStandardPaths::Get().GetExecutablePath());
-	hexEditorPath.RemoveLastDir();
-	hexEditorPath.SetName("RomHexEditor");	
+	wxString path = m_Editor.GetPath(id == ID_HEXTRANS);	
 
-	wxExecute(wxString("RomHexEditor -f ") << "\"" << path << "\"");
+	wxExecute(wxString("MoonHex -f ") << "\"" << path << "\"");
 }
 
 void cScriptEditor::OnMenuClick(wxCommandEvent& event)
@@ -887,8 +885,8 @@ DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID
 void DialogTextRange::CreateGUIControls()
 {
 	this->SetFont(Studio::GetDefaultFont());
-	this->SetForegroundColour(Studio::GetFontColour());	
-	this->SetBackgroundColour(Studio::GetFrameColour());
+	//this->SetForegroundColour(Studio::GetFontColour());	
+	//this->SetBackgroundColour(Studio::GetFrameColour());
 
 	wxStaticText* dialogLabelFrom = new wxStaticText(this, wxID_ANY, "From:  ");
 	dialogInputFrom = new wxTextCtrl(this, wxID_ANY);

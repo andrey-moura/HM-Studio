@@ -24,4 +24,3 @@ public:
 	void Output(std::string& text) const;
 	void Output(std::vector<std::string>& texts) const;
 };
-

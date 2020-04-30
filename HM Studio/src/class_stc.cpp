@@ -379,18 +379,22 @@ void STC::CreateGUI()
 {
 	this->SetLexer(wxSTC_LEX_CONTAINER);
 
-	this->StyleSetBackground(STC_STYLE_TEXT, Studio::GetControlBackgroundColor());
-	this->StyleSetBackground(STC_STYLE_VAR, Studio::GetControlBackgroundColor());
-	this->StyleSetBackground(STC_STYLE_SIMBOL, Studio::GetControlBackgroundColor());
-	this->StyleSetBackground(32, Studio::GetControlBackgroundColor()); //The editor background
+	//this->StyleSetBackground(STC_STYLE_TEXT, Studio::GetControlBackgroundColor());
+	//this->StyleSetBackground(STC_STYLE_VAR, Studio::GetControlBackgroundColor());
+	//this->StyleSetBackground(STC_STYLE_SIMBOL, Studio::GetControlBackgroundColor());
+	//this->StyleSetBackground(32, Studio::GetControlBackgroundColor()); //The editor background
 
 	this->StyleSetFont(STC_STYLE_TEXT, Studio::GetDefaultFont());
 	this->StyleSetFont(STC_STYLE_VAR, Studio::GetDefaultFont());
 	this->StyleSetFont(STC_STYLE_SIMBOL, Studio::GetDefaultFont());
 
-	this->StyleSetForeground(STC_STYLE_TEXT, Studio::GetFontColour());
-	this->StyleSetForeground(STC_STYLE_VAR, wxColour(86, 156, 214));
-	this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(78, 201, 176));
+	//this->StyleSetForeground(STC_STYLE_TEXT, Studio::GetFontColour());
+	//this->StyleSetForeground(STC_STYLE_VAR, wxColour(86, 156, 214));
+	this->StyleSetForeground(STC_STYLE_VAR, wxColour(0, 0, 255));
+	this->StyleSetBold(STC_STYLE_VAR, true);
+	//this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(78, 201, 176));
+	this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(0, 128, 0));
+	this->StyleSetBold(STC_STYLE_SIMBOL, true);
 
 	this->MarkerDefineBitmap(STC_MARK_ERROR, m_sIconError);
 

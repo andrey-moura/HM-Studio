@@ -128,7 +128,7 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 		}		
 	}		
 
-	m_Table.Input(text);	
+	m_Table.Input(text);
 
 	std::string hex050c;
 	hex050c.append(1, 0x05);

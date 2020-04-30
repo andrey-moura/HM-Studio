@@ -30,14 +30,18 @@ void Table::Input(std::string& text) const
 	if (m_Left.size() == 0)
 		return;
 
-	for (char& c : text)
-	{
-		size_t pos = m_Left.find(c);
+	size_t pos = text.find_first_of(m_Left.c_str());
 
-		if (pos != std::string::npos)
-		{
-			c = m_Right[pos];
-		}
+	while (pos != std::string::npos)
+	{
+		size_t leftPos = m_Left.find(text[pos]);
+
+		if (leftPos == std::string::npos)
+			continue;
+
+		text[pos] = m_Right[leftPos];
+
+		pos = text.find_first_of(m_Left.c_str(), pos + 1);
 	}
 }
 
@@ -48,14 +52,18 @@ void Table::Input(std::vector<std::string>& texts) const
 
 	for (std::string& text : texts)
 	{
-		for (char& c : text)
-		{
-			size_t pos = m_Left.find(c);
+		size_t pos = text.find_first_of(m_Left.c_str());
 
-			if (pos != std::string::npos)
-			{
-				c = m_Right[pos];
-			}
+		while (pos != std::string::npos)
+		{
+			size_t leftPos = m_Left.find(text[pos]);
+
+			if (leftPos == std::string::npos)
+				continue;
+
+			text[pos] = m_Right[leftPos];
+
+			pos = text.find_first_of(m_Left.c_str(), pos + 1);
 		}
 	}
 }
@@ -67,14 +75,18 @@ void Table::Output(std::vector<std::string>& texts) const
 
 	for (std::string& text : texts)
 	{
-		for (char& c : text)
-		{
-			size_t pos = m_Right.find(c);
+		size_t pos = text.find_first_of(m_Right.c_str());
 
-			if (pos != std::string::npos)
-			{
-				c = m_Left[pos];
-			}
+		while (pos != std::string::npos)
+		{
+			size_t rightPos = m_Right.find(text[pos]);
+
+			if (rightPos == std::string::npos)
+				continue;
+
+			text[pos] = m_Left[rightPos];
+
+			pos = text.find_first_of(m_Right.c_str(), pos + 1);
 		}
 	}
 }
@@ -84,13 +96,17 @@ void Table::Output(std::string& text) const
 	if (m_Left.size() == 0)
 		return;
 
-	for (char& c : text)
-	{
-		size_t pos = m_Right.find(c);
+	size_t pos = text.find_first_of(m_Right.c_str());
 
-		if (pos != std::string::npos)
-		{
-			c = m_Left[pos];
-		}
+	while (pos != std::string::npos)
+	{
+		size_t rightPos = m_Right.find(text[pos]);
+
+		if (rightPos == std::string::npos)
+			continue;
+
+		text[pos] = m_Left[rightPos];
+
+		pos = text.find_first_of(m_Right.c_str(), pos + 1);
 	}
 }

@@ -41,8 +41,8 @@ void FrameSearchScript::EVT_BTN_ReplaceAllClick(wxCommandEvent& event)
 void FrameSearchScript::CreateGUIControls()
 {
 	this->SetFont(Studio::GetDefaultFont());
-	this->SetBackgroundColour(Studio::GetFrameColour());
-	this->SetForegroundColour(Studio::GetFontColour());
+	//this->SetBackgroundColour(Studio::GetFrameColour());
+	//this->SetForegroundColour(Studio::GetFontColour());
 	//m_pGUI_tableControl = new wxNotebook(this, wxID_ANY, wxPoint(0, 0), wxSize(400, 400));
 	//m_pGUI_tableControl->SetBackgroundColour(wxColour(255, 255, 255));
 
