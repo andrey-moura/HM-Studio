@@ -305,6 +305,23 @@ void STC::ShowMenu(wxPoint point)
 	PopupMenu(m_pMenu, point.x, point.y);
 }
 
+void STC::SetEOLMode(int eol)
+{
+	wxStyledTextCtrl::SetEOLMode(eol);
+
+	if (eol == wxSTC_EOL_CRLF)
+		m_Eol = "\r\n";
+	else if (eol == wxSTC_EOL_CR)
+		m_Eol = "\r";
+	else if (eol == wxSTC_EOL_LF)
+		m_Eol = "\n";
+}
+
+wxString STC::GetEOL()
+{
+	return m_Eol;
+}
+
 void STC::SuggestToMenu(wxPoint point)
 {
 #ifdef USESPELL
@@ -401,7 +418,7 @@ void STC::CreateGUI()
 	this->SetMarginWidth(0, 32);
 	this->SetMarginType(0, wxSTC_MARGIN_NUMBER);
 
-	this->SetCaretForeground(Studio::GetFontColour());
+	//this->SetCaretForeground(Studio::GetFontColour());
 
 	this->IndicatorSetStyle(STC_INDIC_FIND, wxSTC_INDIC_ROUNDBOX);
 	this->IndicatorSetForeground(STC_INDIC_FIND, wxColour(17, 61, 111));

@@ -10,48 +10,39 @@ class FrameSearchScript : public wxDialog
 public:
 	FrameSearchScript();
 	~FrameSearchScript();
-
-	enum SearchMode {
-		Find = -500,
-		Replace,
-		ReplaceExtended,
-		SearchInScripts,
-		ReplaceInScripts
-	};
-
-	std::string find;
-	std::string replace;
-
 private:
-	void EVT_BTN_FindAllClick(wxCommandEvent& event);
-	void EVT_BTN_ReplaceAllClick(wxCommandEvent& event);
+	std::string m_Search;
+	std::string m_Replace;
+	bool m_Extended = false;
+	bool m_Find = false;
+	bool m_InScripts = false;
+	bool m_MatchCase = false;
+public:
+	bool Find() { return m_Find; }
+	bool Replace() { return !Find(); }
+	bool Extended() { return m_Extended; }
+	bool InScript() { return m_InScripts; }
+
+	const std::string& GetSearch() { return m_Search; }
+	const std::string& GetReplace() { return m_Replace; }
+private:
+	void GetValues();
+	void EndAndSkip(wxCommandEvent& event);
+private:
+	void OnFindAllClick(wxCommandEvent& event);
+	void OnReplaceAllClick(wxCommandEvent& event);
 private:
 	void CreateGUIControls();;
 
 	//-----------------------//
+	
+	wxTextCtrl* m_pInputFind = nullptr;
+	
+	wxTextCtrl* m_pInputReplace = nullptr;
+	
+	wxRadioButton* m_pModeExtended = nullptr;
 
-	wxNotebook* m_pGUI_tableControl = nullptr;
-
-	wxStaticText* m_pGUI_findLabel = nullptr;
-	wxTextCtrl* m_pGUI_inputFind = nullptr;
-	wxButton* m_pGUI_findAll = nullptr;
-	wxBoxSizer* m_pGUI_sizer1 = nullptr;
-
-	wxStaticText* m_pGUI_replaceLabel = nullptr;
-	wxTextCtrl* m_pGUI_inputReplace = nullptr;
-	wxButton* m_pGUI_replaceAll = nullptr;
-	wxBoxSizer* m_pGUI_replaceSizer = nullptr;	
-
-	wxRadioButton* m_pGUI_modeNormal = nullptr;
-	wxRadioButton* m_pGUI_modeExtended = nullptr;
-	wxStaticBoxSizer* m_pGUI_boxMode = nullptr;
-
-	wxCheckBox* m_pGUI_optionsCase = nullptr;
-	wxCheckBox* m_pGUI_InScript = nullptr;
-	wxStaticBoxSizer* m_pGUI_boxOptions = nullptr;
-
-	wxBoxSizer* m_pGUI_sizerConfig = nullptr;
-
-	wxBoxSizer* m_pGUI_sizerMain = nullptr;	
+	wxCheckBox* m_pCase = nullptr;
+	wxCheckBox* m_pInScript = nullptr;
 };
 

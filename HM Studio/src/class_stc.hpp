@@ -10,10 +10,6 @@
 #define STC_INDIC_FIND 0
 #define STC_INDIC_SPELL 1
 
-#define STC_EOL_CRLF 0
-#define STC_EOL_CR   1
-#define STC_EOL_LF   2
-
 #include <wx/stc/stc.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
@@ -65,12 +61,18 @@ private:
 
 	bool m_NeedStyle = false;
 
+	wxString m_Eol;
 //String short cut
 private:
 	std::vector <std::string> m_StringsOnKey;
 	std::string m_Keys;
 public:
 	void InsertOnCtrlKey(const std::string& s, char key);
+
+//override
+public:
+	void SetEOLMode(int eol);
+	wxString GetEOL();
 #ifdef USESPELL
 private:	
 	bool m_NeedToSpell = false;

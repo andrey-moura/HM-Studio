@@ -105,6 +105,8 @@ public:
 	void ReplaceInAllScripts(const std::string& find, const std::string& replace);
 
 	FilesResults FindInScripts(const std::string& search, bool translated) const;
+	std::vector<size_t> Find(const std::string& find, bool translated);
+	void Replace(const std::string& find, const std::string& replace);
 
 	void UpdateScript();
 	Script& GetScript() { return m_ScriptTranslated; }

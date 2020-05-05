@@ -82,8 +82,8 @@ private:
 private:
 	void UpdateText();	
 
-	std::string m_lineEnding;
-	std::string m_lineLineEnding;
+	std::vector<size_t> m_FindPos;
+	size_t m_FindIndex;
 //GUI
 private:
 	void CreateMyToolBar();

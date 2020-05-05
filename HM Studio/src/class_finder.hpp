@@ -11,7 +11,7 @@ private:
 	~Finder() = default;
 
 public:
-	static size_t Find(void* data, size_t dataSize, void* find, size_t findSize, size_t start = 0);
+	static size_t Find(void* data, size_t dataSize, void* find, size_t findSize, size_t start = 0);	
 	static void FindAll(void* data, size_t dataSize, void* find, size_t findSize, std::vector<size_t>& output, size_t start = 0);
 	static size_t FindBack(void* data, size_t dataSize, void* find, size_t findSize, size_t start = 0);
 	static size_t FindFilledBlock(char fill, size_t count, void* data, size_t size, size_t start = 0);

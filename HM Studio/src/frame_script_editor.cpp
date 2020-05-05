@@ -21,18 +21,14 @@ void cScriptEditor::SetupRom()
 	{
 	case console::DS:
 	{
-		m_lineEnding = "\n";
-		m_lineLineEnding = "\\n";
 		std::vector<std::string> varsDS;
 		varsDS.push_back("<Player>");
-		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptOriginal);
-		ConfigureSTC(30, STC_EOL_LF, varsDS, tScriptTranslated);
+		ConfigureSTC(30, wxSTC_EOL_LF, varsDS, tScriptOriginal);
+		ConfigureSTC(30, wxSTC_EOL_LF, varsDS, tScriptTranslated);
 		break;
 	}
 	case console::GBA:
 	{
-		m_lineEnding = "\r\n";
-		m_lineLineEnding = "\\n";
 		std::vector<std::string> vars;
 		vars.push_back("<PlayerName>");
 		vars.push_back("<AnimalName>");
@@ -42,8 +38,8 @@ void cScriptEditor::SetupRom()
 		vars.push_back("<ValleyName>");
 		vars.push_back("<ValleyBaby>");
 		vars.push_back("<ValleyFarm>");
-		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptOriginal);
-		ConfigureSTC(28, STC_EOL_CRLF, vars, tScriptTranslated);
+		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptOriginal);
+		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptTranslated);
 		break;
 	}
 	default:
@@ -58,8 +54,9 @@ void cScriptEditor::ConfigureSTC(size_t maxLine, int eol, std::vector<std::strin
 	stc->SetMaxLineLenght(maxLine);
 	stc->SetEOLMode(eol);	
 
-	stc->InsertOnCtrlKey(std::string(1, (char)0x05), 'E');
-	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + m_lineEnding, 'R');
+	stc->InsertOnCtrlKey(std::string(1, (char)0x05), 'E');	
+
+	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + stc->GetEOL().ToStdString(), 'R');
 
 	for (const std::string& s : vars)
 	{
@@ -190,81 +187,90 @@ void cScriptEditor::CheckAllCode()
 
 void cScriptEditor::FindText()
 {
-	FrameSearchScript search_text;
+	FrameSearchScript dialog;
 
-	int result = search_text.ShowModal();	
-
-	if (result == FrameSearchScript::SearchMode::Find)
-	{		
-		//std::vector<FindResult> results;
-
-		//FindResult result;
-		//result.m_Path = "Script " + std::to_string(m_Editor.GetNumber());
-
-		//for (size_t C = 0; C < m_Editor.GetCount(); C++)
-		//{
-		//	size_t index = m_Editor[C].find(search_text.find);
-
-		//	while (index != std::string::npos)
-		//	{
-		//		result.m_Hits.push_back(index);
-		//		index = m_Editor[C].find(search_text.find, index);
-		//	}
-
-		//	if (result.m_Hits.size() != 0)
-		//		results.push_back(result);
-		//}
-
-		//if (!m_pFindResultsWindow)
-		//{
-		//	m_pFindResultsWindow = new FindResultsWindow(this, wxID_ANY);
-		//	m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
-		//	global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
-		//}
-		////m_pFindResultsWindow->SetResultsInfo(search_text.find, romOriginal.Offset.Script_count, results);
-		//m_pFindResultsWindow->Show();
-		//Layout();		
-	}
-	else if (result == FrameSearchScript::SearchMode::Replace || result == FrameSearchScript::SearchMode::ReplaceExtended)
+	if (dialog.ShowModal() != wxID_CANCEL)
 	{
-		if (result == FrameSearchScript::SearchMode::ReplaceExtended)
-		{
-			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text.find);
-			StringUtil::Replace(m_lineLineEnding, m_lineEnding, search_text.replace);
-			StringUtil::Replace("\\r", "\r", search_text.replace);
-			StringUtil::Replace("\\r", "\r", search_text.find);
+		std::string search = dialog.GetSearch();
+		std::string replace = dialog.GetReplace();
+		bool inScript = dialog.InScript();
+		bool extended = dialog.Extended();
+
+		if (extended)
+		{			
+			StringUtil::Replace("\\r", "\r", search);
+			StringUtil::Replace("\\n", "\n", search);
+
+			StringUtil::Replace("\\r", "\r", replace);
+			StringUtil::Replace("\\n", "\n", replace);
 		}
 
-		for (std::string& s : m_Editor.GetTranlated())
+		if (dialog.Find())
 		{
-			StringUtil::Replace(search_text.find, search_text.replace, s);
+			if (!inScript)
+			{
+				m_FindPos = m_Editor.Find(search, true);
+				m_FindIndex = 0;
+				m_Editor.SetIndex(m_FindPos[m_FindIndex]);
+			}
+			else
+			{
+				if (!m_pFindResultsWindow)
+				{
+					m_pFindResultsWindow = new FindResultsWindow(this);
+					m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+					global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
+					m_pFindResultsWindow->Show();
+				}
+
+				FilesResults results = m_Editor.FindInScripts(search, true);
+				m_pFindResultsWindow->SetFindResults(results);
+
+				this->Restore();
+				this->Raise();
+			}
 		}
-		
-		UpdateText();
-	}
-	else if (result == FrameSearchScript::ReplaceInScripts)
-	{
-		m_Editor.ReplaceInAllScripts(search_text.find, search_text.replace);		
-	}
-
-	else if (result == FrameSearchScript::SearchInScripts)
-	{
-		FilesResults results = m_Editor.FindInScripts(search_text.find, true);
-		this->Restore();
-		this->Raise();
-
-		if (!m_pFindResultsWindow)
+		else if (dialog.Replace())
 		{
-			m_pFindResultsWindow = new FindResultsWindow(this);
-			m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
-			global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
-		}		
+			m_Editor.Replace(search, replace);
+			UpdateText();
 
-		m_pFindResultsWindow->SetFindResults(results);
-		m_pFindResultsWindow->Show();
-
-		Layout();
+			m_FindPos.clear();
+			m_FindIndex = 0;
+		}
 	}
+
+	//if (result == FrameSearchScript::SearchMode::Find)
+	//{		
+	//	m_FindPos = m_Editor.Find(search_text.find, true);
+
+	//	m_FindIndex = 0;
+	//	m_Editor.SetIndex(m_FindPos[m_FindIndex]);
+	//}
+
+	//else if (result = FrameSearchScript::SearchMode::Replace)
+	//{
+	//	//if(search_text.exten)
+	//}
+
+	//else if (result == FrameSearchScript::SearchInScripts)
+	//{
+	//	if (!m_pFindResultsWindow)
+	//	{
+	//		m_pFindResultsWindow = new FindResultsWindow(this);
+	//		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+	//		global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
+	//		m_pFindResultsWindow->Show();
+	//	}
+
+	//	FilesResults results = m_Editor.FindInScripts(search_text.find, true);
+	//	m_pFindResultsWindow->SetFindResults(results);
+
+	//	this->Restore();
+	//	this->Raise();
+	//}
+
+	Layout();
 }
 
 void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
@@ -282,6 +288,9 @@ void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 {
 	CheckAndGoScript(m_Editor.GetNumber() + 1);
+
+	m_FindIndex = 0;
+	m_FindPos.clear();
 
 	event.Skip();
 }
@@ -354,14 +363,7 @@ void cScriptEditor::GetTextFrom()
 }
 
 void cScriptEditor::SaveText()
-{
-//ToDo: Remove line converting... This was for a bug already solved
-
-	if (romOriginal.Console == console::GBA)
-		tScriptTranslated->ConvertEOLs(STC_EOL_CRLF);
-	else
-		tScriptTranslated->ConvertEOLs(STC_EOL_LF);
-
+{	
 	if (m_Editor.SaveText(tScriptTranslated->GetText().ToStdString()))
 	{
 		UpdateText();
@@ -412,11 +414,11 @@ void cScriptEditor::InsertScript()
 
 void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 {
-	if (m_IndicatorPos.first != -1)
-	{
-		tScriptTranslated->IndicatorClearRange(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
-		m_IndicatorPos.first = -1;
-	}
+	//if (m_IndicatorPos.first != -1)
+	//{
+	//	tScriptTranslated->IndicatorClearRange(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
+	//	m_IndicatorPos.first = -1;
+	//}
 	event.Skip();
 }
 
@@ -486,27 +488,27 @@ void cScriptEditor::CreateGUIControls()
 
 	wxMenu* menuScript = new wxMenu();
 	menuScript->Append(wxID_OPEN, "Get text from...");
-	menuScript->Append((int)ID_SCRSAVE, "Save\tCtrl-Shift-S", "Save the current script");
-	menuScript->Append((int)ID_SCRPREV, "Previous\tCtrl-Shift-Left", "Go to previous script");
-	menuScript->Append((int)ID_SCRPROX, "Previous\tCtrl-Shift-Right", "Go to next script");
-	menuScript->Append((int)ID_SCRINSERT, "Insert\tCtrl-Shift-E", "Insert the current script");
-	menuScript->Append((int)ID_HEXORIG, "Original in HexEditor");
-	menuScript->Append((int)ID_HEXTRANS, "Translated in HexEditor");
+	menuScript->Append(ID_SCRSAVE, "Save\tCtrl-Shift-S", "Save the current script");
+	menuScript->Append(ID_SCRPREV, "Previous\tCtrl-Shift-Left", "Go to previous script");
+	menuScript->Append(ID_SCRPROX, "Previous\tCtrl-Shift-Right", "Go to next script");
+	menuScript->Append(ID_SCRINSERT, "Insert\tCtrl-Shift-E", "Insert the current script");
+	menuScript->Append(ID_HEXORIG, "Original in HexEditor");
+	menuScript->Append(ID_HEXTRANS, "Translated in HexEditor");
 
 	wxMenu* menuString = new wxMenu();
-	menuString->Append((int)ID_STRSAVE, "Save\tCtrl-S", "Save the current string");
-	menuString->Append((int)ID_STRPREV, "Prev\tAlt-Left", "Loads the previous string");
-	menuString->Append((int)ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
+	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", "Save the current string");
+	menuString->Append(ID_STRPREV, "Prev\tAlt-Left", "Loads the previous string");
+	menuString->Append(ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
 
-	m_pMenuString_Restore = menuString->Append((int)ID_STRRESTORE, "Restore\tAlt-Z", "Restore a text not saved");	
-	m_pMenuString_Restore->Enable(false);
+	//m_pMenuString_Restore = menuString->Append(ID_STRRESTORE, "Restore\tAlt-Z", "Restore a text not saved");
+	//m_pMenuString_Restore->Enable(false);
 
 	wxMenu* menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, _("Move To"));	
 
 	wxMenu* menuSearch = new wxMenu();
 	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
-	menuSearch->Append(ID_FINDNEXT, "Find Next Text\tF3");
+	menuSearch->Append(ID_FINDNEXT, "Find Next\tF3");
 	menuSearch->Append(wxID_ANY, "Find Next Script");	
 
 	wxMenu* menuTools = new wxMenu();
@@ -748,6 +750,20 @@ bool cScriptEditor::OthersMenuTools(int id)
 		FindText();
 		break;
 	case ID_FINDNEXT:
+		if (!m_FindPos.empty())
+		{
+			++m_FindIndex;
+
+			if (m_FindIndex == m_FindPos.size())
+			{				
+				m_FindIndex = 0;
+			}
+
+			if (m_Editor.SetIndex(m_FindPos[m_FindIndex]))
+			{
+				UpdateText();
+			}			
+		}
 		break;
 	case ID_TEXTRANGE:
 		SetTextRange();

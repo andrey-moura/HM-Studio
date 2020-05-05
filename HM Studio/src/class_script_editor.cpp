@@ -444,6 +444,32 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 	return results;
 }
 
+std::vector<size_t> ScriptEditor::Find(const std::string& find, bool translated)
+{
+	const std::vector<std::string> text = translated ? m_Translated : m_Original;
+	std::vector<size_t> result;
+
+	for (size_t i = 0; i < text.size(); ++i)
+	{
+		size_t pos = text[i].find(find);
+
+		if (pos != std::string::npos)
+		{
+			result.push_back(i);
+		}
+	}			
+
+	return result;
+}
+
+void ScriptEditor::Replace(const std::string& find, const std::string& replace)
+{	
+	for (std::string& str : m_Translated)
+	{
+		StringUtil::Replace(find, replace, str);
+	}
+}
+
 void ScriptEditor::Dump(bool translated)
 {
 	uint32_t* offsets = GetOffsets(translated);

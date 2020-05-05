@@ -156,6 +156,21 @@ void Palette::DecodeColors(uint16_t* colors, uint8_t bpp)
 	delete[] colors;
 }
 
+size_t Palette::FindRGB(uint32_t rgb) const
+{			
+	Color* color = (Color*)(&rgb);
+
+	for (size_t i = 0; i < m_Count; ++i)
+	{
+		if (m_Colors[i] == *color)
+		{
+			return i;
+		}
+	}
+
+	return std::string::npos;
+}
+
 void Graphics::SetWidth(uint32_t width)
 {
 	VerifyAndSet(width, m_Width);

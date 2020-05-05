@@ -1,7 +1,10 @@
 #pragma once
 
+#include <wx/msgdlg.h>
+
 #include "class_rom_file.hpp"
 #include "class_bit_converter.hpp"
+#include "class_finder.hpp"
 
 struct Color {
 	uint8_t red;
@@ -24,6 +27,18 @@ struct Color {
 
 	uint32_t GetRGB() const { return (red << 16) | (green << 8) | blue; }
 	uint32_t GetBGR() const { return (blue << 16) |(green << 8) | red; }
+
+	bool operator==(const Color other)
+	{
+		if (red != other.red)
+			return false;
+		if (green != other.green)
+			return false;
+		if (blue != other.blue)
+			return false;
+
+		return true;
+	}
 };
 
 struct Palette {
@@ -46,6 +61,8 @@ struct Palette {
 	{
 		return m_Colors[index];
 	}
+
+	size_t FindRGB(uint32_t rgb) const;	
 
 	uint8_t GetCount() const { return m_Count; }
 
