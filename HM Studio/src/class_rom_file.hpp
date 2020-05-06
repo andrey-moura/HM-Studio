@@ -42,6 +42,7 @@ public:
 	Table m_Table;	
 public:
 	std::string GetTablePath();
+	inline const Table& GetTable() const { return m_Table; }
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);				

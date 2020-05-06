@@ -68,6 +68,28 @@ void Table::Input(std::vector<std::string>& texts) const
 	}
 }
 
+void Table::Input(const std::string_view& text) const
+{
+	if (m_Left.size() == 0)
+		return;
+
+	size_t pos = text.find_first_of(m_Left.c_str());
+
+	char* data = (char*)text.data();
+
+	while (pos != std::string::npos)
+	{
+		size_t leftPos = m_Left.find(text[pos]);
+
+		if (leftPos == std::string::npos)
+			continue;
+
+		data[pos] = m_Right[leftPos];
+
+		pos = text.find_first_of(m_Left.c_str(), pos + 1);
+	}
+}
+
 void Table::Output(std::vector<std::string>& texts) const
 {
 	if (m_Left.size() == 0)

@@ -82,52 +82,67 @@ void ItemEditor::GetItens(bool translated)
 
 	rom.Seek(m_Infos[m_InfoIndex].m_StartPointers);
 	rom.Read(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
+	
+	table.Input(std::string_view(textBlock, m_Infos[m_InfoIndex].m_BlockLenght));		
+
+	int32_t addr = 0;
+
+	if (m_RomOriginal.Console == console::DS)
+	{
+		addr = m_Infos[m_Index].m_StartPointers - 4;
+	}
+
+	if (m_RomOriginal.Console == console::GBA)
+	{
+		addr = 0xF8000000;
+	}
 
 	std::vector<Item>& itens = translated ? m_Translated : m_Original;
 	itens.resize(m_Infos[m_InfoIndex].m_Count);
 
 	for (size_t i = 0; i < m_Infos[m_InfoIndex].m_Count; ++i)
-	{	
+	{
 		uint32_t* curData = dataBlock + (i * m_Infos[m_InfoIndex].m_WPI);
 
-		uint32_t nameOffset = curData[0] & 0x00FFFFFF;
-		uint32_t descriptionOffset = curData[m_Infos[m_InfoIndex].m_DescriptionIndex] & 0x00FFFFFF;
-
-		std::string name;
-		std::string description;
-
-		Item item;
-
-		if (IsInsideBlock(nameOffset))
+		if (m_RomOriginal.Console == console::GBA)
 		{
-			name = (textBlock + (nameOffset - m_Infos[m_InfoIndex].m_StartBlock));
+			uint32_t nameOffset = curData[0] + addr;			
+
+			if (IsInsideBlock(nameOffset))
+			{
+				itens[i].SetName(textBlock + (nameOffset - m_Infos[m_InfoIndex].m_StartBlock));
+			}
+			else
+			{								
+				rom.Seek(nameOffset);
+				std::string name = rom.ReadString();
+				table.Input(name);
+				itens[i].SetName(name);
+			}			
+
+			uint16_t id = *(uint16_t*)(curData + m_Infos[m_InfoIndex].m_IdIndex);
+
+			uint32_t offset3 = (rom.ReadUInt16((rom.ReadUInt16(((id << 2) + m_Adresses[0]) + 2) << 2) + m_Adresses[1]) << 4) + m_Adresses[2]; //It's crazy, isn't? There are more!
+			uint32_t image = (rom.ReadUInt16(offset3 + 6) << 5) + m_Adresses[3]; //O.o There is more yet!
+			uint32_t palette = (rom.ReadUInt16(offset3 + 0x0a) << 5) + m_Adresses[4]; //Phew...
+
+			itens[i].SetImgAdress(image);
+			itens[i].SetPalAdress(palette);
 		}
-		else
-		{
-			rom.Seek(nameOffset);
-			name = rom.ReadString();
-		}
+
+		uint32_t descriptionOffset = curData[m_Infos[m_InfoIndex].m_DescriptionIndex] + addr;		
+
 		if (IsInsideBlock(descriptionOffset))
 		{
-			description = (textBlock + (descriptionOffset - m_Infos[m_InfoIndex].m_StartBlock));
+			itens[i].SetDescription((textBlock + (descriptionOffset - m_Infos[m_InfoIndex].m_StartBlock)));
 		}
 		else
 		{
 			rom.Seek(descriptionOffset);
-			description = rom.ReadString();
+			std::string description = rom.ReadString();
+			table.Input(description);
+			itens[i].SetDescription(description);
 		}
-
-		itens[i].SetName(name);
-		itens[i].SetDescription(description);
-
-		uint16_t id = *(uint16_t*)(curData + m_Infos[m_InfoIndex].m_IdIndex);
-
-		uint32_t offset3 = (rom.ReadUInt16((rom.ReadUInt16(((id << 2) + m_Adresses[0]) + 2) << 2) + m_Adresses[1]) << 4) + m_Adresses[2]; //It's crazy, isn't? There are more!
-		uint32_t image = (rom.ReadUInt16(offset3 + 6) << 5) + m_Adresses[3]; //O.o There is more yet!
-		uint32_t palette = (rom.ReadUInt16(offset3 + 0x0a) << 5) + m_Adresses[4]; //Phew...
-
-		itens[i].SetImgAdress(image);
-		itens[i].SetPalAdress(palette);
 	}
 
 	delete[] textBlock;
@@ -193,6 +208,18 @@ void ItemEditor::GetItensInfos()
 			m_Adresses[2] = 0x66805c;
 			m_Adresses[3] = 0x66a2cc;
 			m_Adresses[4] = 0x676dd0;
+		}
+	} 
+	else if (m_RomOriginal.Console == console::DS)
+	{
+		m_Infos.push_back(ItemInfo("Every", 1, 0, 0));
+
+		if (m_RomOriginal.Id == id::DS)
+		{
+			m_Infos[0].m_StartPointers = 0x116D204;
+			m_Infos[0].m_Count = 0x1bc;
+			m_Infos[0].m_StartBlock = 0x116D8F4;
+			m_Infos[0].m_BlockLenght = 0x5E64;
 		}
 	}
 }

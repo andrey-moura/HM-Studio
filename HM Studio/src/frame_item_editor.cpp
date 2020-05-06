@@ -10,22 +10,29 @@ ItemEditorFrame::~ItemEditorFrame()
 }
 
 void ItemEditorFrame::UpdateItem()
-{	
-	std::string name = m_Editor.GetName(false);
-	m_pOrigItemName->SetLabel(name);
+{		
+	if (m_RomOriginal.Console == console::GBA)
+	{
+		m_pOrigItemName->SetLabel(m_Editor.GetName(false));
+	}
+
 	m_pOrigItemDescription->SetLabel(m_Editor.GetDescription(false));
 
-	m_pItemName->SetLabel(m_Editor.GetName(true));
-	
+	if (m_RomOriginal.Console == console::GBA)
+	{
+		m_pItemName->SetLabel(m_Editor.GetName(true));
+	}
+
 	m_pItemText->SetText(m_Editor.GetDescription(true));
 
-	m_Graphics.SetImgOffset(m_Editor.GetImgAdress(true));
-
-	if (m_Graphics.GetPalOffset() != m_Editor.GetPalAdress(true))
+	if (m_RomOriginal.Console == console::GBA)
+	{
+		m_Graphics.SetImgOffset(m_Editor.GetImgAdress(true));
 		m_Graphics.SetPalOffset(m_Editor.GetPalAdress(true));
 
-	m_Graphics.LoadFromRom(m_RomTranslated);
-	m_pItemIconView->SetGraphics(&m_Graphics);
+		m_Graphics.LoadFromRom(m_RomTranslated);
+		m_pItemIconView->SetGraphics(&m_Graphics);
+	}	
 }
 
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
@@ -57,9 +64,9 @@ void ItemEditorFrame::OnPrevClick(wxCommandEvent& event)
 
 void ItemEditorFrame::CreateGUIControls()
 {
-//*******************************************************************************//
-//										MENU
-//*******************************************************************************//
+	//*******************************************************************************//
+	//										MENU
+	//*******************************************************************************//
 
 	SetFont(Studio::GetDefaultFont());
 
@@ -79,7 +86,9 @@ void ItemEditorFrame::CreateGUIControls()
 
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
-	m_pItemName = new wxTextCtrl(this, wxID_ANY);
+	if (m_RomOriginal.Console == console::GBA)
+		m_pItemName = new wxTextCtrl(this, wxID_ANY);
+	
 	m_pItemText = new STC(this, wxID_ANY);
 	m_pItemText->SetMaxLineLenght(28);
 
@@ -87,7 +96,7 @@ void ItemEditorFrame::CreateGUIControls()
 
 	wxSize buttons_size(0, 0);
 	buttons_size.SetWidth(m_pSaveText->GetTextExtent(_("Save")).GetWidth() * 2);
-	buttons_size.SetHeight(m_pSaveText->GetSize().GetHeight());	
+	buttons_size.SetHeight(m_pSaveText->GetSize().GetHeight());
 
 	m_pSaveText->SetMinSize(buttons_size);
 	m_pPrevText = new wxButton(this, wxID_ANY, "<<");
@@ -104,7 +113,8 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pGUI_navigationSizer->AddSpacer(4);
 	m_pGUI_navigationSizer->Add(m_pProxText, 0, 0, 0);
 
-	m_pOrigItemName = new wxStaticText(this, wxID_ANY, "");	
+	if (m_RomOriginal.Console == console::GBA)
+		m_pOrigItemName = new wxStaticText(this, wxID_ANY, "");
 
 	m_pOrigItemDescription = new wxStaticText(this, wxID_ANY, "");
 
@@ -114,7 +124,8 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemIconView->SetScale(4);
 
 	wxBoxSizer* sizer10 = new wxBoxSizer(wxVERTICAL);
-	sizer10->Add(m_pOrigItemName, 0, wxALL, 4);
+	if (m_RomOriginal.Console == console::GBA)
+		sizer10->Add(m_pOrigItemName, 0, wxALL, 4);
 	sizer10->Add(m_pOrigItemDescription, 0, wxALL, 4);	
 
 	m_pOrigBox = new wxStaticBox(this, wxID_ANY, "Original");
@@ -123,8 +134,10 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pOrigBoxSizer->AddStretchSpacer(1);
 	m_pOrigBoxSizer->Add(m_pItemIconView);
 
-	m_pRootSizer = new wxBoxSizer(wxVERTICAL);	
-	m_pRootSizer->Add(m_pItemName, 0, wxALL | wxEXPAND, 4);
+	m_pRootSizer = new wxBoxSizer(wxVERTICAL);
+
+	if (m_RomOriginal.Console == console::GBA)
+		m_pRootSizer->Add(m_pItemName, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pItemText, 1, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pGUI_navigationSizer, 0, wxALL | wxEXPAND, 4);	
 	m_pRootSizer->Add(m_pOrigBoxSizer, 0, wxALL | wxEXPAND, 4);

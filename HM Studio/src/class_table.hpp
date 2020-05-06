@@ -21,6 +21,7 @@ public:
 
 	void Input(std::string& text) const;
 	void Input(std::vector<std::string>& texts) const;
+	void Input(const std::string_view& text) const;
 	void Output(std::string& text) const;
 	void Output(std::vector<std::string>& texts) const;
 };
