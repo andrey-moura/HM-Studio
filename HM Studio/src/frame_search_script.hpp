@@ -3,8 +3,6 @@
 #include <wx/wx.h>
 #include <wx/notebook.h>
 
-#include "Studio.h"
-
 class FrameSearchScript : public wxDialog
 {
 public:

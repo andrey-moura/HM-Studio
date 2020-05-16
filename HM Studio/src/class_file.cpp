@@ -6,8 +6,9 @@ std::vector<uint8_t> File::ReadAllBytes(const std::string &path)
 
 	wxFile file;
 
-	if (OpenIfExists(file, path))
+	if (file.Exists(path))
 	{
+		file.Open(path);
 		size_t size = file.Length();
 		vector.resize(size);
 
@@ -24,8 +25,9 @@ size_t File::ReadAllBytes(const std::string& path, void** bytes)
 
 	size_t size = 0;
 
-	if (OpenIfExists(file, path))
+	if (file.Exists(path))
 	{
+		file.Open(path);
 		size = file.Length();;
 		*bytes = malloc(size);
 		file.Read(*bytes, size);
@@ -56,8 +58,9 @@ std::string File::ReadAllText(const std::string& path)
 
 	wxFile file;
 
-	if (OpenIfExists(file, path))
+	if (file.Exists(path))
 	{
+		file.Open(path);
 		size_t size = file.Length();
 		s.resize(size);
 
@@ -77,26 +80,19 @@ void File::AppendLine(const std::string& path, const std::string& line)
 {
 	wxFile file;
 
-	if (OpenIfExists(file, path))
+	if (!file.Exists(path))
 	{
-		file.SeekEnd(0);
-
-		if (file.Length() > 0)
-			file.Write("\\r\n");
-
-		file.Write(line.data(), line.size());
-	}
-}
-
-bool File::OpenIfExists(wxFile& file, const std::string& path)
-{
-	if (wxFile::Exists(path))
-	{
-		file.Open(path, wxFile::OpenMode::read_write);
-		return true;
+		file.Create(path, true);
 	}
 
-	return false;
+	file.Open(path, wxFile::OpenMode::read_write);	
+	
+	file.SeekEnd(0);
+
+	if (file.Length() > 0)
+		file.Write("\r\n");
+
+	file.Write(line.data(), line.size());
 }
 
 void File::CreateDir(const std::string& path)

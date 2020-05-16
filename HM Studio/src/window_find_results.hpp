@@ -6,8 +6,6 @@
 #include <wx/stc/stc.h>
 #include <wx/sizer.h>
 
-#include "Studio.h"
-
 #define BACKGROUND_SUBTITLE wxColour(187, 187, 255)
 #define FOREGROUND_SUBTITLE wxColour(0, 0, 128)
 

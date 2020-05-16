@@ -45,8 +45,9 @@ public:
 	uint32_t GetImgAdress(bool translated) const;
 	uint32_t GetPalAdress(bool translated) const;
 
-private:
 	void GetItensInfos();
+	const std::vector<ItemInfo> GetInfos() { return m_Infos; }
+private:
 	void GetItens(bool translated);
 
 	bool IsInsideBlock(uint32_t offset);

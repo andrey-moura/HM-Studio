@@ -17,7 +17,7 @@ bool App::OnInit()
 	
 	SetTopWindow(frame);
 
-	wxImage::AddHandler(new wxPNGHandler());
+	wxImage::AddHandler(new wxPNGHandler());	
 
 	return true;
 }

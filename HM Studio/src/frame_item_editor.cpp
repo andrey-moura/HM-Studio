@@ -66,21 +66,21 @@ void ItemEditorFrame::CreateGUIControls()
 {
 	//*******************************************************************************//
 	//										MENU
-	//*******************************************************************************//
-
-	SetFont(Studio::GetDefaultFont());
+	//*******************************************************************************//	
 
 	wxMenuBar* menu = new wxMenuBar();
 
 	wxMenu* menuFile = new wxMenu();
-	menuFile->Append(wxID_FILE1, "Tool");
-	menuFile->Append(wxID_FILE2, "Fridge");
-	menuFile->Append(wxID_FILE3, "Shelf");
 
-	menu->Append(menuFile, "File");
-	menu->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE1);
-	menu->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE2);
-	menu->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE3);
+    const std::vector<ItemInfo> infos = m_Editor.GetInfos();
+
+	for (size_t i = 0; i < infos.size(); ++i)
+	{
+		menuFile->Append(wxID_FILE1 + i, infos[i].m_Name);
+		menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE1 + i);
+	}	
+
+	menu->Append(menuFile, "File");	
 
 	SetMenuBar(menu);
 

@@ -98,12 +98,10 @@ void FindResultsWindow::CreateGUIControls()
 	m_ListView->MarkerDefine(MARK_SUBTITLE, wxSTC_MARK_BACKGROUND, wxNullColour, BACKGROUND_SUBTITLE);
 	m_ListView->MarkerDefine(MARK_RESULTTITLE, wxSTC_MARK_BACKGROUND, wxNullColour, BACKGROUND_RESULTTITLE);
 	
-	m_ListView->StyleSetForeground(STYLE_SUBTITLE, FOREGROUND_SUBTITLE);
-	m_ListView->StyleSetFont(STYLE_SUBTITLE, Studio::GetDefaultFont());
+	m_ListView->StyleSetForeground(STYLE_SUBTITLE, FOREGROUND_SUBTITLE);	
 	//m_ListView->StyleSetBold(STYLE_SUBTITLE, true);
 
-	m_ListView->StyleSetForeground(STYLE_RESULTTITLE, FOREGROUND_RESULTTITLE);
-	m_ListView->StyleSetFont(STYLE_RESULTTITLE, Studio::GetDefaultFont());
+	m_ListView->StyleSetForeground(STYLE_RESULTTITLE, FOREGROUND_RESULTTITLE);	
 	//m_ListView->StyleSetBold(STYLE_RESULTTITLE, true);
 
 	m_ListView->Bind(wxEVT_STC_DOUBLECLICK, &FindResultsWindow::OnDoubleClick, this);

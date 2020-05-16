@@ -83,20 +83,3 @@ void StringUtil::Replace(std::string& string, const char& find, const char& repl
 		pos = string.find(find, pos + 1);
 	}
 }
-
-void StringUtil::ReplaceMatching(const char& find, const char& replace, std::string& string, bool first)
-{
-	size_t pos = string.find(find);
-
-	bool replaceNow = first;
-
-	while (pos != std::string::npos)
-	{
-		if (replaceNow)
-			string[pos] = replace;
-
-		replaceNow = !replaceNow;
-
-		pos = string.find(find, pos + 1);
-	}
-}

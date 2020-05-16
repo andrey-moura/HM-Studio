@@ -43,6 +43,7 @@
     <ClCompile Include="src\class_graphics_editor.cpp" />
     <ClCompile Include="src\class_item_editor.cpp" />
     <ClCompile Include="src\class_stop_watch.cpp" />
+    <ClCompile Include="src\class_var_table.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
     <ClCompile Include="src\class_letter.cpp" />
@@ -66,10 +67,7 @@
     <ClCompile Include="src\frame_text_block_editor.cpp" />
     <ClCompile Include="src\namespace_math.cpp" />
     <ClCompile Include="src\palctrl.cpp" />
-    <ClCompile Include="src\Studio.cpp" />
-    <ClCompile Include="src\tabctrl.cpp" />
     <ClCompile Include="src\window_find_results.cpp" />
-    <ClCompile Include="src\wxUtil\wxRefereceCheckBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame_save_editor.hpp" />
@@ -81,6 +79,7 @@
     <ClInclude Include="src\class_graphics_editor.hpp" />
     <ClInclude Include="src\class_item_editor.hpp" />
     <ClInclude Include="src\class_stop_watch.hpp" />
+    <ClInclude Include="src\class_var_table.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
     <ClInclude Include="src\class_letter.hpp" />
@@ -106,10 +105,7 @@
     <ClInclude Include="src\class_rom_file.hpp" />
     <ClInclude Include="src\class_script.hpp" />
     <ClInclude Include="src\class_stc.hpp" />
-    <ClInclude Include="src\Studio.h" />
-    <ClInclude Include="src\tabctrl.hpp" />
     <ClInclude Include="src\window_find_results.hpp" />
-    <ClInclude Include="src\wxUtil\wxRefereceCheckBox.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -203,42 +199,42 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio(d)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio(d)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)../../</OutDir>
+    <OutDir>../../../</OutDir>
     <TargetName>HM Studio</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

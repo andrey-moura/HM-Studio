@@ -14,7 +14,6 @@
 
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
-#include "Studio.h"
 #include "class_stc.hpp"
 #include "class_file.hpp"
 #include "class_util_string.hpp"

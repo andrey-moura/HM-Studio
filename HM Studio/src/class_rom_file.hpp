@@ -9,6 +9,7 @@
 #include "class_file.hpp"
 #include "class_util_string.hpp"
 #include "class_table.hpp"
+#include "class_var_table.hpp"
 #include "class_script.hpp"
 #include "class_stop_watch.hpp"
 
@@ -38,14 +39,19 @@ public:
 	std::string m_Dir;
 	std::string Name;
 	std::string State;
+	std::string m_EOL;
+//Table
+private:
+	Table m_Table;
+	VarTable m_VarTable;
 
-	Table m_Table;	
+	void SetupVars();
 public:
 	std::string GetTablePath();
 	inline const Table& GetTable() const { return m_Table; }
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);
-	void BackupRom(const std::string& inform);				
+	void BackupRom(const std::string& inform);			
 //File
 public:
 	//void ReadInt32(uint32_t& value);

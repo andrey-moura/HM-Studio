@@ -1,26 +1,107 @@
 #include "class_spell_checker.hpp"
 
-#ifdef USESPELL
-SpellChecker::SpellChecker(const std::string& language, const std::string& dicsFolder) : m_Language(language), Hunspell("", "")
+std::string SpellChecker::m_Language = LANG;
+std::string SpellChecker::m_UserDics;
+bool SpellChecker::m_sInitialized = false;
+Hunspell* SpellChecker::m_Hunspell = nullptr;
+
+#ifdef _DEBUG
+void SpellChecker::Initialize() {}
+
+void SpellChecker::AddUserDic(const std::string& path) {}
+
+void SpellChecker::AddToTemp(const std::string& string) {}
+
+bool SpellChecker::Spell(const std::string& string) { return true; }
+
+std::vector<std::string> SpellChecker::Suggest(const std::string& string) { return std::vector<std::string>(); }
+
+void SpellChecker::AddToUser(const std::string& string) {}
+
+const std::string& SpellChecker::GetWordChars() { return m_UserDics; }
+#else
+void SpellChecker::Initialize()
 {
-	m_FileName.SetPath(dicsFolder);
-	m_FileName.SetName(m_Language);
+	wxFileName fileName(wxStandardPaths::Get().GetExecutablePath());
+	fileName.AppendDir("SpellChecker");
 
-	m_FileName.SetExt("aff");
-	std::string affDir = m_FileName.GetFullPath().ToStdString();
+	fileName.SetName(m_Language);
+	fileName.SetExt("aff");
 
-	m_FileName.SetExt("dic");
-	std::string dicDir = m_FileName.GetFullPath().ToStdString();
+	std::string affDir = fileName.GetFullPath().ToStdString();
 
-	m_FileName.SetExt("usr");
+	fileName.SetExt("dic");
+	std::string dicDir = fileName.GetFullPath().ToStdString();
 
-	Hunspell(affDir.c_str(), dicDir.c_str());
-		
-	add_dic(m_FileName.GetFullPath().ToStdString().c_str());
+	if (m_Hunspell != nullptr)
+		delete m_Hunspell;
+
+	m_Hunspell = new Hunspell(affDir.c_str(), dicDir.c_str());
+
+	fileName.RemoveLastDir();
+	fileName.AppendDir("HM Studio");
+	fileName.AppendDir("Dics");
+	fileName.SetExt("usr");
+
+	AddUserDic(fileName.GetFullPath().ToStdString());
+	AddToTemp("PlayerName");		
+
+	m_Language = m_Hunspell->get_wordchars_cpp();
+
+	m_sInitialized = true;
 }
 
-void SpellChecker::add_to_user(const std::string& word)
-{
-	File::AppendLine(m_FileName.GetFullPath().ToStdString(), word);
+const std::string& SpellChecker::GetWordChars()
+{	
+	return m_Hunspell->get_wordchars_cpp();
 }
-#endif // USESPELL
+
+void SpellChecker::AddUserDic(const std::string& path)
+{
+	m_UserDics = path;
+
+	std::string file = File::ReadAllText(path);
+
+	if (file.empty())
+		return;
+
+	auto lines = StringUtil::SplitLines(file);
+
+	if (lines.empty())
+		return;
+
+	for (const std::string_view& line : lines)
+	{
+		if (line.empty())
+			continue;
+
+		m_Hunspell->add(std::string(line));
+	}		
+}
+
+void SpellChecker::AddToUser(const std::string& string)
+{
+	if (string.empty())
+		return;
+
+	File::AppendLine(m_UserDics, string);
+
+	m_Hunspell->add(string);
+}
+
+void SpellChecker::AddToTemp(const std::string& string)
+{
+	m_Hunspell->add(string);
+}
+
+bool SpellChecker::Spell(const std::string& string)
+{
+	return m_Hunspell->spell(string);
+}
+
+std::vector<std::string> SpellChecker::Suggest(const std::string& string)
+{
+	return m_Hunspell->suggest(string);
+}
+
+#endif

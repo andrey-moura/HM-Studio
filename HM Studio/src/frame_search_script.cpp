@@ -1,6 +1,6 @@
 #include "frame_search_script.hpp"
 
-FrameSearchScript::FrameSearchScript() : wxDialog(nullptr, wxID_ANY, _("Search"))
+FrameSearchScript::FrameSearchScript() : wxDialog(nullptr, wxID_ANY, "Search")
 {
 	this->SetSize(wxSize(600, 200));
 	CreateGUIControls();
@@ -45,9 +45,7 @@ void FrameSearchScript::OnReplaceAllClick(wxCommandEvent& event)
 }
 
 void FrameSearchScript::CreateGUIControls()
-{
-	this->SetFont(Studio::GetDefaultFont());
-	
+{		
 	wxStaticText* findLabel = new wxStaticText(this, wxID_ANY, _("Find What:   "));
 	
 	m_pInputFind = new wxTextCtrl(this, wxID_ANY);

@@ -14,7 +14,6 @@
 #include "class_script_editor.hpp"
 #include "class_rom_file.hpp"
 #include "class_file.hpp"
-#include "Studio.h"
 
 class TextFromScriptDialog : public wxDialog
 {

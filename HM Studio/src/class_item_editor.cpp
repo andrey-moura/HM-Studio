@@ -82,8 +82,9 @@ void ItemEditor::GetItens(bool translated)
 
 	rom.Seek(m_Infos[m_InfoIndex].m_StartPointers);
 	rom.Read(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
-	
-	table.Input(std::string_view(textBlock, m_Infos[m_InfoIndex].m_BlockLenght));		
+
+	const Table& table = rom.GetTable();
+	table.Input(std::string_view(textBlock, m_Infos[m_InfoIndex].m_BlockLenght));	
 
 	int32_t addr = 0;
 

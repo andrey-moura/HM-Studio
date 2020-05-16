@@ -36,9 +36,11 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	{
 	case console::GBA:
 		path.SetExt("gba");
+		m_EOL = "\r\n";
 		break;
 	case console::DS:
 		path.SetExt("nds");
+		m_EOL = "\n";
 		break;
 	default:
 		break;
@@ -51,6 +53,7 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	this->Open(Path, wxFile::read_write);
 
 	m_Table.OpenFile(GetTablePath());
+	SetupVars();
 }
 
 std::string RomFile::GetTablePath()
@@ -64,172 +67,55 @@ std::string RomFile::GetTablePath()
 	return fileName.GetFullPath().ToStdString();
 }
 
+void RomFile::SetupVars()
+{
+	if (Console == console::GBA)
+	{
+		m_VarTable.SetVarSize(12);
+
+		m_VarTable.Reserve(6);
+		m_VarTable.Append('!', "<PlayerName>");
+		m_VarTable.Append('$', "<Ranch-Name>");
+		m_VarTable.Append('%', "<AnimalName>");
+		m_VarTable.Append(')', "<CustomName>");
+		m_VarTable.Append('*', "<Child-Name>");
+		m_VarTable.Append('"', "<Horse-Name>");
+	}
+	else if (Console == console::DS)
+	{
+		m_VarTable.SetVarSize(8);
+
+		m_VarTable.Reserve(1);
+		m_VarTable.Append('$', "<Player>");		
+	}
+}
+
 void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 {
-	std::vector<std::string> raw;
-	std::vector<std::string> spaced;
-	std::vector<std::string> var;
+	StopWatch watch;
+	watch.Start();
 
-	std::string endLine;
-
-	switch (Console)
-	{
-	case console::GBA:
-		raw.push_back("ÿ!");
-		raw.push_back("ÿ#");
-		raw.push_back("ÿ%");
-		raw.push_back("ÿ\'");
-		raw.push_back("ÿ)");
-		raw.push_back("ÿ*");
-		raw.push_back("ÿ,");
-		raw.push_back("ÿ-");
-		raw.push_back("ÿ+");
-
-		spaced.push_back(" PlayerName ");
-		spaced.push_back(" FarmName   ");
-		spaced.push_back(" AnimalName ");
-		spaced.push_back(" Variable02 ");
-		spaced.push_back(" CustomName ");
-		spaced.push_back(" InfantName ");
-		spaced.push_back(" ValleyName ");
-		spaced.push_back(" ValleyBaby ");
-		spaced.push_back(" ValleyFarm ");
-
-		var.push_back("<PlayerName>");
-		var.push_back("<FarmName  >");
-		var.push_back("<AnimalName>");
-		var.push_back("<Variable02>");
-		var.push_back("<CustomName>");
-		var.push_back("<InfantName>");
-		var.push_back("<ValleyName>");
-		var.push_back("<ValleyBaby>");
-		var.push_back("<ValleyFarm>");
-
-		endLine = "\r\n";
-		break;
-	case console::DS:
-		raw.push_back("ÿ$");
-
-		spaced.push_back("Player");
-
-		var.push_back("<Player>");
-
-		endLine = "\n";
-		break;
-	default:
-		return;
-	}	
+	m_VarTable.Input(text, m_Table);	
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		for (int z = 0; z < var.size(); ++z)
-		{
-			StringUtil::Replace(raw[z], spaced[z], text[i]);
-		}		
-	}		
-
-	m_Table.Input(text);
-
-	std::string hex050c;
-	hex050c.append(1, 0x05);
-	hex050c.append(1, 0x0c);
-
-	for (size_t i = 0; i < text.size(); ++i)
-	{
-		for (int z = 0; z < var.size(); ++z)
-		{
-			StringUtil::Replace(spaced[z], var[z], text[i]);
-		}		
-
-		StringUtil::Replace(hex050c, hex050c + endLine, text[i]);
+		StringUtil::Replace("\5\f", "\5\f" + m_EOL, text[i]);
 	}
+
+	watch.Stop();
+	auto time = watch.Elapsed();
+
+	printf(std::to_string(time).c_str());
 }
 
 void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 {
-	std::vector<std::string> raw;
-	std::vector<std::string> spaced;
-	std::vector<std::string> var;
+	m_VarTable.Output(text, m_Table);
 
-	std::string endLine;
-
-	switch (Console)
+	for (size_t i = 0; i < text.size(); ++i)
 	{
-	case console::GBA:
-		raw.push_back("ÿ!");
-		raw.push_back("ÿ#");
-		raw.push_back("ÿ%");
-		raw.push_back("ÿ\'");
-		raw.push_back("ÿ)");
-		raw.push_back("ÿ*");
-		raw.push_back("ÿ,");
-		raw.push_back("ÿ-");
-		raw.push_back("ÿ+");
-
-		spaced.push_back(" PlayerName ");
-		spaced.push_back(" FarmName   ");
-		spaced.push_back(" AnimalName ");
-		spaced.push_back(" Variable02 ");
-		spaced.push_back(" CustomName ");
-		spaced.push_back(" InfantName ");
-		spaced.push_back(" ValleyName ");
-		spaced.push_back(" ValleyBaby ");
-		spaced.push_back(" ValleyFarm ");
-
-		var.push_back("<PlayerName>");
-		var.push_back("<FarmName  >");
-		var.push_back("<AnimalName>");
-		var.push_back("<Variable02>");
-		var.push_back("<CustomName>");
-		var.push_back("<InfantName>");
-		var.push_back("<ValleyName>");
-		var.push_back("<ValleyBaby>");
-		var.push_back("<ValleyFarm>");
-
-		endLine = "\r\n";
-		break;
-	case console::DS:
-		raw.push_back("ÿ$");		
-
-		spaced.push_back("Player");		
-
-		var.push_back("<Player>");
-
-		endLine = "\n";
-		break;
-	default:
-		return;
+		StringUtil::Replace("\5\f" + m_EOL, "\5\f", text[i]);
 	}
-
-	std::string hex050c;
-	hex050c.append(1, 0x05);
-	hex050c.append(1, 0x0c);
-
-	for (size_t i = 0; i < text.size(); ++i)
-	{		
-		for (size_t z = 0; z < var.size(); ++z)
-		{
-			StringUtil::Replace(var[z], spaced[z], text[i]);
-		}		
-
-		StringUtil::Replace(hex050c + endLine, hex050c, text[i]);		
-	}	
-
-	m_Table.Output(text);
-
-	for (size_t i = 0; i < text.size(); ++i)
-	{
-		if (Console == console::GBA)
-		{
-			StringUtil::ReplaceMatching('\"', 0xcf, text[i], false);
-			StringUtil::ReplaceMatching('\'', 0xd0, text[i], true);
-		}		
-
-		for (int z = 0; z < var.size(); ++z)
-		{
-			StringUtil::Replace(spaced[z], raw[z], text[i]);
-		}
-	}	
 }
 
 int8_t RomFile::ReadInt8()

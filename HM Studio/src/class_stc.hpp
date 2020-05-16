@@ -14,37 +14,22 @@
 #include <wx/timer.h>
 #include <wx/menu.h>
 
-#ifdef USESPELL
-#define HUNSPELL_STATIC
-#include <hunspell.hxx>
-#endif
-
-#include "Studio.h"
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
+
+#include "class_spell_checker.hpp"
 
 class STC : public wxStyledTextCtrl
 {
 public:
 	STC(wxWindow* parent, wxWindowID id);
-	~STC();
+	~STC() = default;
 public:
 	void SetMaxLineLenght(size_t lenght) { m_MaxLineLenght = lenght; }
 	void AddVar(const std::string& var) { m_Vars.push_back(var); }
-
+	void ConvertSelToUpperLower(bool upper);
 	bool UserCanAddLine() { return m_UserCanAddLine; }
-	void SetUserCanAddLine(bool can);
-private:
-	wxMenu* m_pMenu = nullptr;
-	const size_t m_MenuSize = 5;
-	std::vector<size_t> m_MenuIds;
-
-	std::pair<size_t, size_t> m_ClickedWord;
-public:
-	void ShowMenu(wxPoint point);
-	void SuggestToMenu(wxPoint point);
-private:	
-	void OnMenuClick(wxCommandEvent& event);
+	void SetUserCanAddLine(bool can);	
 private:
 	bool m_UserCanAddLine = true;
 
@@ -73,16 +58,10 @@ public:
 public:
 	void SetEOLMode(int eol);
 	wxString GetEOL();
-#ifdef USESPELL
 private:	
-	bool m_NeedToSpell = false;
-	Hunspell* m_Hunspell = nullptr;
-	bool m_DeleteHunspell;
+	bool m_NeedToSpell = false;	
 
-	inline void SpellSTC();
-public:
-	void SetHunspell(Hunspell* hunspell, bool canDelete = true);
-#endif
+	inline void SpellSTC(size_t start, size_t end);
 public:
 	inline void Highlight(size_t start, size_t lenght, int style);
 	inline void HighlightAll(const std::vector<size_t>& indexes, size_t lenght, int style);
@@ -92,6 +71,19 @@ private:
 	inline void VerifyLineLenghtFromPos(size_t from, size_t to);
 	inline void VerifyCurLineLenght();			
 	inline void FindAndStyleAllVars(size_t start, size_t end);
+//Menu	
+private:
+	wxMenu* m_pMenu = nullptr;
+	size_t m_MenuSize;
+
+	std::pair<size_t, size_t> m_ClickedWord;
+	
+	size_t m_ID_UPPER;
+	size_t m_ID_LOWER;
+public:
+	void ShowMenu(wxPoint point);
+	void SuggestToMenu(wxPoint point);
+	void ClearSuggestions();
 //Events
 private:
 	void OnKeyPress(wxKeyEvent& event);
@@ -99,6 +91,10 @@ private:
 	void OnModified(wxStyledTextEvent& event);	
 	void OnMouseRight(wxMouseEvent& event);
 	void OnTimer(wxTimerEvent& event);
+	void OnUpperLowerCaseClick(wxCommandEvent& event);	
+	void OnSuggestionClick(wxCommandEvent& event);
+	void OnAddToUserClick(wxCommandEvent& event);
+	void OnAddToTempClick(wxCommandEvent& event);	
 private:
 	static wxBitmap m_sIconError;
 private:

@@ -3,11 +3,7 @@
 cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true), m_Editor(romOriginal, romTranslated)
 {
 	CreateGUIControls();
-	SetupRom();
-	
-#ifdef USESPELL
-	tScriptTranslated->SetHunspell(Studio::GetHunspell(), false);
-#endif
+	SetupRom(); 
 }
 
 cScriptEditor::~cScriptEditor()
@@ -31,13 +27,15 @@ void cScriptEditor::SetupRom()
 	{
 		std::vector<std::string> vars;
 		vars.push_back("<PlayerName>");
+		vars.push_back("<Ranch-Name>");
 		vars.push_back("<AnimalName>");
 		vars.push_back("<Variable02>");
 		vars.push_back("<CustomName>");
-		vars.push_back("<InfantName>");
+		vars.push_back("<Child-Name>");
 		vars.push_back("<ValleyName>");
 		vars.push_back("<ValleyBaby>");
 		vars.push_back("<ValleyFarm>");
+		vars.push_back("<Horse-Name>");
 		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptOriginal);
 		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptTranslated);
 		break;
@@ -475,8 +473,6 @@ void cScriptEditor::UpdateText()
 void cScriptEditor::CreateGUIControls()
 {
 	this->SetBackgroundColour(wxColour(240, 240, 240));
-//	this->SetBackgroundColour(Studio::GetFrameColour());
-	this->SetForegroundColour(Studio::GetFontColour());
 
 	/******************************
 
@@ -900,10 +896,6 @@ DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID
 
 void DialogTextRange::CreateGUIControls()
 {
-	this->SetFont(Studio::GetDefaultFont());
-	//this->SetForegroundColour(Studio::GetFontColour());	
-	//this->SetBackgroundColour(Studio::GetFrameColour());
-
 	wxStaticText* dialogLabelFrom = new wxStaticText(this, wxID_ANY, "From:  ");
 	dialogInputFrom = new wxTextCtrl(this, wxID_ANY);
 

@@ -7,24 +7,21 @@ static uint8_t* error_alpha = new uint8_t[256]{ 0x00, 0x00, 0x00, 0x01, 0x33, 0x
 wxBitmap STC::m_sIconError(wxImage(16, 16, error_rgb, error_alpha, true));
 
 STC::STC(wxWindow* parent, wxWindowID id) : wxStyledTextCtrl(parent, id)
-#ifdef USESPELL
-, m_Timer()
-#endif
 {
+	SetFont(wxFontInfo(10).FaceName("Courier New"));
 	CreateGUI();
 	DoBinds();
 
-#ifdef USESPELL
 	m_Timer.Start(m_TimeToType);
-#endif
-}
 
-STC::~STC()
-{
-#ifdef USESPELL
-	if (m_DeleteHunspell)
-		delete m_Hunspell;
-#endif
+	if (!SpellChecker::m_sInitialized)
+	{
+		SpellChecker::Initialize();
+	}
+
+	std::string chars = SpellChecker::GetWordChars();
+	chars.append(1, '-');
+	SetWordChars(chars);
 }
 
 inline void STC::VerifyLineLenght(size_t line)
@@ -157,29 +154,20 @@ void STC::OnStyleNeeded(wxStyledTextEvent& event)
 	event.Skip();
 }
 
-#ifdef USESPELL
-inline void STC::SpellSTC()
+void STC::SpellSTC(size_t start, size_t end)
 {
-	if (m_Hunspell == nullptr)
-		return;
-
-	if (!m_NeedToSpell)
-		return;
-
-	m_NeedToSpell = false;
-
 	if (GetTextLength() <= 1) //no needs to spell
 		return;
 
 	SetIndicatorCurrent(STC_INDIC_SPELL);	
 
-	size_t start = WordStartPosition(m_TypingStart, true);
+	start = WordStartPosition(start, true);
 
-	IndicatorClearRange(start, WordEndPosition(m_TypingEnd, true) - start);	
+	IndicatorClearRange(start, WordEndPosition(end, true) - start);	
 
 	size_t curPosition = start;
 
-	while (curPosition < m_TypingEnd)
+	while (curPosition < end)
 	{
 		size_t wordStart = WordStartPosition(curPosition, true);
 		size_t wordEnd = WordEndPosition(curPosition, true);
@@ -193,11 +181,10 @@ inline void STC::SpellSTC()
 		if (word.size() < 2)
 			continue;
 		
-		if (!m_Hunspell->spell(word))
+		if (!SpellChecker::Spell(word))
 			IndicatorFillRange(wordStart, wordSize);
 	}
 }
-#endif
 
 //-------------------------------------------------------------------------------------//
 //Events
@@ -209,7 +196,6 @@ void STC::OnModified(wxStyledTextEvent& event)
 
 	bool deletedAll = false;
 
-#ifndef _DEBUG
 	if (event.m_modificationType & wxSTC_MOD_BEFOREDELETE) //user deleted the text
 	{
 		if (textLenght == GetTextLength()) //and actually all the text
@@ -221,7 +207,6 @@ void STC::OnModified(wxStyledTextEvent& event)
 			}
 		}
 	}
-#endif // !1
 
 	if (!deletedAll)
 	{				
@@ -231,10 +216,7 @@ void STC::OnModified(wxStyledTextEvent& event)
 		{
 			m_TypingStart = textPos;
 			m_TypingEnd = textPos + textLenght;
-
-#ifdef USESPELL
-			m_NeedToSpell = true;
-#endif // USESPELL			
+			m_NeedToSpell = true;			
 		}
 		else
 		{
@@ -256,7 +238,6 @@ void STC::OnModified(wxStyledTextEvent& event)
 void STC::OnMouseRight(wxMouseEvent& event)
 {
 	ShowMenu(event.GetPosition());
-	//this->SetText(wxString() << PositionFromPoint(event.GetPosition()));
 	//event.Skip();
 }
 
@@ -278,23 +259,9 @@ void STC::InsertOnCtrlKey(const std::string& s, char key)
 	}
 }
 
-#ifdef USESPELL
-void STC::SetHunspell(Hunspell* hunspell, bool canDelete)
-{
-	m_DeleteHunspell = canDelete;
-
-	if (m_Hunspell != nullptr)
-		delete m_Hunspell;
-
-	m_Hunspell = hunspell;
-}
-#endif
-
 void STC::OnTimer(wxTimerEvent& event)
 {
-#ifdef USESPELL
-	SpellSTC();
-#endif // USESPELL	
+	SpellSTC(m_TypingStart, m_TypingEnd);
 	m_Typing = false;
 }
 
@@ -302,6 +269,15 @@ void STC::OnTimer(wxTimerEvent& event)
 void STC::ShowMenu(wxPoint point)
 {
 	SuggestToMenu(point);
+	
+	size_t start = GetSelectionStart();
+	size_t end = GetSelectionEnd ();
+	
+	size_t size = end - start;
+		
+	m_pMenu->Enable(m_ID_UPPER, size != 0);
+	m_pMenu->Enable(m_ID_LOWER, size != 0);
+	
 	PopupMenu(m_pMenu, point.x, point.y);
 }
 
@@ -324,15 +300,8 @@ wxString STC::GetEOL()
 
 void STC::SuggestToMenu(wxPoint point)
 {
-#ifdef USESPELL
-	//Removing old suggestions
-	for (size_t i = 0; i < m_MenuIds.size(); ++i)
-	{
-		m_pMenu->Remove(m_MenuIds[i]);
-	}
-
-	m_MenuIds.clear();
-
+	ClearSuggestions();
+	
 	if (GetTextLength() >= 2)
 	{
 		size_t position = PositionFromPoint(point);
@@ -344,41 +313,122 @@ void STC::SuggestToMenu(wxPoint point)
 			std::string s = GetTextRange(start, end).ToStdString();
 
 			if (s.size() >= 2)
-			{
-				std::vector<std::string> strings = m_Hunspell->suggest(s);
+			{				
+				std::vector<std::string> strings = SpellChecker::Suggest(s);
+				
+				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToTempClick, this, m_pMenu->Append(wxNewId(), wxString("Ignore \"") << s << "\" For Current Session")->GetId());
+				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToUserClick, this, m_pMenu->Append(wxNewId(), wxString("Add \"") << s << "\" To Dictionary")->GetId());				
+				m_pMenu->AppendSeparator();
+
+				m_ClickedWord.first = start;
+				m_ClickedWord.second = end;
 
 				if (strings.size() > 0)
 				{
-					m_MenuIds.clear();
-					m_MenuIds.reserve(strings.size() + 2);
-
-					m_MenuIds.push_back(m_pMenu->Append(wxID_EXECUTE, wxString("Ignore \"") << s << "\" For Current Session")->GetId());
-					m_MenuIds.push_back(m_pMenu->Append(wxID_EXIT, wxString("Add \"") << s << "\" To Dictionary")->GetId());
-					m_MenuIds.push_back(m_pMenu->AppendSeparator()->GetId());
-
 					for (size_t i = 0; i < strings.size(); ++i)
 					{
-						m_MenuIds.push_back(m_pMenu->Append(wxID_FILE + i, strings[i])->GetId());
+						m_pMenu->Append(wxID_FILE + i, strings[i]);
+						m_pMenu->Bind(wxEVT_MENU, &STC::OnSuggestionClick, this, wxID_FILE + i);
 					}
-
-					m_ClickedWord.first = start;
-					m_ClickedWord.second = end;
 				}
 			}
 		}
 	}
-#endif // USESPELL
 }
 
-void STC::OnMenuClick(wxCommandEvent& event)
+void STC::ClearSuggestions()
 {
-	size_t id = event.GetId();
+	std::vector<wxMenuItem*> toRemove;
+	
+	wxMenuItemList& list = m_pMenu->GetMenuItems();
 
+	if (list.size() > m_MenuSize)
+	{
+		wxMenuItem* item = list[m_MenuSize];
+
+		m_pMenu->Unbind(wxEVT_MENU, &STC::OnAddToTempClick, this, item->GetId());
+		m_pMenu->Remove(item);
+
+		item = list[m_MenuSize];
+		m_pMenu->Unbind(wxEVT_MENU, &STC::OnAddToUserClick, this, item->GetId());
+		m_pMenu->Remove(item);
+
+		item = list[m_MenuSize];
+		m_pMenu->Remove(item);
+
+		while (list.size() > m_MenuSize)
+		{
+			item = list[m_MenuSize];
+			m_pMenu->Unbind(wxEVT_MENU, &STC::OnSuggestionClick, this, item->GetId());
+			m_pMenu->Remove(item);
+		}		
+	}
+}
+
+void STC::OnSuggestionClick(wxCommandEvent& event)
+{	
 	DeleteRange(m_ClickedWord.first, m_ClickedWord.second - m_ClickedWord.first);
 	GotoPos(m_ClickedWord.first);
-	AddText(m_pMenu->FindItem(id)->GetItemLabelText());
+
+	int id = event.GetId();
+	
+	wxMenuItemList& list = m_pMenu->GetMenuItems();
+
+	for (wxMenuItem* item : list)
+	{
+		if (item->GetId() == id)
+		{
+			AddText(item->GetItemLabelText());
+			break;
+		}
+	}
 
 	event.Skip();
+}
+
+void STC::OnAddToUserClick(wxCommandEvent& event)
+{
+	std::string word = GetTextRange(m_ClickedWord.first, m_ClickedWord.second).ToStdString();
+	SpellChecker::AddToUser(word);
+
+	SpellSTC(0, GetTextLength());
+	
+	event.Skip();
+}
+
+void STC::OnAddToTempClick(wxCommandEvent& event)
+{
+	std::string word = GetTextRange(m_ClickedWord.first, m_ClickedWord.second).ToStdString();
+	SpellChecker::AddToTemp(word);
+
+	SpellSTC(0, GetTextLength());
+	
+	event.Skip();
+}
+
+void STC::OnUpperLowerCaseClick(wxCommandEvent& event)
+{
+	ConvertSelToUpperLower(event.GetId() == m_ID_UPPER);
+	event.Skip();	
+}
+
+void STC::ConvertSelToUpperLower(bool upper)
+{	
+	std::string range = GetSelectedText().ToStdString();
+	
+    char add = upper ? -32 : 32; 
+	char start = upper ? 'a' : 'A';
+	char end = upper ? 'z' : 'Z';	
+		
+	for(char& c : range)
+	{		
+		if(c >= start && c <= end)
+		{
+			c+=add;
+		}
+	}	
+	
+	ReplaceSelection(range);
 }
 
 void STC::DoBinds()
@@ -389,27 +439,18 @@ void STC::DoBinds()
 	this->Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
 
 	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
-	m_pMenu->Bind(wxEVT_MENU, &STC::OnMenuClick, this);
 }
 
 void STC::CreateGUI()
 {
 	this->SetLexer(wxSTC_LEX_CONTAINER);
 
-	//this->StyleSetBackground(STC_STYLE_TEXT, Studio::GetControlBackgroundColor());
-	//this->StyleSetBackground(STC_STYLE_VAR, Studio::GetControlBackgroundColor());
-	//this->StyleSetBackground(STC_STYLE_SIMBOL, Studio::GetControlBackgroundColor());
-	//this->StyleSetBackground(32, Studio::GetControlBackgroundColor()); //The editor background
+	this->StyleSetFont(STC_STYLE_TEXT, GetFont());
+	this->StyleSetFont(STC_STYLE_VAR, GetFont());
+	this->StyleSetFont(STC_STYLE_SIMBOL, GetFont());
 
-	this->StyleSetFont(STC_STYLE_TEXT, Studio::GetDefaultFont());
-	this->StyleSetFont(STC_STYLE_VAR, Studio::GetDefaultFont());
-	this->StyleSetFont(STC_STYLE_SIMBOL, Studio::GetDefaultFont());
-
-	//this->StyleSetForeground(STC_STYLE_TEXT, Studio::GetFontColour());
-	//this->StyleSetForeground(STC_STYLE_VAR, wxColour(86, 156, 214));
 	this->StyleSetForeground(STC_STYLE_VAR, wxColour(0, 0, 255));
 	this->StyleSetBold(STC_STYLE_VAR, true);
-	//this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(78, 201, 176));
 	this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(0, 128, 0));
 	this->StyleSetBold(STC_STYLE_SIMBOL, true);
 
@@ -417,8 +458,6 @@ void STC::CreateGUI()
 
 	this->SetMarginWidth(0, 32);
 	this->SetMarginType(0, wxSTC_MARGIN_NUMBER);
-
-	//this->SetCaretForeground(Studio::GetFontColour());
 
 	this->IndicatorSetStyle(STC_INDIC_FIND, wxSTC_INDIC_ROUNDBOX);
 	this->IndicatorSetForeground(STC_INDIC_FIND, wxColour(17, 61, 111));
@@ -436,7 +475,16 @@ void STC::CreateGUI()
 	m_pMenu->Append(wxID_CUT, "Cut");
 	m_pMenu->Append(wxID_COPY, "Copy");
 	m_pMenu->Append(wxID_PASTE, "Paste");
-	m_pMenu->Append(wxID_DELETE, "Delect");
+	m_pMenu->Append(wxID_DELETE, "Delete");
 	m_pMenu->Append(wxID_SELECTALL, "Select All");	
 	m_pMenu->AppendSeparator();
+	
+	m_ID_UPPER = m_pMenu->Append(wxNewId(), "UPPERCASE")->GetId();
+	m_ID_LOWER = m_pMenu->Append(wxNewId(), "lowercase")->GetId();
+	
+	m_pMenu->Bind(wxEVT_MENU, &STC::OnUpperLowerCaseClick, this, m_ID_UPPER);
+	m_pMenu->Bind(wxEVT_MENU, &STC::OnUpperLowerCaseClick, this, m_ID_LOWER);
+	m_pMenu->AppendSeparator();		
+		
+	m_MenuSize = m_pMenu->GetMenuItems().GetCount();
 }

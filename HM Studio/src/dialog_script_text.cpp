@@ -7,10 +7,6 @@ TextFromScriptDialog::TextFromScriptDialog(ScriptEditor& editor) : wxDialog(null
 
 void TextFromScriptDialog::CreateGUIControls()
 {
-	SetBackgroundColour(Studio::GetControlBackgroundColor());
-	SetForegroundColour(Studio::GetFontColour());
-	SetFont(Studio::GetDefaultFont());
-
 	wxStaticText* fromNumberLabel = new wxStaticText(this, wxID_ANY, "Number: ");
 
 	m_pFromNumberText = new wxTextCtrl(this, wxID_ANY);
