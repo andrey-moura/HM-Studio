@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sstream>
+#include <thread>
 
 #include <wx/frame.h>
 #include <wx/clipbrd.h>
@@ -55,7 +55,7 @@ private:
 
 	void UpdateStatusText(wxStyledTextCtrl* stc);	
 //Text save
-	void ConfigureSTC(size_t maxLine, int eol, std::vector<std::string> vars, STC* stc);
+	void ConfigureSTC(STC* stc, const RomFile& rom);
 private:
 	void BackupText();
 	void RestoreText();
@@ -79,10 +79,11 @@ private:
 
 //Text manipulation
 private:
-	void UpdateText();	
-
+	void UpdateText();		
 	std::vector<size_t> m_FindPos;
-	size_t m_FindIndex;
+	size_t m_FindIndex;	
+
+	std::string m_BackupFile;	
 //GUI
 private:
 	void CreateMyToolBar();

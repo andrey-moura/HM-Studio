@@ -35,12 +35,13 @@ public:
 
 	id Id;
 	console Console;
-	std::string Path;
-	std::string m_Dir;
+	std::string Path;	
 	std::string Name;
 	std::string State;
 	std::string m_EOL;
-//Table
+	std::string m_HomeDir;
+	uint8_t m_MaxChars;
+	//Table
 private:
 	Table m_Table;
 	VarTable m_VarTable;
@@ -49,9 +50,12 @@ private:
 public:
 	std::string GetTablePath();
 	inline const Table& GetTable() const { return m_Table; }
+	inline const VarTable& GetVarTable() const { return m_VarTable; }
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);
-	void BackupRom(const std::string& inform);			
+	void BackupRom(const std::string& inform);
+	inline const std::string& GetEOL() const { return m_EOL; };
+	inline const uint8_t GetLineMax() const {return m_MaxChars; }
 //File
 public:
 	//void ReadInt32(uint32_t& value);

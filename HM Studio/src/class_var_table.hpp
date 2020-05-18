@@ -95,17 +95,18 @@ public:
 	void Output(std::vector<std::string>& strs, const Table& tbl);
 //Acessors
 public:
-	size_t Size() { return m_Vars.size(); }
-	size_t GetVarSize() { return m_VarSize; }	
+	size_t Size() const { return m_Vars.size(); }
+	size_t GetVarSize() const { return m_VarSize; }
 
 	void SetVarSize(size_t varSize) { m_VarSize = varSize; }
+
+	std::string_view GetName(size_t index) const;
+	inline const std::string& GetNames() { return m_Names; };
 //Members
 private:
 	std::string m_Vars;
 	std::string m_Names;
-
-	size_t m_VarSize;
-
-	std::vector<VarPos> m_PosBuffer;
+	
+	size_t m_VarSize;	
 };
 

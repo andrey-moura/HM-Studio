@@ -4,6 +4,9 @@ cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
 {
 	CreateGUIControls();
 	SetupRom(); 
+	ConfigureSTC(tScriptOriginal, romOriginal);
+	ConfigureSTC(tScriptTranslated, romOriginal);
+	RestoreText();
 }
 
 cScriptEditor::~cScriptEditor()
@@ -12,77 +15,115 @@ cScriptEditor::~cScriptEditor()
 }
 
 void cScriptEditor::SetupRom()
-{
-	switch (romOriginal.Console)
-	{
-	case console::DS:
-	{
-		std::vector<std::string> varsDS;
-		varsDS.push_back("<Player>");
-		ConfigureSTC(30, wxSTC_EOL_LF, varsDS, tScriptOriginal);
-		ConfigureSTC(30, wxSTC_EOL_LF, varsDS, tScriptTranslated);
-		break;
-	}
-	case console::GBA:
-	{
-		std::vector<std::string> vars;
-		vars.push_back("<PlayerName>");
-		vars.push_back("<Ranch-Name>");
-		vars.push_back("<AnimalName>");
-		vars.push_back("<Variable02>");
-		vars.push_back("<CustomName>");
-		vars.push_back("<Child-Name>");
-		vars.push_back("<ValleyName>");
-		vars.push_back("<ValleyBaby>");
-		vars.push_back("<ValleyFarm>");
-		vars.push_back("<Horse-Name>");
-		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptOriginal);
-		ConfigureSTC(28, wxSTC_EOL_CRLF, vars, tScriptTranslated);
-		break;
-	}
-	default:
-		break;
-	}
+{	
+	this->SetTitle("ScriptEditor::" + romOriginal.Name);
 
-	this->SetTitle(wxString(_("Script Editor - ")) << romOriginal.Name);
+	wxFileName fn(m_Editor.GetScriptDir());
+	fn.SetName("backup");
+	fn.SetExt("temp");
+
+	m_BackupFile = fn.GetFullPath().ToStdString();
 }
 
-void cScriptEditor::ConfigureSTC(size_t maxLine, int eol, std::vector<std::string> vars, STC* stc)
-{
-	stc->SetMaxLineLenght(maxLine);
-	stc->SetEOLMode(eol);	
-
-	stc->InsertOnCtrlKey(std::string(1, (char)0x05), 'E');	
-
-	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + stc->GetEOL().ToStdString(), 'R');
-
-	for (const std::string& s : vars)
-	{
-		stc->AddVar(s);
+void cScriptEditor::ConfigureSTC(STC* stc, const RomFile& rom)
+{		
+	const VarTable& table = rom.GetVarTable();	
+	
+	for(size_t i = 0; i < table.Size(); ++i)
+	{		
+		stc->AddVar(std::string(table.GetName(i)));
 	}
+	
+	const std::string& eol = rom.GetEOL();	
+	
+	int eolMode = eol == "\n" ? wxSTC_EOL_LF : wxSTC_EOL_CRLF;
+
+	stc->SetMaxLineLenght(rom.GetLineMax());
+	stc->SetEOLMode(eolMode);
+	stc->InsertOnCtrlKey(std::string(1, (char)0x05), 'E');
+	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + stc->GetEOL().ToStdString(), 'R');
 }
 
 void cScriptEditor::BackupText()
-{
-	m_Editor.BackupText(tScriptTranslated->GetText().ToStdString());
-	m_pMenuString_Restore->Enable(true);
+{	
+	size_t max = 0;
+
+	for (const std::string& str : m_Editor.GetTranlated())
+	{
+		max += str.size() + 1;
+	}
+
+	size_t size = sizeof(size_t);
+
+	std::string buffer;
+	buffer.reserve(max + (size * 2));
+
+	for (const std::string& str : m_Editor.GetTranlated())
+	{
+		buffer.append(str);
+		buffer.push_back('\0');
+	}
+
+	size_t number = m_Editor.GetNumber();	
+	size_t index = m_Editor.GetIndex();
+
+	if (index > 0)
+		index--;
+
+	buffer.append((const char*)&number, size);
+	buffer.append((const char*)&index, size);
+
+	File::WriteAllText(m_BackupFile, buffer);
 }
 
 void cScriptEditor::RestoreText()
-{	
-	UpdateText();
-	tScriptTranslated->SetText(m_Editor.GetBackupText());
-	m_Editor.ReleaseBackup();
+{
+	bool good = true;
+
+	if (wxFile::Exists(m_BackupFile))
+	{		
+		std::string buffer = File::ReadAllText(m_BackupFile);
+		size_t size = buffer.size();
+
+		if (size > 8)
+		{
+			uint32_t* number = (uint32_t*)(buffer.c_str() + size - 8);
+			uint32_t* index = (uint32_t*)(buffer.c_str() + size - 4);
+
+			CheckAndGoScript(*number, *index);
+
+			std::vector<std::string> text;
+			text.reserve(m_Editor.GetCount());
+
+			size_t cursor = 0;
+
+			for (size_t i = 0; i < m_Editor.GetCount(); ++i)
+			{
+				if (cursor >= size)
+				{
+					good = false;
+					break;
+				}
+
+				text.push_back(std::string(buffer.c_str() + cursor));
+				cursor += text[i].size() + 1;
+			}
+
+			m_Editor.GetTranlated() = text;
+			UpdateText();
+		}
+		else
+		{
+			good = false;
+		}
+
+		if (!good)
+			wxMessageDialog(nullptr, "Corrupted backup file", "Huh?", wxICON_ERROR).ShowModal();
+	}
 }
 
 void cScriptEditor::OpenScript(size_t index)
 {	
-	//ToDo: New Open Script Error Handler
-	//if (!script.HaveText())
-	//{
-	//	wxMessageBox(_("This script don't have text."), _("Huh?"), 5L, this);
-	//	return;
-	//}			
 	m_Editor.OpenScript(index);	
 	UpdateScript();
 }
@@ -90,97 +131,23 @@ void cScriptEditor::OpenScript(size_t index)
 void cScriptEditor::SaveScript()
 {		
 	m_Editor.SaveScript();
+
+	if (wxFile::Exists(m_BackupFile))
+	{
+		wxRemoveFile(m_BackupFile);
+	}
 }
 
 void cScriptEditor::UpdateScript()
 {
-	this->SetTitle(wxString() << "Script Editor - " << romOriginal.Name << ": Script " << m_Editor.GetNumber());
-
+	this->SetTitle(wxString("ScriptEditor::") << romOriginal.Name << " - " << m_Editor.GetNumber());
+	
 	UpdateText();
 }
 
 //ToDo: Fix this
 void cScriptEditor::CheckAllCode()
 {
-	std::vector<uint32_t> offsetOriginal;
-	std::vector<uint32_t> sizeOriginal;
-
-//	romOriginal.GetOffset(offsetOriginal);
-//	romOriginal.GetSize(offsetOriginal, sizeOriginal);
-
-	std::vector<uint32_t> offsetTranslated;
-	std::vector<uint32_t> sizeTranslated;
-
-//	romTranslated.GetOffset(offsetTranslated);
-//	romTranslated.GetSize(offsetTranslated, sizeTranslated);
-
-	Script scriptOriginal;
-	Script scriptTranslated;
-
-	std::vector<std::pair<uint32_t, uint32_t>> wrong;
-
-	/*for (uint32_t i = 0; i < romOriginal.Offset.Script_count; ++i)
-	{
-		romOriginal.Seek(offsetOriginal[i]);
-		romTranslated.Seek(offsetTranslated[i]);
-
-		std::vector<uint8_t> bytesOriginais;
-		std::vector<uint8_t> bytesTranslated;
-
-		romOriginal.ReadBytes(bytesOriginais, sizeOriginal[i]);
-		romTranslated.ReadBytes(bytesTranslated, sizeOriginal[i]);
-
-		scriptOriginal.SetData(bytesOriginais);
-		scriptTranslated.SetData(bytesTranslated);
-
-		if (!scriptOriginal.CompareCode(scriptTranslated))
-		{
-			wrong.push_back(std::make_pair(i, offsetTranslated[i]));
-		}
-	}*/
-	
-	std::string eol = wxString(wxTextBuffer::GetEOL()).ToStdString();
-
-	if (wrong.size() > 0)
-	{
-		std::stringstream s;
-		s << "The following scripts have incorrect code: " << eol << eol;
-
-		for (size_t i = 0; i < wrong.size(); ++i)
-		{
-			char buffer[8];
-			sprintf(buffer, "%x", wrong[i].second);
-			s << "Script " << std::to_string(wrong[i].first) << " at offset 0x" << std::string(buffer) << eol;
-		}
-
-		s << eol  << "Please, open these scripts and run script checker to get more information." << eol;
-
-		wxFileName fileName(wxStandardPaths::Get().GetExecutablePath());
-		fileName.AppendDir(romOriginal.Name);
-		fileName.AppendDir("Script");
-		fileName.AppendDir("Check");
-
-		fileName.SetExt("txt");
-		fileName.SetName("code");
-
-		if (!fileName.DirExists())
-			fileName.Mkdir();
-
-		std::string path = fileName.GetFullPath().ToStdString();
-
-		wxFile file;
-		file.Create(path, true);
-		file.Open(path, wxFile::read_write);
-		file.Write(s.str());
-
-		s << "A file on " << path << " was created.";
-
-		wxMessageBox(wxString(s.str()), wxMessageBoxCaptionStr, 5L, this);
-
-		return;
-	}
-
-	wxMessageBox(wxString("All scripts in this ROM are working"), wxMessageBoxCaptionStr, 5L, this);
 }
 
 void cScriptEditor::FindText()
@@ -237,37 +204,7 @@ void cScriptEditor::FindText()
 			m_FindIndex = 0;
 		}
 	}
-
-	//if (result == FrameSearchScript::SearchMode::Find)
-	//{		
-	//	m_FindPos = m_Editor.Find(search_text.find, true);
-
-	//	m_FindIndex = 0;
-	//	m_Editor.SetIndex(m_FindPos[m_FindIndex]);
-	//}
-
-	//else if (result = FrameSearchScript::SearchMode::Replace)
-	//{
-	//	//if(search_text.exten)
-	//}
-
-	//else if (result == FrameSearchScript::SearchInScripts)
-	//{
-	//	if (!m_pFindResultsWindow)
-	//	{
-	//		m_pFindResultsWindow = new FindResultsWindow(this);
-	//		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
-	//		global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
-	//		m_pFindResultsWindow->Show();
-	//	}
-
-	//	FilesResults results = m_Editor.FindInScripts(search_text.find, true);
-	//	m_pFindResultsWindow->SetFindResults(results);
-
-	//	this->Restore();
-	//	this->Raise();
-	//}
-
+	
 	Layout();
 }
 
@@ -361,11 +298,15 @@ void cScriptEditor::GetTextFrom()
 }
 
 void cScriptEditor::SaveText()
-{	
-	if (m_Editor.SaveText(tScriptTranslated->GetText().ToStdString()))
+{
+	m_Editor.SaveText(tScriptTranslated->GetText().ToStdString());
+
+	if (tScriptTranslated->GetModify())
 	{
-		UpdateText();
+		BackupText();
 	}
+
+	UpdateText();
 }
 
 void cScriptEditor::InsertScript()
@@ -384,7 +325,7 @@ void cScriptEditor::InsertScript()
 	{		
 	case ScriptFlags::INSERT_LESS:
 		icon = wxICON_NONE;
-		message =  sucessMessage + "and now have empty bytes.";
+		message = sucessMessage + "and now have empty bytes.";
 		break;
 	case ScriptFlags::INSERT_VERIFY:
 		icon = wxICON_INFORMATION;
@@ -412,11 +353,6 @@ void cScriptEditor::InsertScript()
 
 void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 {
-	//if (m_IndicatorPos.first != -1)
-	//{
-	//	tScriptTranslated->IndicatorClearRange(m_IndicatorPos.first, m_IndicatorPos.first + m_IndicatorPos.second);
-	//	m_IndicatorPos.first = -1;
-	//}
 	event.Skip();
 }
 
@@ -466,8 +402,7 @@ void cScriptEditor::UpdateText()
 
 	statusBar->SetStatusText(wxString("Index: ") << std::to_string(m_Editor.GetIndex() + 1) << "/" << std::to_string(m_Editor.GetCount()));
 		
-	m_Editor.SetSaved(false);
-	m_Editor.SetChanged(false);	
+	tScriptTranslated->SetModified(false);
 }
 
 void cScriptEditor::CreateGUIControls()
@@ -475,12 +410,8 @@ void cScriptEditor::CreateGUIControls()
 	this->SetBackgroundColour(wxColour(240, 240, 240));
 
 	/******************************
-
 		Menu creation starts
-
 	*******************************/
-
-	//wxSub
 
 	wxMenu* menuScript = new wxMenu();
 	menuScript->Append(wxID_OPEN, "Get text from...");
@@ -495,9 +426,6 @@ void cScriptEditor::CreateGUIControls()
 	menuString->Append(ID_STRSAVE, "Save\tCtrl-S", "Save the current string");
 	menuString->Append(ID_STRPREV, "Prev\tAlt-Left", "Loads the previous string");
 	menuString->Append(ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
-
-	//m_pMenuString_Restore = menuString->Append(ID_STRRESTORE, "Restore\tAlt-Z", "Restore a text not saved");
-	//m_pMenuString_Restore->Enable(false);
 
 	wxMenu* menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, _("Move To"));	
@@ -548,7 +476,6 @@ void cScriptEditor::CreateGUIControls()
 	// Menu creation ends //
 	//--------------------//	
 
-
 //-----------------------------------------------------------------//
 
 	CreateMyToolBar();
@@ -562,9 +489,6 @@ void cScriptEditor::CreateGUIControls()
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
 	tScriptTranslated->Bind(wxEVT_LEFT_DOWN, &cScriptEditor::OnSTCLeftDown, this);
-#ifdef Testing
-	tScriptTranslated->Bind(wxEVT_STC_CHARADDED, &cScriptEditor::tScriptTranslatedCharAdded, this);
-#endif // Testing
 
 	editor_save_text = new wxButton(this, ID_STRSAVE, "Save");
 	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
@@ -816,77 +740,7 @@ void cScriptEditor::CreateMyToolBar()
 
 void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
 {
-	//std::vector<size_t> badScripts;
-	//std::vector<size_t> noInsertedScripts;
 
-	//std::string formatOriginal = ScriptEditor::PathFormat(romOriginal);
-	//std::string formatTranslated = ScriptEditor::PathFormat(romTranslated);
-
-	//Script originalText;
-	//originalText.SetData(File::ReadAllBytes(ScriptEditor::FormatPath(script, formatOriginal)));
-
-	//if (!originalText.HaveText())
-	//{
-	//	wxMessageBox("The script to get the text from have no text.", "Huh?");
-	//	return;
-	//}
-
-	//Script translatedText;
-	//translatedText.SetData(File::ReadAllBytes(ScriptEditor::FormatPath(script, formatTranslated)));
-
-	//romTranslated.BackupRom("Text range " + std::to_string(from) + " - " + std::to_string(to));
-
-	//for (size_t C = from; C < to; C++)
-	//{
-	//	Script original; 
-	//	original.SetData(File::ReadAllBytes(ScriptEditor::FormatPath(C, formatOriginal)));
-
-	//	if (!original.HaveText())
-	//		continue;
-
-	//	if (original != originalText)
-	//	{
-	//		badScripts.push_back(C);
-	//		continue;
-	//	}
-
-	//	original.UpdateText(translatedText.GetText());
-	//	File::WriteAllBytes(ScriptEditor::FormatPath(C, formatTranslated), original.GetData(), original.GetRiffLenght());
-
-	//	if (romTranslated.InsertScript(C, original) == -1)
-	//		noInsertedScripts.push_back(C);
-	//}
-
-	//if (noInsertedScripts.size() == 0 && badScripts.size() == 0)
-	//{
-	//	wxMessageBox("All text inserted and changed.", "Done!");
-	//	return;
-	//}
-
-	//wxString result = "Scripts not inserteds: \n";
-
-	//for (size_t C = 0; C < noInsertedScripts.size(); C++)
-	//	result << "Script " << std::to_string(noInsertedScripts[C]) << "\n";
-
-	//result << "\nScripts not changeds: \n";
-
-	//for (size_t C = 0; C < badScripts.size(); C++)
-	//	result << "Script " << std::to_string(badScripts[C]) << "\n";
-
-	//wxMessageDialog dlg(this, result + "\n Yes to copy to clipboard", "Done!", wxYES_NO | wxSTAY_ON_TOP | wxCENTRE_ON_SCREEN | wxICON_EXCLAMATION);
-
-	//if (dlg.ShowModal() == wxID_YES)
-	//{
-	//	if (wxTheClipboard->Open())
-	//	{
-	//		wxTheClipboard->SetData(new wxTextDataObject(result));
-	//		wxTheClipboard->Close();
-	//	}
-	//	else
-	//	{
-	//		wxMessageDialog(this, "Error while copying to clipboard!", "Error!", wxOK_DEFAULT | wxICON_ERROR).ShowModal();
-	//	}
-	//}
 }
 
 DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID_ANY, "Select range"), m_pParent(parent)

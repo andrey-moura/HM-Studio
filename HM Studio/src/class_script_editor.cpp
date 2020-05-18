@@ -4,11 +4,13 @@ ScriptEditor::ScriptEditor(RomFile& original, RomFile& translated) : m_RomOrigin
 {
 	m_Info = GetRomInformation();
 
-	wxFileName pathLeft(original.Path);
-	pathLeft.RemoveLastDir();
+	wxFileName pathLeft;
+	pathLeft.SetPath(original.m_HomeDir);
 	pathLeft.AppendDir("Script");
+
+	m_ScriptDir = pathLeft.GetFullPath().ToStdString();		 
+	
 	pathLeft.AppendDir("Original");
-	pathLeft.ClearExt();
 	pathLeft.SetName("Script_Original_");
 	m_PathOrigLeft = pathLeft.GetFullPath();
 	pathLeft.RemoveLastDir();
@@ -78,8 +80,6 @@ bool ScriptEditor::ProxText()
 {
 	if (m_Index < m_Size - 1)
 	{
-		if (!m_Saved && m_Changed)
-			BackupText(m_Translated[m_Index]);
 		++m_Index;
 
 		return true;
@@ -92,8 +92,6 @@ bool ScriptEditor::PrevText()
 {
 	if (m_Index > 0)
 	{
-		if (!m_Saved && m_Changed)
-			BackupText(m_Translated[m_Index]);
 		--m_Index;
 
 		return true;
@@ -115,24 +113,8 @@ bool ScriptEditor::SetIndex(size_t index)
 
 bool ScriptEditor::SaveText(const std::string& text)
 {
-	m_Saved = true;
-
-	ReleaseBackup();
-
 	m_Translated[m_Index] = text;
 	return ProxText();
-}
-
-void ScriptEditor::BackupText(const std::string& text)
-{
-	m_TextBackup = text;
-	m_IndexBackup = m_Index;
-}
-
-void ScriptEditor::ReleaseBackup()
-{
-	m_IndexBackup = 1;
-	m_TextBackup.clear();
 }
 
 void ScriptEditor::UpdateScript()

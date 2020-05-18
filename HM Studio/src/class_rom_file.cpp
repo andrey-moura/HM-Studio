@@ -27,7 +27,7 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	path.AppendDir("HM Studio");
 	path.AppendDir(Name);
 
-	m_Dir = path.GetPath().ToStdString();
+	m_HomeDir = path.GetPath().ToStdString();	
 
 	path.AppendDir("Rom");
 	path.SetName("Rom_" + State);
@@ -37,10 +37,12 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	case console::GBA:
 		path.SetExt("gba");
 		m_EOL = "\r\n";
+		m_MaxChars = 28;
 		break;
 	case console::DS:
 		path.SetExt("nds");
 		m_EOL = "\n";
+		m_MaxChars = 30;
 		break;
 	default:
 		break;

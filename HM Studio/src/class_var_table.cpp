@@ -32,3 +32,8 @@ void VarTable::Output(std::vector<std::string>& strs, const Table& tbl)
 		Output(str, tbl);
 	}
 }
+
+std::string_view VarTable::GetName(size_t index) const
+{
+	return std::string_view(m_Names.c_str() + (index * m_VarSize), 12);
+}

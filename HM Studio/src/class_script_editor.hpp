@@ -43,7 +43,9 @@ public:
 	~ScriptEditor() = default;
 public:	
 	std::string GetPath(bool translated) const;
-	std::string GetPath(size_t number, bool translated) const;
+	std::string GetPath(size_t number, bool translated) const;	
+
+	const std::string& GetScriptDir() const { return m_ScriptDir; }
 public:
 	RomFile& GetRom(bool translated) const;
 public:
@@ -76,6 +78,7 @@ private:
 private:
 	RomInfo m_Info;
 
+	std::string m_ScriptDir;
 	std::string m_PathOrigLeft;
 	std::string m_PathTransLeft;
 	std::string m_PathRight;
@@ -92,12 +95,7 @@ public:
 	bool SetIndex(size_t index);
 	size_t GetCount() { return m_ScriptOriginal.Count(); }
 	bool SaveText(const std::string& text);
-	void BackupText(const std::string& text);
-	std::string GetBackupText() { return m_TextBackup; }
-	void SetText(const std::vector<std::string>& text);
-	void ReleaseBackup();
-	void SetChanged(bool changed) { m_Changed = changed; }
-	void SetSaved(bool saved) { m_Saved = saved; }
+	void SetText(const std::vector<std::string>& text);	
 	std::vector<std::string>& GetTranlated() { return m_Translated; }
 	void SaveScript();
 	std::string& operator[](size_t index) { return m_Translated[index]; }	
@@ -123,11 +121,6 @@ private:
 
 	RomFile& m_RomOriginal;
 	RomFile& m_RomTranslated;
-
-	std::string m_TextBackup;
-	size_t m_IndexBackup = -1;
-	bool m_Changed = false;
-	bool m_Saved = false;
 
 	bool m_Opened = false;
 };
