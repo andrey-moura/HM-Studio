@@ -1,14 +1,14 @@
 #include "class_spell_checker.hpp"
 
-std::string SpellChecker::m_Language = LANG;
-std::string SpellChecker::m_UserDics;
+std::string SpellChecker::m_Language;
+std::vector<std::string> SpellChecker::m_UserDics;
 bool SpellChecker::m_sInitialized = false;
 Hunspell* SpellChecker::m_Hunspell = nullptr;
 
 #ifdef _DEBUG
 void SpellChecker::Initialize() {}
 
-void SpellChecker::AddUserDic(const std::string& path) {}
+size_t SpellChecker::AddUserDic(const std::string& path) { return std::string::npos; }
 
 void SpellChecker::AddToTemp(const std::string& string) {}
 
@@ -16,12 +16,16 @@ bool SpellChecker::Spell(const std::string& string) { return true; }
 
 std::vector<std::string> SpellChecker::Suggest(const std::string& string) { return std::vector<std::string>(); }
 
-void SpellChecker::AddToUser(const std::string& string) {}
+void SpellChecker::AddToUser(const std::string& string, size_t index) {}
 
-const std::string& SpellChecker::GetWordChars() { return m_UserDics; }
+const std::string& SpellChecker::GetWordChars() { return m_Language; }
+
+void SpellChecker::RemoveUserDic(size_t index) {}
 #else
 void SpellChecker::Initialize()
 {
+	m_Language = LANG;
+
 	wxFileName fileName(wxStandardPaths::Get().GetExecutablePath());
 	fileName.AppendDir("SpellChecker");
 
@@ -44,9 +48,7 @@ void SpellChecker::Initialize()
 	fileName.SetExt("usr");
 
 	AddUserDic(fileName.GetFullPath().ToStdString());
-	AddToTemp("PlayerName");		
-
-	m_Language = m_Hunspell->get_wordchars_cpp();
+	AddToTemp("PlayerName");	
 
 	m_sInitialized = true;
 }
@@ -56,35 +58,57 @@ const std::string& SpellChecker::GetWordChars()
 	return m_Hunspell->get_wordchars_cpp();
 }
 
-void SpellChecker::AddUserDic(const std::string& path)
+size_t SpellChecker::AddUserDic(const std::string& path)
 {
-	m_UserDics = path;
-
 	std::string file = File::ReadAllText(path);
 
-	if (file.empty())
-		return;
-
-	auto lines = StringUtil::SplitLines(file);
-
-	if (lines.empty())
-		return;
-
-	for (const std::string_view& line : lines)
+	if (!file.empty())
 	{
-		if (line.empty())
-			continue;
+		auto lines = StringUtil::SplitLines(file);
 
-		m_Hunspell->add(std::string(line));
-	}		
+		if (lines.empty())
+			return std::string::npos;
+
+		for (const std::string_view& line : lines)
+		{
+			if (line.empty())
+				continue;
+
+			m_Hunspell->add(std::string(line));
+		}
+	}
+	m_UserDics.push_back(path);
+	return m_UserDics.size() - 1;
 }
 
-void SpellChecker::AddToUser(const std::string& string)
+void SpellChecker::RemoveUserDic(size_t index)
+{
+#ifdef _DEBUG
+	_STL_Verify(index < m_UserDics.size(), "index out of range");
+#endif	
+	const std::string& path = m_UserDics[index];
+	
+	std::string text = File::ReadAllText(path);
+	
+	if(text.empty())
+		return;
+	
+	auto lines = StringUtil::SplitLines(text);
+	
+	for(const std::string_view& sv : lines)
+	{
+		m_Hunspell->remove(std::string(sv));
+	}
+	
+	m_UserDics.erase(m_UserDics.begin()+index);
+}
+
+void SpellChecker::AddToUser(const std::string& string, size_t index)
 {
 	if (string.empty())
 		return;
 
-	File::AppendLine(m_UserDics, string);
+	File::AppendLine(m_UserDics[index], string);
 
 	m_Hunspell->add(string);
 }

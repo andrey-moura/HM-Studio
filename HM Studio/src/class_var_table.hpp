@@ -85,7 +85,7 @@ public:
 
 			//Do not make copies of the string
 			str[pos.m_VarPos + 1] = var;
-			str[pos.m_VarPos] = 0xff;
+			str[pos.m_VarPos] = 'ÿ';
 
 			str.erase(pos.m_VarPos + 2, m_VarSize - 2);
 		}

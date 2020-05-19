@@ -20,8 +20,12 @@ STC::STC(wxWindow* parent, wxWindowID id) : wxStyledTextCtrl(parent, id)
 	}
 
 	std::string chars = SpellChecker::GetWordChars();
-	chars.append(1, '-');
-	SetWordChars(chars);
+
+	if (!chars.empty())
+	{
+		chars.append(1, '-');
+		SetWordChars(chars);
+	}
 }
 
 inline void STC::VerifyLineLenght(size_t line)
@@ -310,25 +314,27 @@ void STC::SuggestToMenu(wxPoint point)
 
 		if (IndicatorValueAt(STC_INDIC_SPELL, start))
 		{
-			std::string s = GetTextRange(start, end).ToStdString();
+			GetClickedWord(start, end);
 
-			if (s.size() >= 2)
+			if (m_ClickedWord.size() >= 2)
 			{				
-				std::vector<std::string> strings = SpellChecker::Suggest(s);
+				std::vector<std::string> strings = SpellChecker::Suggest(m_ClickedWord);
 				
-				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToTempClick, this, m_pMenu->Append(wxNewId(), wxString("Ignore \"") << s << "\" For Current Session")->GetId());
-				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToUserClick, this, m_pMenu->Append(wxNewId(), wxString("Add \"") << s << "\" To Dictionary")->GetId());				
+				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToTempClick, this, m_pMenu->Append(wxNewId(), wxString("Ignore \"") << m_ClickedWord << "\" For Current Session")->GetId());
+				m_pMenu->Bind(wxEVT_MENU, &STC::OnAddToUserClick, this, m_pMenu->Append(wxNewId(), wxString("Add \"") << m_ClickedWord << "\" To Dictionary")->GetId());
+				
+				for(const std::pair<std::string,size_t> dic : m_ExtraDics)
+				{
+					m_pMenu->Bind(wxEVT_MENU, &STC::OnAddExtraClick, this, m_pMenu->Append(wxNewId(), wxString("Add \"") << m_ClickedWord << "\" To " << dic.first << " Dictionary")->GetId());
+				}
+				
 				m_pMenu->AppendSeparator();
-
-				m_ClickedWord.first = start;
-				m_ClickedWord.second = end;
 
 				if (strings.size() > 0)
 				{
 					for (size_t i = 0; i < strings.size(); ++i)
-					{
-						m_pMenu->Append(wxID_FILE + i, strings[i]);
-						m_pMenu->Bind(wxEVT_MENU, &STC::OnSuggestionClick, this, wxID_FILE + i);
+					{						
+						m_pMenu->Bind(wxEVT_MENU, &STC::OnSuggestionClick, this, m_pMenu->Append(wxNewId(), strings[i])->GetId());
 					}
 				}
 			}
@@ -367,9 +373,6 @@ void STC::ClearSuggestions()
 
 void STC::OnSuggestionClick(wxCommandEvent& event)
 {	
-	DeleteRange(m_ClickedWord.first, m_ClickedWord.second - m_ClickedWord.first);
-	GotoPos(m_ClickedWord.first);
-
 	int id = event.GetId();
 	
 	wxMenuItemList& list = m_pMenu->GetMenuItems();
@@ -378,32 +381,77 @@ void STC::OnSuggestionClick(wxCommandEvent& event)
 	{
 		if (item->GetId() == id)
 		{
+			DeleteClickedWord();
+			GotoPos(m_ClickedWordPos.first);
 			AddText(item->GetItemLabelText());
-			break;
+			event.Skip();
+			return;
 		}
-	}
-
-	event.Skip();
+	}	
+	
+#ifdef _DEBUG
+	_STL_REPORT_ERROR("Menu item not found in the menu.");
+#endif	
 }
 
 void STC::OnAddToUserClick(wxCommandEvent& event)
-{
-	std::string word = GetTextRange(m_ClickedWord.first, m_ClickedWord.second).ToStdString();
-	SpellChecker::AddToUser(word);
-
+{	
+	SpellChecker::AddToUser(m_ClickedWord, 0);
+	DeleteClickedWord();
 	SpellSTC(0, GetTextLength());
 	
 	event.Skip();
 }
 
 void STC::OnAddToTempClick(wxCommandEvent& event)
-{
-	std::string word = GetTextRange(m_ClickedWord.first, m_ClickedWord.second).ToStdString();
-	SpellChecker::AddToTemp(word);
-
+{	
+	SpellChecker::AddToTemp(m_ClickedWord);
+	DeleteClickedWord();
 	SpellSTC(0, GetTextLength());
 	
 	event.Skip();
+}
+
+void STC::AppendDicToMenu(const std::string& dicName, size_t index)
+{
+	m_ExtraDics.push_back(std::pair<std::string, size_t>(dicName, index));
+}
+
+void STC::RemoveDicToMenu(size_t index)
+{
+	for(size_t i = 0; i < m_ExtraDics.size(); ++i)
+	{
+		m_ExtraDics.erase(m_ExtraDics.begin()+i);
+		return;
+	}	
+	
+#ifdef _DEBUG	
+	_STL_REPORT_ERROR("Dictionary not fount int the dics list.");
+#endif
+}
+
+void STC::OnAddExtraClick(wxCommandEvent& event)
+{	
+	std::string name = m_pMenu->FindItem(event.GetId())->GetItemLabelText().ToStdString();	
+	name = name.substr(name.find("\" To ") + 5);	
+	name = name.substr(0, name.find(" "));	
+	SetText(name);
+	
+ 	for(const auto& dic : m_ExtraDics)
+	{
+		if(dic.first == name)
+		{		
+			SpellChecker::AddToUser(m_ClickedWord, dic.second);
+			DeleteClickedWord();
+			SpellSTC(0, GetTextLength());
+			event.Skip();
+			return;
+		}
+	}
+	
+#ifdef _DEBUG
+	_STL_REPORT_ERROR("Dictionary not found in the dics list.");
+#endif	
 }
 
 void STC::OnUpperLowerCaseClick(wxCommandEvent& event)

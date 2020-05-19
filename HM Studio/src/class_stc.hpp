@@ -75,15 +75,29 @@ private:
 private:
 	wxMenu* m_pMenu = nullptr;
 	size_t m_MenuSize;
+	std::vector<std::pair<std::string, size_t>> m_ExtraDics;
+	std::string m_ClickedWord;
+	std::pair<size_t, size_t> m_ClickedWordPos;	
+	__forceinline const void GetClickedWord(const size_t& start, const size_t& end)
+	{
+		m_ClickedWord = GetTextRange(start, end).ToStdString();
+		m_ClickedWordPos.first = start;
+		m_ClickedWordPos.second = start;		
+	}
+	__forceinline void DeleteClickedWord()
+	{
+		DeleteRange(m_ClickedWordPos.first, m_ClickedWordPos.second - m_ClickedWordPos.first);
+		m_ClickedWord.clear();
+	}
 
-	std::pair<size_t, size_t> m_ClickedWord;
-	
 	size_t m_ID_UPPER;
 	size_t m_ID_LOWER;
 public:
 	void ShowMenu(wxPoint point);
 	void SuggestToMenu(wxPoint point);
 	void ClearSuggestions();
+	void AppendDicToMenu(const std::string& dicName, size_t index);
+	void RemoveDicToMenu(size_t index);
 //Events
 private:
 	void OnKeyPress(wxKeyEvent& event);
@@ -95,6 +109,7 @@ private:
 	void OnSuggestionClick(wxCommandEvent& event);
 	void OnAddToUserClick(wxCommandEvent& event);
 	void OnAddToTempClick(wxCommandEvent& event);	
+	void OnAddExtraClick(wxCommandEvent& event);
 private:
 	static wxBitmap m_sIconError;
 private:

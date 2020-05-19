@@ -19,6 +19,7 @@
 #include "class_util_string.hpp"
 #include "class_table.hpp"
 #include "class_script_editor.hpp"
+#include "class_spell_checker.hpp"
 
 class cScriptEditor : public wxFrame
 {
@@ -82,8 +83,11 @@ private:
 	void UpdateText();		
 	std::vector<size_t> m_FindPos;
 	size_t m_FindIndex;	
+	wxFileName m_ScriptDic;
+	size_t m_DicIndex = std::string::npos;
+	std::string m_BackupFile;
 
-	std::string m_BackupFile;	
+	void UpdateScriptDic();
 //GUI
 private:
 	void CreateMyToolBar();

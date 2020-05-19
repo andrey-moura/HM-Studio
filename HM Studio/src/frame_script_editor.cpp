@@ -21,8 +21,16 @@ void cScriptEditor::SetupRom()
 	wxFileName fn(m_Editor.GetScriptDir());
 	fn.SetName("backup");
 	fn.SetExt("temp");
-
 	m_BackupFile = fn.GetFullPath().ToStdString();
+	
+	m_ScriptDic.SetPath(m_Editor.GetScriptDir());
+	m_ScriptDic.AppendDir("Dics");	
+	m_ScriptDic.SetExt("usr");
+
+	if (!m_ScriptDic.DirExists())
+	{
+		m_ScriptDic.Mkdir();
+	}
 }
 
 void cScriptEditor::ConfigureSTC(STC* stc, const RomFile& rom)
@@ -138,10 +146,25 @@ void cScriptEditor::SaveScript()
 	}
 }
 
+void cScriptEditor::UpdateScriptDic()
+{	
+	if (m_DicIndex != std::string::npos)
+	{
+		SpellChecker::RemoveUserDic(m_DicIndex);
+		tScriptTranslated->RemoveDicToMenu(m_DicIndex);
+	}	
+
+	m_ScriptDic.SetName(std::to_string(m_Editor.GetNumber()));
+
+	m_DicIndex = SpellChecker::AddUserDic(m_ScriptDic.GetFullPath().ToStdString());
+	tScriptTranslated->AppendDicToMenu("Script", m_DicIndex);
+}
+
 void cScriptEditor::UpdateScript()
 {
 	this->SetTitle(wxString("ScriptEditor::") << romOriginal.Name << " - " << m_Editor.GetNumber());
-	
+		
+	UpdateScriptDic();
 	UpdateText();
 }
 
