@@ -347,7 +347,7 @@ inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& si
 	return free;
 }
 
-FilesResults ScriptEditor::FindInScripts(const std::string& search, bool translated) const
+FilesResults ScriptEditor::FindInScripts(const std::string& search, bool useTable, bool translated) const
 {
 	FilesResults results;
 
@@ -363,8 +363,15 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.ScriptCount);
 	dialog.Show();
 
+	const Table& table = GetRom(translated).GetTable();
+
+	if (useTable)
+	{
+		table.Output(search);
+	}
+
 	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
-	{				
+	{
 		Script script = File::ReadAllBytes(GetPath(i, translated));
 
 		//No text, next
@@ -379,8 +386,7 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 			continue;				
 
 		SearchResult match;
-
-		//Only 1 result per string
+		
 		for (size_t z = 0; z < script.Count(); ++z)
 		{
 			const std::string_view& str = script[z];
@@ -403,7 +409,14 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 				end = str.size();
 			}
 
-			match.AppendResult(wxString("String ") << z << ": " << std::string(str.substr(pos, end)));
+			std::string pattern = std::string(str.substr(pos, end));
+
+			if (useTable)
+			{
+				table.Input(pattern);
+			}
+
+			match.AppendResult(wxString("String ") << z << ": " << pattern);
 		}
 
 		size_t count = match.GetCount();
@@ -413,9 +426,8 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 
 		totalCount += count;
 
-		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;
+		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;		
 		dialog.Update(i, name);
-
 		match.SetTitle(name << " (" << count <<  (count == 1 ? hit : hits));
 		results.AppendMatch(match);
 	}
@@ -423,13 +435,27 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool transla
 	dialog.Close();
 
 	results.SetSearchTitle(wxString("Search \"") << search << "\" (" << totalCount << " " << (totalCount == 1 ? hit : hits) << " in " << results.GetCount() << " script" << (results.GetCount() > 1 ? "s)" : ")"));
+
+	//Return back
+	if (useTable)
+	{
+		table.Input(search);
+	}
+
 	return results;
 }
 
-std::vector<size_t> ScriptEditor::Find(const std::string& find, bool translated)
+std::vector<size_t> ScriptEditor::Find(const std::string& find, bool useTable, bool translated)
 {
 	const std::vector<std::string> text = translated ? m_Translated : m_Original;
 	std::vector<size_t> result;
+
+	const Table& table = GetRom(translated).GetTable();
+
+	if (useTable)
+	{
+		table.Input(find);
+	}
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
@@ -439,16 +465,33 @@ std::vector<size_t> ScriptEditor::Find(const std::string& find, bool translated)
 		{
 			result.push_back(i);
 		}
-	}			
+	}
+
+	if (useTable)
+	{
+		table.Output(find);
+	}
 
 	return result;
 }
 
-void ScriptEditor::Replace(const std::string& find, const std::string& replace)
+void ScriptEditor::Replace(const std::string& find, bool useTable, const std::string& replace)
 {	
+	const Table& table = GetRom(true).GetTable();
+
+	if (useTable)
+	{
+		table.Input(find);
+	}
+
 	for (std::string& str : m_Translated)
 	{
 		StringUtil::Replace(find, replace, str);
+	}
+
+	if (useTable)
+	{
+		table.Output(find);
 	}
 }
 

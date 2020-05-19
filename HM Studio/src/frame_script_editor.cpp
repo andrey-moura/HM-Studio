@@ -177,13 +177,18 @@ void cScriptEditor::FindText()
 {
 	FrameSearchScript dialog;
 
+	if (!m_Editor.IsOpened())
+		dialog.InScript(true);
+
 	if (dialog.ShowModal() != wxID_CANCEL)
 	{
 		std::string search = dialog.GetSearch();
 		std::string replace = dialog.GetReplace();
 		bool inScript = dialog.InScript();
 		bool extended = dialog.Extended();
-
+		bool translated = dialog.Translated();
+		bool find = dialog.Find();		
+		bool useTable = dialog.UseTable();
 		if (extended)
 		{			
 			StringUtil::Replace("\\r", "\r", search);
@@ -193,11 +198,11 @@ void cScriptEditor::FindText()
 			StringUtil::Replace("\\n", "\n", replace);
 		}
 
-		if (dialog.Find())
+		if (find)
 		{
 			if (!inScript)
 			{
-				m_FindPos = m_Editor.Find(search, true);
+				m_FindPos = m_Editor.Find(search, useTable, translated);
 				m_FindIndex = 0;
 				m_Editor.SetIndex(m_FindPos[m_FindIndex]);
 			}
@@ -208,23 +213,32 @@ void cScriptEditor::FindText()
 					m_pFindResultsWindow = new FindResultsWindow(this);
 					m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
 					global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
-					m_pFindResultsWindow->Show();
 				}
 
-				FilesResults results = m_Editor.FindInScripts(search, true);
+				FilesResults results = m_Editor.FindInScripts(search, useTable, translated);
 				m_pFindResultsWindow->SetFindResults(results);
+
+				m_pMenuBar->Check(ID_SEARCHWINDOW, true);
+				m_pFindResultsWindow->Show(true);
 
 				this->Restore();
 				this->Raise();
 			}
 		}
-		else if (dialog.Replace())
+		else
 		{
-			m_Editor.Replace(search, replace);
-			UpdateText();
+			if (!inScript)
+			{
+				m_Editor.Replace(search, useTable, replace);
+				UpdateText();
 
-			m_FindPos.clear();
-			m_FindIndex = 0;
+				m_FindPos.clear();
+				m_FindIndex = 0;
+			}
+			else
+			{
+				wxMessageBox("Replace in script is not yet supported in this version.", "Huh?", wxICON_WARNING);
+			}
 		}
 	}
 	
@@ -451,7 +465,7 @@ void cScriptEditor::CreateGUIControls()
 	menuString->Append(ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
 
 	wxMenu* menuEdit = new wxMenu();
-	menuEdit->Append(wxID_ANY, _("Move To"));	
+	menuEdit->Append(wxID_ANY, "Move To");	
 
 	wxMenu* menuSearch = new wxMenu();
 	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
@@ -465,20 +479,20 @@ void cScriptEditor::CreateGUIControls()
 	menuTools->Append(wxID_ANY, "Show Previwer");
 	menuTools->Append(wxID_ANY, "Show One By One");	
 
-	wxMenu* menuOptions = new wxMenu();
-	menuOptions->AppendCheckItem(wxID_TOP, "Always On Top");
-	menuOptions->Append(ID_HVMODE, "Horizontal Mode");	
+	//wxMenu* menuOptions = new wxMenu();	
 	
 	wxMenu* menuView = new wxMenu();
 	menuView->AppendCheckItem(ID_SEARCHWINDOW, "Search Window");
+	menuView->AppendCheckItem(wxID_TOP, "Always On Top");
+	menuView->Append(ID_HVMODE, "Horizontal Mode");
 
 	m_pMenuBar = new wxMenuBar();
-	m_pMenuBar->Append(menuScript, _("File"));
-	m_pMenuBar->Append(menuString, _("String"));
-	m_pMenuBar->Append(menuEdit, _("Edit"));
+	m_pMenuBar->Append(menuScript, "File");
+	m_pMenuBar->Append(menuString, "String");
+	m_pMenuBar->Append(menuEdit, "Edit");
 	m_pMenuBar->Append(menuSearch, "Search");
 	m_pMenuBar->Append(menuTools, "Tools");
-	m_pMenuBar->Append(menuOptions, "Options");
+	//m_pMenuBar->Append(menuOptions, "Options");
 	m_pMenuBar->Append(menuView, "View");
 
 	m_pMenuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuClick, this);

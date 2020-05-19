@@ -10,25 +10,22 @@ public:
 	~FrameSearchScript();
 private:
 	std::string m_Search;
-	std::string m_Replace;
-	bool m_Extended = false;
+	std::string m_Replace;	
 	bool m_Find = false;
-	bool m_InScripts = false;
-	bool m_MatchCase = false;
 public:
-	bool Find() { return m_Find; }
-	bool Replace() { return !Find(); }
-	bool Extended() { return m_Extended; }
-	bool InScript() { return m_InScripts; }
+	bool Find() { return m_Find; }	
+	bool Extended() { return m_pModeExtended->GetValue(); }
+	bool InScript() { return m_pInScript->GetValue(); }
+	bool Translated() { return m_pTranslated->GetValue(); }
+	bool UseTable() { return m_pUseTable->GetValue(); }
+	void InScript(bool inScript);
 
-	const std::string& GetSearch() { return m_Search; }
-	const std::string& GetReplace() { return m_Replace; }
-private:
-	void GetValues();
-	void EndAndSkip(wxCommandEvent& event);
+	std::string GetSearch() { return m_pInputFind->GetValue().ToStdString(); }
+	std::string GetReplace() { return m_pInputReplace->GetValue().ToStdString(); }
 private:
 	void OnFindAllClick(wxCommandEvent& event);
-	void OnReplaceAllClick(wxCommandEvent& event);
+	void OnReplaceAllClick(wxCommandEvent& event);	
+	void OnInScriptClick(wxCommandEvent& event);
 private:
 	void CreateGUIControls();;
 
@@ -41,6 +38,8 @@ private:
 	wxRadioButton* m_pModeExtended = nullptr;
 
 	wxCheckBox* m_pCase = nullptr;
+	wxCheckBox* m_pUseTable = nullptr;
 	wxCheckBox* m_pInScript = nullptr;
+	wxCheckBox* m_pTranslated = nullptr;
 };
 

@@ -20,7 +20,8 @@ FindResultsWindow::FindResultsWindow(wxWindow* parent) : wxWindow(parent, wxID_A
 void FindResultsWindow::SetFindResults(const FilesResults& result)
 {
 	m_Results = result;
-
+	
+	m_ListView->SetEditable(true);
 	m_ListView->ClearAll();
 
 	m_ListView->AppendText(m_Results.GetSearchTitle() + "\n");
@@ -50,7 +51,7 @@ void FindResultsWindow::SetFindResults(const FilesResults& result)
 			++curLine;
 		}
 	}
-
+	
 	m_ListView->DeleteRange(m_ListView->GetTextLength() - 1, 1);
 	m_ListView->SetEditable(false);
 }
