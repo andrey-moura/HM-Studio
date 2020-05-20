@@ -17,7 +17,7 @@ void VarTable::Append(const char& var, const std::string& name)
 	m_Names.append(name);
 }
 
-void VarTable::Input(std::vector<std::string>& strs, const Table& tbl)
+void VarTable::Input(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl)
 {
 	for (std::string& str : strs)
 	{
@@ -25,7 +25,7 @@ void VarTable::Input(std::vector<std::string>& strs, const Table& tbl)
 	}
 }
 
-void VarTable::Output(std::vector<std::string>& strs, const Table& tbl)
+void VarTable::Output(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl)
 {
 	for (std::string& str : strs)
 	{

@@ -432,10 +432,9 @@ void STC::RemoveDicToMenu(size_t index)
 
 void STC::OnAddExtraClick(wxCommandEvent& event)
 {	
-	std::string name = m_pMenu->FindItem(event.GetId())->GetItemLabelText().ToStdString();	
-	name = name.substr(name.find("\" To ") + 5);	
-	name = name.substr(0, name.find(" "));	
-	SetText(name);
+	std::string name = m_pMenu->FindItem(event.GetId())->GetItemLabelText().ToStdString();
+	name = name.substr(name.find("\" To ") + 5);
+	name = name.substr(0, name.find(" "));
 	
  	for(const auto& dic : m_ExtraDics)
 	{

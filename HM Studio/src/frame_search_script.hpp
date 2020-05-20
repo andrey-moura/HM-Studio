@@ -1,6 +1,8 @@
 #pragma once
 
 #include <wx/wx.h>
+#include <moon/file.hpp>
+#include <string>
 #include <wx/notebook.h>
 
 class FrameSearchScript : public wxDialog
@@ -11,7 +13,7 @@ public:
 private:
 	std::string m_Search;
 	std::string m_Replace;	
-	bool m_Find = false;
+	bool m_Find = false;	
 public:
 	bool Find() { return m_Find; }	
 	bool Extended() { return m_pModeExtended->GetValue(); }

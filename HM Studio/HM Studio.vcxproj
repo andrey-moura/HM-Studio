@@ -51,7 +51,6 @@
     <ClCompile Include="src\class_script_editor.cpp" />
     <ClCompile Include="src\class_spell_checker.cpp" />
     <ClCompile Include="src\class_stc.cpp" />
-    <ClCompile Include="src\class_table.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_file.cpp" />
     <ClCompile Include="src\graphicsinfoviewer.cpp" />
@@ -86,7 +85,6 @@
     <ClInclude Include="src\class_letter_editor.hpp" />
     <ClInclude Include="src\class_script_editor.hpp" />
     <ClInclude Include="src\class_spell_checker.hpp" />
-    <ClInclude Include="src\class_table.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_file.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />
@@ -245,7 +243,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;../../../Include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -269,7 +267,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;WXUSINGDLL;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;../../../Include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -335,7 +333,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>USESPELL;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;../../../Include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
@@ -365,7 +363,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>USESPELL;WXUSINGDLL;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HUNSPELL)/src/hunspell;$(WXWIN)/include/msvc;$(WXWIN)/include;../../../Include%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>

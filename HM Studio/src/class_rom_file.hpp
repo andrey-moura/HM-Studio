@@ -8,10 +8,11 @@
 
 #include "class_file.hpp"
 #include "class_util_string.hpp"
-#include "class_table.hpp"
 #include "class_var_table.hpp"
 #include "class_script.hpp"
 #include "class_stop_watch.hpp"
+
+#include <moon/table.hpp>
 
 #define ROM_BUS 0x8000000
 #define ROM_BUS_NOT 0xF7FFFFFF
@@ -42,14 +43,14 @@ public:
 	std::string m_HomeDir;
 	uint8_t m_MaxChars;
 	//Table
-private:
-	Table m_Table;
+private:	
+	Moon::Hacking::Table m_Table;
 	VarTable m_VarTable;
 
 	void SetupVars();
 public:
 	std::string GetTablePath();
-	inline const Table& GetTable() const { return m_Table; }
+	inline const Moon::Hacking::Table& GetTable() const { return m_Table; }
 	inline const VarTable& GetVarTable() const { return m_VarTable; }
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);

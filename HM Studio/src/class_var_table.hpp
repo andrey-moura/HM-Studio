@@ -4,7 +4,8 @@
 #include <vector>
 #include <string_view>
 
-#include "class_table.hpp"
+#include <moon/table.hpp>
+#include "class_stop_watch.hpp"
 
 struct VarPos
 {
@@ -21,7 +22,7 @@ public:
 	void Reserve(size_t size);
 	void Append(const char& var, const std::string& name);
 public:
-	__forceinline void Input(std::string& str, const Table& tbl)
+	__forceinline void Input(std::string& str, const Moon::Hacking::Table& tbl)
 	{
 		size_t varPos = str.find('ÿ');		
 
@@ -58,7 +59,7 @@ public:
 			str.insert(pos.m_VarPos, name.data(), m_VarSize - 2);
 		}		
 	}
-	__forceinline void Output(std::string& str, const Table& tbl)
+	__forceinline void Output(std::string& str, const Moon::Hacking::Table& tbl)
 	{
 		std::vector<VarPos> poss;
 
@@ -91,8 +92,8 @@ public:
 		}
 	}
 	
-	void Input(std::vector<std::string>& strs, const Table& tbl);
-	void Output(std::vector<std::string>& strs, const Table& tbl);
+	void Input(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl);
+	void Output(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl);
 //Acessors
 public:
 	size_t Size() const { return m_Vars.size(); }

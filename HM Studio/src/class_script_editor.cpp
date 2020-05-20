@@ -347,7 +347,7 @@ inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& si
 	return free;
 }
 
-FilesResults ScriptEditor::FindInScripts(const std::string& search, bool useTable, bool translated) const
+FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, bool translated) const
 {
 	FilesResults results;
 
@@ -363,7 +363,7 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool useTabl
 	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.ScriptCount);
 	dialog.Show();
 
-	const Table& table = GetRom(translated).GetTable();
+	const Moon::Hacking::Table& table = GetRom(translated).GetTable();
 
 	if (useTable)
 	{
@@ -436,21 +436,15 @@ FilesResults ScriptEditor::FindInScripts(const std::string& search, bool useTabl
 
 	results.SetSearchTitle(wxString("Search \"") << search << "\" (" << totalCount << " " << (totalCount == 1 ? hit : hits) << " in " << results.GetCount() << " script" << (results.GetCount() > 1 ? "s)" : ")"));
 
-	//Return back
-	if (useTable)
-	{
-		table.Input(search);
-	}
-
 	return results;
 }
 
-std::vector<size_t> ScriptEditor::Find(const std::string& find, bool useTable, bool translated)
+std::vector<size_t> ScriptEditor::Find(std::string& find, bool useTable, bool translated)
 {
 	const std::vector<std::string> text = translated ? m_Translated : m_Original;
 	std::vector<size_t> result;
 
-	const Table& table = GetRom(translated).GetTable();
+	const Moon::Hacking::Table &table = GetRom(translated).GetTable();
 
 	if (useTable)
 	{
@@ -467,17 +461,12 @@ std::vector<size_t> ScriptEditor::Find(const std::string& find, bool useTable, b
 		}
 	}
 
-	if (useTable)
-	{
-		table.Output(find);
-	}
-
 	return result;
 }
 
-void ScriptEditor::Replace(const std::string& find, bool useTable, const std::string& replace)
+void ScriptEditor::Replace(std::string& find, bool useTable, const std::string& replace)
 {	
-	const Table& table = GetRom(true).GetTable();
+	const Moon::Hacking::Table& table = GetRom(true).GetTable();
 
 	if (useTable)
 	{
@@ -487,11 +476,6 @@ void ScriptEditor::Replace(const std::string& find, bool useTable, const std::st
 	for (std::string& str : m_Translated)
 	{
 		StringUtil::Replace(find, replace, str);
-	}
-
-	if (useTable)
-	{
-		table.Output(find);
 	}
 }
 

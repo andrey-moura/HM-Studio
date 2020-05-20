@@ -83,8 +83,8 @@ void ItemEditor::GetItens(bool translated)
 	rom.Seek(m_Infos[m_InfoIndex].m_StartPointers);
 	rom.Read(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
 
-	const Table& table = rom.GetTable();
-	table.Input(std::string_view(textBlock, m_Infos[m_InfoIndex].m_BlockLenght));	
+	const Moon::Hacking::Table& table = rom.GetTable();
+	table.Input((uint8_t*)textBlock, m_Infos[m_InfoIndex].m_BlockLenght);
 
 	int32_t addr = 0;
 

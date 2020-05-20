@@ -54,7 +54,7 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	Path = path.GetFullPath();	
 	this->Open(Path, wxFile::read_write);
 
-	m_Table.OpenFile(GetTablePath());
+	m_Table.Open(GetTablePath());
 	SetupVars();
 }
 
@@ -94,25 +94,30 @@ void RomFile::SetupVars()
 
 void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 {
-	StopWatch watch;
-	watch.Start();
-
-	m_VarTable.Input(text, m_Table);	
+	m_VarTable.Input(text, m_Table);
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
 		StringUtil::Replace("\5\f", "\5\f" + m_EOL, text[i]);
-	}
-
-	watch.Stop();
-	auto time = watch.Elapsed();
-
-	printf(std::to_string(time).c_str());
+	}	
 }
 
 void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 {
-	m_VarTable.Output(text, m_Table);
+	//m_VarTable.Output(text, m_Table);
+
+	StopWatch watch;
+	watch.Start();
+
+	for (std::string& str : text)
+	{
+		m_Table.Output(str);
+	}
+
+	watch.Stop();
+	uint64_t elapsed = watch.Elapsed();
+
+	std::string();
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{

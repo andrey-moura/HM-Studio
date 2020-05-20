@@ -17,7 +17,6 @@
 #include "class_stc.hpp"
 #include "class_file.hpp"
 #include "class_util_string.hpp"
-#include "class_table.hpp"
 #include "class_script_editor.hpp"
 #include "class_spell_checker.hpp"
 
