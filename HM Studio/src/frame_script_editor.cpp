@@ -19,6 +19,7 @@ void cScriptEditor::SetupRom()
 	this->SetTitle("ScriptEditor::" + romOriginal.Name);
 
 	wxFileName fn(m_Editor.GetScriptDir());
+	fn.AppendDir("Backup");
 	fn.SetName("backup");
 	fn.SetExt("temp");
 	m_BackupFile = fn.GetFullPath().ToStdString();
@@ -100,6 +101,9 @@ void cScriptEditor::RestoreText()
 
 			CheckAndGoScript(*number, *index);
 
+			if (m_Editor.GetIndex() != *index)
+				return;
+
 			std::vector<std::string> text;
 			text.reserve(m_Editor.GetCount());
 
@@ -180,6 +184,15 @@ void cScriptEditor::FindText()
 	if (!m_Editor.IsOpened())
 		dialog.InScript(true);
 
+	if (m_Editor.GetRom(true).Console == console::DS)
+	{
+		dialog.SetEol("\\n", "\n");
+	}
+	else
+	{
+		dialog.SetEol("\\r\\n", "\r\n");
+	}
+
 	if (dialog.ShowModal() != wxID_CANCEL)
 	{
 		std::string search = dialog.GetSearch();
@@ -187,16 +200,8 @@ void cScriptEditor::FindText()
 		bool inScript = dialog.InScript();
 		bool extended = dialog.Extended();
 		bool translated = dialog.Translated();
-		bool find = dialog.Find();		
+		bool find = dialog.Find();
 		bool useTable = dialog.UseTable();
-		if (extended)
-		{			
-			StringUtil::Replace("\\r", "\r", search);
-			StringUtil::Replace("\\n", "\n", search);
-
-			StringUtil::Replace("\\r", "\r", replace);
-			StringUtil::Replace("\\n", "\n", replace);
-		}
 
 		if (find)
 		{
@@ -264,6 +269,12 @@ void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 	m_FindIndex = 0;
 	m_FindPos.clear();
 
+	event.Skip();
+}
+
+void cScriptEditor::OnDumpInsertClick(wxCommandEvent& event)
+{
+	InsertDumpDialog(m_Editor).ShowModal();
 	event.Skip();
 }
 
@@ -477,7 +488,9 @@ void cScriptEditor::CreateGUIControls()
 	menuTools->Append(wxID_ANY, "Check All Codes");
 	menuTools->Append(ID_TEXTRANGE, "Set Text And Insert Script Range");
 	menuTools->Append(wxID_ANY, "Show Previwer");
-	menuTools->Append(wxID_ANY, "Show One By One");	
+	menuTools->Append(wxID_ANY, "Show One By One");		;
+
+	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter")->GetId());
 
 	//wxMenu* menuOptions = new wxMenu();	
 	

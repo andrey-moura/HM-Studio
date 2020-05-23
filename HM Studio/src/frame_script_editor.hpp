@@ -11,6 +11,7 @@
 #include "window_find_results.hpp"
 #include "frame_search_script.hpp"
 #include "dialog_script_text.hpp"
+#include "dialog_dump_insert.hpp"
 
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
@@ -50,6 +51,7 @@ private:
 	void OnMenuClick(wxCommandEvent& event);
 	void OnNavigationClick(wxCommandEvent& event);
 	void OnToolBarClick(wxCommandEvent& event);
+	void OnDumpInsertClick(wxCommandEvent& event);
 //Text Editor Globals					
 	std::pair<int, int> m_IndicatorPos;	
 

@@ -208,6 +208,19 @@ std::string RomFile::ReadString()
 	return string;
 }
 
+std::vector<uint8_t> RomFile::ReadBytes(size_t offset, size_t size)
+{
+	std::vector<uint8_t> ret;
+
+	Seek(offset);
+
+	ret.resize(size);
+
+	Read(ret.data(), size);
+
+	return ret;
+}
+
 void RomFile::WriteUInt32(uint32_t number)
 {
 	Write(&number, 4);

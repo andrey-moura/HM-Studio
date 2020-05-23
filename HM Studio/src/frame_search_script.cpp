@@ -39,41 +39,103 @@ void FrameSearchScript::OnInScriptClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void FrameSearchScript::OnText(wxCommandEvent& event)
+{
+	bool opened = wxTheClipboard->Open();
+	
+#ifdef _DEBUG
+   _STL_VERIFY(opened, "An error ucurred while opening the clipboard");
+#endif
+   
+	if(opened)
+	{
+		wxTextDataObject data;
+		wxTheClipboard->GetData(data);
+				
+		std::string raw = data.GetText().ToStdString();
+		std::string formated = Moon::String::ConvertEOL(raw, m_EOL);
+		
+		m_pModeBox->SetSelection(formated.size() != raw.size());
+
+		if (event.GetId() == m_pInputFind->GetId())		
+			m_pInputFind->AppendText(formated);		
+		else
+			m_pInputReplace->AppendText(formated);
+	
+		wxTheClipboard->Close();
+	}	
+}
+
+std::string FrameSearchScript::GetSearch()
+{
+	std::string search = m_pInputFind->GetValue().ToStdString();	
+
+	if (Extended())	
+		StringUtil::Replace(m_EOL, m_RawEOL, search);
+
+	return search;
+}
+
+std::string FrameSearchScript::GetReplace()
+{
+	std::string replace = m_pInputReplace->GetValue().ToStdString();
+
+	if (Extended())
+		StringUtil::Replace(m_EOL, m_RawEOL, replace);
+
+	return replace;
+}
+
+void FrameSearchScript::OnTextEnter(wxCommandEvent& event)
+{
+	if (event.GetId() == m_pInputFind->GetId())
+	{
+		m_pInputFind->AppendText(m_EOL);
+	}
+	else
+	{
+		m_pInputReplace->AppendText(m_EOL);
+	}
+
+	m_pModeBox->SetSelection(1);
+
+	event.Skip();
+}
+
 void FrameSearchScript::CreateGUIControls()
 {		
-	wxStaticText* findLabel = new wxStaticText(this, wxID_ANY, "Find What:   ");
-	
-	m_pInputFind = new wxTextCtrl(this, wxID_ANY);
+	m_pInputFind = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	m_pInputFind->Bind(wxEVT_TEXT_PASTE, &FrameSearchScript::OnText, this);
+	m_pInputFind->Bind(wxEVT_TEXT_ENTER, &FrameSearchScript::OnTextEnter, this);
 	wxButton* findButton = new wxButton(this, wxID_FIND, "Find All");
 	findButton->Bind(wxEVT_BUTTON, &FrameSearchScript::OnFindAllClick, this);
 
 	wxBoxSizer* findSizer = new wxBoxSizer(wxHORIZONTAL);
-	findSizer->Add(findLabel, 0, wxALL, 0);
+	findSizer->Add(new wxStaticText(this, wxID_ANY, "Find What:"), 0, wxALL, 0);
 	findSizer->AddSpacer(4);
 	findSizer->Add(m_pInputFind, 1, wxALL | wxEXPAND, 0);
 	findSizer->AddSpacer(4);
 	findSizer->Add(findButton, 0, wxALL, 0);
-
-	wxStaticText* replaceLabel = new wxStaticText(this, wxID_ANY, "Replace With:");	
-	m_pInputReplace = new wxTextCtrl(this, wxID_ANY);
+	
+	m_pInputReplace = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	m_pInputReplace->Bind(wxEVT_TEXT_PASTE, &FrameSearchScript::OnText, this);
+	m_pInputReplace->Bind(wxEVT_TEXT_ENTER, &FrameSearchScript::OnTextEnter, this);
 	wxButton* replaceButton = new wxButton(this, wxID_ANY, "Replace All");
 	replaceButton->Bind(wxEVT_BUTTON, &FrameSearchScript::OnReplaceAllClick, this);	
 	replaceButton->SetMinSize(findButton->GetMinSize());
 
 	wxBoxSizer* replaceSizer = new wxBoxSizer(wxHORIZONTAL);
-	replaceSizer->Add(replaceLabel);
+	replaceSizer->Add(new wxStaticText(this, wxID_ANY, "Replace With:"));
 	replaceSizer->AddSpacer(4);
 	replaceSizer->Add(m_pInputReplace, 1, wxALL, 0);
 	replaceSizer->AddSpacer(4);
 	replaceSizer->Add(replaceButton);
 
-	wxRadioButton* modeNormal = new wxRadioButton(this, wxID_ANY, "Normal");
-	modeNormal->SetValue(true);
-	m_pModeExtended = new wxRadioButton(this, wxID_ANY, "Extended");
+	wxArrayString modes;
+	modes.Add("Normal");
+	modes.Add("Extended");
 
-	wxStaticBoxSizer* modeSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Mode");
-	modeSizer->Add(modeNormal);
-	modeSizer->Add(m_pModeExtended);
+	m_pModeBox = new wxRadioBox(this, wxID_ANY, "Mode", wxDefaultPosition, wxDefaultSize, modes, 0, wxRA_VERTICAL);
 
 	m_pCase = new wxCheckBox(this, wxID_ANY, "Match Case");
 	m_pCase->SetValue(true);
@@ -94,7 +156,7 @@ void FrameSearchScript::CreateGUIControls()
 	m_pTranslated->SetValue(true);
 
 	wxBoxSizer* configSizer = new wxBoxSizer(wxHORIZONTAL);
-	configSizer->Add(modeSizer);
+	configSizer->Add(m_pModeBox, 0, wxEXPAND, 0);
 	configSizer->AddSpacer(4);
 	configSizer->Add(optionsSizer);
 	configSizer->AddSpacer(4);

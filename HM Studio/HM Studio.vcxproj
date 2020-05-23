@@ -53,6 +53,7 @@
     <ClCompile Include="src\class_stc.cpp" />
     <ClCompile Include="src\class_util_string.cpp" />
     <ClCompile Include="src\class_file.cpp" />
+    <ClCompile Include="src\dialog_dump_insert.cpp" />
     <ClCompile Include="src\graphicsinfoviewer.cpp" />
     <ClCompile Include="src\dialog_script_text.cpp" />
     <ClCompile Include="src\FishEditor.cpp" />
@@ -87,6 +88,7 @@
     <ClInclude Include="src\class_spell_checker.hpp" />
     <ClInclude Include="src\class_util_string.hpp" />
     <ClInclude Include="src\class_file.hpp" />
+    <ClInclude Include="src\dialog_dump_insert.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />
     <ClInclude Include="src\graphicsinfoviewer.hpp" />
     <ClInclude Include="src\dialog_script_text.hpp" />
@@ -248,6 +250,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

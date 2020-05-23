@@ -493,25 +493,22 @@ void ScriptEditor::Dump(bool translated)
 
 	uint32_t maxPosition = m_Info.StartScript + m_Info.BlockLenght;
 
-	//File::CreateDir(pathFormat);
+	Moon::File::MakeDir(m_ScriptDir);
+	Moon::File::MakeDir(Moon::File::AppenPath(m_ScriptDir, translated ? "Translated" : "Original"));
 
 	for (uint32_t i = 0; i < m_Info.ScriptCount; ++i)
 	{
 		size_t size = 0;
-		std::string path = GetPath(i, true); 
+		std::string path = GetPath(i, translated); 
 
-		if (IsInsideBlock(offsets[i]))
+		if (!IsInsideBlock(offsets[i]))
 		{
-			//The script has been moved to another location
+			//The script has been moved to outside of the block
 			size = ScriptSize(offsets[i], translated);
 
 			if (size != 0xffffffff)
-			{
-				std::vector<uint8_t> bytes;
-				rom.Seek(offsets[i]);
-				rom.ReadBytes(bytes, size);
-
-				File::WriteAllBytes(path, bytes);
+			{								
+				Moon::File::WriteAllBytes(path, rom.ReadBytes(offsets[i], size));
 			}
 
 			continue;
@@ -522,7 +519,7 @@ void ScriptEditor::Dump(bool translated)
 		if (size == 0xffffffff)
 			return;
 
-		File::WriteAllBytes(path, scriptBlock + (offsets[i] - m_Info.StartScript), size);
+		Moon::File::WriteAllBytes(path, scriptBlock + (offsets[i] - m_Info.StartScript), size);
 	}
 
 	delete[] offsets;
