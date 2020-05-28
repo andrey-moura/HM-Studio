@@ -60,7 +60,7 @@ void Script::SetData(std::vector<uint8_t> bytes)
 }
 
 bool Script::CompareCode(const Script& other)
-{		
+{
 	if (memcmp((uint8_t*)m_pSrcCodeLenght - 8, (uint8_t*)other.m_pSrcCodeLenght - 8, (m_pStr - m_data) - 4) != 0) return false;
 
 	if (*m_pStrCount != *(other.m_pStrCount)) return false;

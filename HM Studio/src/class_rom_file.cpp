@@ -36,12 +36,12 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	{
 	case console::GBA:
 		path.SetExt("gba");
-		m_EOL = "\r\n";
+		m_EOL = 0x0d0a;
 		m_MaxChars = 28;
 		break;
 	case console::DS:
 		path.SetExt("nds");
-		m_EOL = "\n";
+		m_EOL = 0x0a;
 		m_MaxChars = 30;
 		break;
 	default:
@@ -97,8 +97,8 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 	m_VarTable.Input(text, m_Table);
 
 	for (size_t i = 0; i < text.size(); ++i)
-	{
-		StringUtil::Replace("\5\f", "\5\f" + m_EOL, text[i]);
+	{		
+		Moon::String::Replace(text[i], "\5\f", "\5\f" + m_EOL);
 	}	
 }
 
@@ -121,7 +121,7 @@ void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		StringUtil::Replace("\5\f" + m_EOL, "\5\f", text[i]);
+		Moon::String::Replace(text[i], "\5\f" + m_EOL, "\5\f");
 	}
 }
 

@@ -56,11 +56,13 @@ public:
 private:
 	wxStyledTextCtrl* m_ListView = nullptr;
 
-	FilesResults m_Results;
+	FilesResults m_Results;	
 
 	void OnDoubleClick(wxStyledTextEvent& event);
 	void SendClickEvent(const SearchResult* result, size_t index);
-public:
+
+	void UpdateMarkers();
+public:	
 	void SetFindResults(const FilesResults& result);
 private:
 	void CreateGUIControls();

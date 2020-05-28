@@ -36,50 +36,50 @@ std::vector<std::string_view> StringUtil::SplitLines(const std::string& s)
 	return output;
 }
 
-void StringUtil::Replace(const std::string& find, const std::string& replace, std::string& str)
-{
-	if (find.size() == 0 || replace.size() == 0 || str.size() == 0)
-		return;
+//void StringUtil::Replace(const std::string& find, const std::string& replace, std::string& str)
+//{
+//	if (find.size() == 0 || replace.size() == 0 || str.size() == 0)
+//		return;
+//
+//	if (find == replace)
+//		return;
+//
+//	if (find.size() == replace.size())
+//	{
+//		std::vector<size_t> vec = FindAll(str, find);		
+//
+//		for (size_t pos : vec)
+//		{
+//			str.replace(pos, find.size(), replace);
+//		}
+//	}
+//	else {			
+//		size_t pos = str.find(find, 0);
+//		size_t findSize = find.size();
+//
+//		while (pos != std::string::npos)
+//		{
+//			std::string newString;
+//			newString.resize(pos);
+//
+//			memcpy((void*)newString.data(), str.data(), pos);
+//			newString.append(replace);
+//			newString.append(str.substr(pos + findSize));
+//
+//			str = newString;
+//
+//			pos = str.find(find, pos + replace.size());
+//		}		
+//	}
+//}
 
-	if (find == replace)
-		return;
-
-	if (find.size() == replace.size())
-	{
-		std::vector<size_t> vec = FindAll(str, find);		
-
-		for (size_t pos : vec)
-		{
-			str.replace(pos, find.size(), replace);
-		}
-	}
-	else {			
-		size_t pos = str.find(find, 0);
-		size_t findSize = find.size();
-
-		while (pos != std::string::npos)
-		{
-			std::string newString;
-			newString.resize(pos);
-
-			memcpy((void*)newString.data(), str.data(), pos);
-			newString.append(replace);
-			newString.append(str.substr(pos + findSize));
-
-			str = newString;
-
-			pos = str.find(find, pos + replace.size());
-		}		
-	}
-}
-
-void StringUtil::Replace(std::string& string, const char& find, const char& replace)
-{	
-	size_t pos = string.find(find);
-
-	while (pos != std::string::npos)
-	{
-		string[pos] = replace;
-		pos = string.find(find, pos + 1);
-	}
-}
+//void StringUtil::Replace(std::string& string, const char& find, const char& replace)
+//{	
+//	size_t pos = string.find(find);
+//
+//	while (pos != std::string::npos)
+//	{
+//		string[pos] = replace;
+//		pos = string.find(find, pos + 1);
+//	}
+//}

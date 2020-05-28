@@ -41,11 +41,9 @@ void cScriptEditor::ConfigureSTC(STC* stc, const RomFile& rom)
 	for(size_t i = 0; i < table.Size(); ++i)
 	{		
 		stc->AddVar(std::string(table.GetName(i)));
-	}
+	}	
 	
-	const std::string& eol = rom.GetEOL();	
-	
-	int eolMode = eol == "\n" ? wxSTC_EOL_LF : wxSTC_EOL_CRLF;
+	int eolMode = rom.GetEOL() == 0x0a ? wxSTC_EOL_LF : wxSTC_EOL_CRLF;
 
 	stc->SetMaxLineLenght(rom.GetLineMax());
 	stc->SetEOLMode(eolMode);
@@ -212,22 +210,8 @@ void cScriptEditor::FindText()
 				m_Editor.SetIndex(m_FindPos[m_FindIndex]);
 			}
 			else
-			{
-				if (!m_pFindResultsWindow)
-				{
-					m_pFindResultsWindow = new FindResultsWindow(this);
-					m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
-					global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
-				}
-
-				FilesResults results = m_Editor.FindInScripts(search, useTable, translated);
-				m_pFindResultsWindow->SetFindResults(results);
-
-				m_pMenuBar->Check(ID_SEARCHWINDOW, true);
-				m_pFindResultsWindow->Show(true);
-
-				this->Restore();
-				this->Raise();
+			{				
+				ShowResultWindow(m_Editor.FindInScripts(search, useTable, translated));
 			}
 		}
 		else
@@ -357,6 +341,25 @@ void cScriptEditor::SaveText()
 	UpdateText();
 }
 
+void cScriptEditor::ShowResultWindow(const FilesResults& results)
+{
+	if (!m_pFindResultsWindow)
+	{
+		m_pFindResultsWindow = new FindResultsWindow(this);
+		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+		global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
+	}
+
+	m_pFindResultsWindow->SetFindResults(results);
+
+	m_pMenuBar->Check(ID_SEARCHWINDOW, true);
+	m_pFindResultsWindow->Show(true);
+
+	Layout();
+	this->Restore();
+	this->Raise();
+}
+
 void cScriptEditor::InsertScript()
 {
 	SaveScript();
@@ -399,6 +402,18 @@ void cScriptEditor::InsertScript()
 	wxMessageBox(message, succes ? "Yeah!!" : "Huh?", icon, this);
 }
 
+void cScriptEditor::OnCheckEOLClick(wxCommandEvent& event)
+{	
+	ShowResultWindow(m_Editor.CheckEOL());
+	event.Skip();
+}
+
+void cScriptEditor::OnCheckCodeClick(wxCommandEvent& event)
+{
+	ShowResultWindow(m_Editor.CheckCode());
+	event.Skip();
+}
+
 void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 {
 	event.Skip();
@@ -406,18 +421,24 @@ void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 
 void cScriptEditor::OnResultClick(wxCommandEvent& event)
 {	
-	const SearchResult* result = (SearchResult*)event.GetClientData();
-
-	size_t clicked = event.GetInt();
-
-	const wxString& title = result->GetTitle();
+	const SearchResult& result = *(SearchResult*)event.GetClientData();	
 	
-	size_t number = std::stoi(title.substr(title.find("_", 7) + 1).ToStdString());
-	size_t index = std::stoi(result->GetHits()[clicked].substr(7).ToStdString());
+	size_t number = GetNumberFromResult(result);
+	size_t index = GetIndexFromResult(result, event.GetInt());
 			
 	CheckAndGoScript(number, index);
 			
 	event.Skip();
+}
+
+size_t cScriptEditor::GetNumberFromResult(const SearchResult& result)
+{
+	return std::stoi(result.GetTitle().substr(result.GetTitle().find("_", 7) + 1).ToStdString());
+}
+
+size_t cScriptEditor::GetIndexFromResult(const SearchResult& result, size_t clicked)
+{
+	return std::stoi(result.GetHits()[clicked].substr(7).ToStdString());
 }
 
 void cScriptEditor::SetTextRange()
@@ -476,7 +497,8 @@ void cScriptEditor::CreateGUIControls()
 	menuString->Append(ID_STRPROX, "Next\tAlt-Right", "Loads the next string");
 
 	wxMenu* menuEdit = new wxMenu();
-	menuEdit->Append(wxID_ANY, "Move To");	
+	menuEdit->Append(wxID_ANY, "Move To");
+	menuEdit->Bind(wxEVT_MENU, &cScriptEditor::OnConvertEOLClick, this, menuEdit->Append(wxNewId(), "Convert EOL")->GetId());
 
 	wxMenu* menuSearch = new wxMenu();
 	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
@@ -484,13 +506,9 @@ void cScriptEditor::CreateGUIControls()
 	menuSearch->Append(wxID_ANY, "Find Next Script");	
 
 	wxMenu* menuTools = new wxMenu();
-	menuTools->Append(wxID_ANY, "Check All Pointers");
-	menuTools->Append(wxID_ANY, "Check All Codes");
-	menuTools->Append(ID_TEXTRANGE, "Set Text And Insert Script Range");
-	menuTools->Append(wxID_ANY, "Show Previwer");
-	menuTools->Append(wxID_ANY, "Show One By One");		;
-
-	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter")->GetId());
+	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckEOLClick, this, menuTools->Append(wxNewId(), "EOL Checker", nullptr, "Checking Tool")->GetId());
+	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckCodeClick, this, menuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
+	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Dumper/Inserter Tool")->GetId());
 
 	//wxMenu* menuOptions = new wxMenu();	
 	
@@ -645,6 +663,14 @@ void cScriptEditor::OnNavigationClick(wxCommandEvent& event)
 void cScriptEditor::OnToolBarClick(wxCommandEvent& event)
 {	
 	ScriptMenuTools(event.GetId());
+
+	event.Skip();
+}
+
+void cScriptEditor::OnConvertEOLClick(wxCommandEvent& event)
+{	
+	for (std::string& text : m_Editor.GetTranlated())
+		Moon::String::ConvertLineEnds(text, 0x0d0a);
 
 	event.Skip();
 }

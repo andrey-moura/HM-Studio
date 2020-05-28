@@ -39,7 +39,7 @@ public:
 	std::string Path;	
 	std::string Name;
 	std::string State;
-	std::string m_EOL;
+	uint32_t m_EOL;
 	std::string m_HomeDir;
 	uint8_t m_MaxChars;
 	//Table
@@ -55,7 +55,7 @@ public:
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);
-	inline const std::string& GetEOL() const { return m_EOL; };
+	uint32_t GetEOL() const { return m_EOL; };
 	inline const uint8_t GetLineMax() const {return m_MaxChars; }
 //File
 public:

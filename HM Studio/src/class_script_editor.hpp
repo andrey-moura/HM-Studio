@@ -108,6 +108,10 @@ public:
 
 	void UpdateScript();
 	Script& GetScript() { return m_ScriptTranslated; }
+
+
+	FilesResults CheckEOL();
+	FilesResults CheckCode();
 private:
 	Script m_ScriptOriginal;
 	Script m_ScriptTranslated;

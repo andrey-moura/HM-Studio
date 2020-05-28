@@ -52,15 +52,16 @@ void FrameSearchScript::OnText(wxCommandEvent& event)
 		wxTextDataObject data;
 		wxTheClipboard->GetData(data);
 				
-		std::string raw = data.GetText().ToStdString();
-		std::string formated = Moon::String::ConvertEOL(raw, m_EOL);
-		
-		m_pModeBox->SetSelection(formated.size() != raw.size());
+		std::string text = data.GetText().ToStdString();
+		Moon::String::ConvertLineEnds(text, *(uint32_t*)m_RawEOL.c_str());		
+		Moon::String::Replace(text, m_RawEOL, m_EOL);
+
+		m_pModeBox->SetSelection(text.find("\\n") != std::string::npos);
 
 		if (event.GetId() == m_pInputFind->GetId())		
-			m_pInputFind->AppendText(formated);		
+			m_pInputFind->AppendText(text);
 		else
-			m_pInputReplace->AppendText(formated);
+			m_pInputReplace->AppendText(text);
 	
 		wxTheClipboard->Close();
 	}	
@@ -71,7 +72,7 @@ std::string FrameSearchScript::GetSearch()
 	std::string search = m_pInputFind->GetValue().ToStdString();	
 
 	if (Extended())	
-		StringUtil::Replace(m_EOL, m_RawEOL, search);
+		Moon::String::Replace(search, m_EOL, m_RawEOL);
 
 	return search;
 }
@@ -81,7 +82,7 @@ std::string FrameSearchScript::GetReplace()
 	std::string replace = m_pInputReplace->GetValue().ToStdString();
 
 	if (Extended())
-		StringUtil::Replace(m_EOL, m_RawEOL, replace);
+		Moon::String::Replace(replace, m_EOL, m_RawEOL);	
 
 	return replace;
 }

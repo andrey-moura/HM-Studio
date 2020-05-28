@@ -1,6 +1,7 @@
 #pragma once
 
 #include <thread>
+#include <sstream>
 
 #include <wx/frame.h>
 #include <wx/clipbrd.h>
@@ -52,12 +53,18 @@ private:
 	void OnNavigationClick(wxCommandEvent& event);
 	void OnToolBarClick(wxCommandEvent& event);
 	void OnDumpInsertClick(wxCommandEvent& event);
+	void OnConvertEOLClick(wxCommandEvent& event);
+	void OnCheckEOLClick(wxCommandEvent& event);
+	void OnCheckCodeClick(wxCommandEvent& event);
 //Text Editor Globals					
 	std::pair<int, int> m_IndicatorPos;	
 
 	void UpdateStatusText(wxStyledTextCtrl* stc);	
 //Text save
 	void ConfigureSTC(STC* stc, const RomFile& rom);
+	void ShowResultWindow(const FilesResults& results);
+	size_t GetNumberFromResult(const SearchResult& result);
+	size_t GetIndexFromResult(const SearchResult& result, size_t clicked);
 private:
 	void BackupText();
 	void RestoreText();

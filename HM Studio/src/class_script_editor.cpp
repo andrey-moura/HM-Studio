@@ -174,7 +174,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 
 		for (std::string& s : text)
 		{
-			StringUtil::Replace(find, replace, s);
+			Moon::String::Replace(s, find, replace);
 		}
 
 		m_RomTranslated.OutputTextWithVariables(text);
@@ -355,8 +355,8 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 
 	wxString state = translated ? "Translated" : "Original";	
 
-	wxString hit = " hit)";
-	wxString hits = " hits)";
+	wxString hit = " hit";
+	wxString hits = " hits";
 
 	size_t totalCount = 0;
 
@@ -372,6 +372,9 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 
 	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
 	{
+		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;
+		dialog.Update(i, name);
+
 		Script script = File::ReadAllBytes(GetPath(i, translated));
 
 		//No text, next
@@ -426,9 +429,7 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 
 		totalCount += count;
 
-		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;		
-		dialog.Update(i, name);
-		match.SetTitle(name << " (" << count <<  (count == 1 ? hit : hits));
+		match.SetTitle(name << " (" << count <<  (count == 1 ? hit : hits) << ")");
 		results.AppendMatch(match);
 	}
 
@@ -475,7 +476,7 @@ void ScriptEditor::Replace(std::string& find, bool useTable, const std::string& 
 
 	for (std::string& str : m_Translated)
 	{
-		StringUtil::Replace(find, replace, str);
+		Moon::String::Replace(str, find, replace);
 	}
 }
 
@@ -742,4 +743,96 @@ ScriptFlags ScriptEditor::CheckAndGoScript(size_t index)
 		return ScriptFlags::ERROR_OUTOFRANGE;
 
 	return OpenScript(index);
+}
+
+FilesResults ScriptEditor::CheckEOL()
+{
+	FilesResults result;	
+	const char* ignore = "\x5\xff\r\n";
+	uint32_t totalCount = 0;		
+
+	wxProgressDialog dialog("Checking end lines...", wxEmptyString, m_Info.BlockLenght);
+	dialog.Show();
+
+	for (size_t number = 0; number < m_Info.ScriptCount; ++number)
+	{
+		wxString name = wxString("Script_Translated") << "_" << number << m_PathRight;
+		dialog.Update(number, name);
+
+		std::string path = GetPath(number, true);
+		Script script = File::ReadAllBytes(path);
+
+		if (script.HaveText())
+		{
+			SearchResult match;
+
+			for (size_t index = 0; index < script.Count(); ++index)
+			{
+				std::string_view str = script[index];
+				bool good = false;				
+
+				if (m_RomOriginal.Console == console::GBA)
+				{
+					good = Moon::String::CheckEndLineCRLF(str);
+				}
+				else
+				{
+					good = Moon::String::CheckEndLineLF(str);
+				}
+
+				if (good)
+					continue;					
+											
+				match.AppendResult(wxString("String ") << index << ": " << std::string(str.substr(0, str.find_first_of(ignore))));
+			}
+
+			size_t count = match.GetCount();
+
+			if (count == 0)
+				continue;
+			
+			totalCount += count;
+			match.SetTitle(name << " (" << count << (count == 0 ?  " error" : " errors") << ")");
+			result.AppendMatch(match);
+		}
+	}
+
+	result.SetSearchTitle(wxString("EOL Checker (") << totalCount << (totalCount == 1 ? " error" : " errors") << " in " << result.GetCount() << " scripts)");
+
+	return result;
+}
+
+FilesResults ScriptEditor::CheckCode()
+{
+	FilesResults result;	
+
+	wxProgressDialog dialog("Checking code...", wxEmptyString, m_Info.BlockLenght);
+	dialog.Show();
+
+	for (size_t number = 0; number < m_Info.ScriptCount; ++number)
+	{
+		wxString name = wxString("Script_Translated") << "_" << number << m_PathRight;
+		dialog.Update(number, name);
+		
+		Script original = File::ReadAllBytes(GetPath(number, false));
+		Script translated = File::ReadAllBytes(GetPath(number, true));
+
+		if (!original.CompareCode(translated))
+		{
+			SearchResult match;
+			match.SetTitle(name << " has code errors");
+			result.AppendMatch(match);
+		}
+	}
+
+	size_t count = result.GetCount();
+	std::string script;
+
+
+
+
+	result.SetSearchTitle(wxString("Code Checker (") << (count == 0 ? "none" : std::to_string(count)) << " bad script" << (count == 1 ? "" : "s") << "" << ")");
+	dialog.Close();
+
+	return result;
 }
