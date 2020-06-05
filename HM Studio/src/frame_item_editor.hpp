@@ -40,6 +40,8 @@ private:
 	void OnFileClick(wxCommandEvent& event);
 	void OnProxClick(wxCommandEvent& event);
 	void OnPrevClick(wxCommandEvent& event);
+	void OnSaveClick(wxCommandEvent& event);
+	void OnInsertClick(wxCommandEvent& event);
 private:
 	void CreateGUIControls();
 	

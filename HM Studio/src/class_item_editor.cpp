@@ -58,6 +58,23 @@ uint32_t ItemEditor::GetPalAdress(bool translated) const
 	return itens[m_Index].GetPalAdress();
 }
 
+void ItemEditor::SetName(const std::string& name)
+{	
+	m_Translated[m_Index].SetName(name);
+}
+
+void ItemEditor::SetDescription(const std::string& description)
+{
+	m_Translated[m_Index].SetDescription(description);
+}
+
+void ItemEditor::Save(const std::string& name, const std::string& description)
+{
+	SetName(name);
+	SetDescription(description);
+	ProxItem();
+}
+
 void ItemEditor::OpenItens(uint8_t index)
 {
 	m_Index = 0;
@@ -107,19 +124,19 @@ void ItemEditor::GetItens(bool translated)
 
 		if (m_RomOriginal.Console == console::GBA)
 		{
-			uint32_t nameOffset = curData[0] + addr;			
+			uint32_t nameOffset = curData[0] + addr;
 
 			if (IsInsideBlock(nameOffset))
 			{
 				itens[i].SetName(textBlock + (nameOffset - m_Infos[m_InfoIndex].m_StartBlock));
 			}
 			else
-			{								
+			{
 				rom.Seek(nameOffset);
 				std::string name = rom.ReadString();
 				table.Input(name);
 				itens[i].SetName(name);
-			}			
+			}
 
 			uint16_t id = *(uint16_t*)(curData + m_Infos[m_InfoIndex].m_IdIndex);
 
@@ -128,10 +145,10 @@ void ItemEditor::GetItens(bool translated)
 			uint32_t palette = (rom.ReadUInt16(offset3 + 0x0a) << 5) + m_Adresses[4]; //Phew...
 
 			itens[i].SetImgAdress(image);
-			itens[i].SetPalAdress(palette);
+			itens[i].SetPalAdress(palette);			
 		}
 
-		uint32_t descriptionOffset = curData[m_Infos[m_InfoIndex].m_DescriptionIndex] + addr;		
+		uint32_t descriptionOffset = curData[m_Infos[m_InfoIndex].m_DescriptionIndex] + addr;
 
 		if (IsInsideBlock(descriptionOffset))
 		{
@@ -143,11 +160,59 @@ void ItemEditor::GetItens(bool translated)
 			std::string description = rom.ReadString();
 			table.Input(description);
 			itens[i].SetDescription(description);
-		}
+		}		
 	}
 
 	delete[] textBlock;
 	delete[] dataBlock;
+}
+
+void ItemEditor::InsertItens()
+{
+	uint8_t bpi = m_Infos[m_InfoIndex].m_WPI * 4;
+
+	char* textBlock = new char[m_Infos[m_InfoIndex].m_BlockLenght];
+	uint32_t* dataBlock = new uint32_t[m_Infos[m_InfoIndex].m_Count * bpi];
+	uint32_t offset = 0;
+
+	m_RomTranslated.Seek(m_Infos[m_InfoIndex].m_StartPointers);
+	m_RomTranslated.Read(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
+		
+	uint32_t add = m_RomOriginal.Console == console::GBA ? (0x08000000 + m_Infos[m_InfoIndex].m_StartBlock) : m_Infos[m_Index].m_StartPointers - 4;
+
+	for (size_t i = 0; i < m_Infos[m_InfoIndex].m_Count; ++i)
+	{		
+		uint32_t* curData = dataBlock + (i * m_Infos[m_InfoIndex].m_WPI);
+
+		if (m_RomOriginal.Console == console::GBA)
+		{
+			const std::string& name = m_Translated[i].GetName();
+			memcpy(textBlock + offset, name.c_str(), name.size() + 1);
+
+			curData[0] = (offset + add);
+			offset += name.size() + 1;
+
+			if (offset >= m_Infos[m_InfoIndex].m_BlockLenght) return;
+		}
+
+		const std::string& description = m_Translated[i].GetDescription();
+		memcpy(textBlock + offset, description.c_str(), description.size() + 1);
+
+		curData[m_Infos[m_InfoIndex].m_DescriptionIndex] = (offset + add);
+		offset += description.size() + 1;
+
+		if (offset >= m_Infos[m_InfoIndex].m_BlockLenght) return;
+	}
+
+	m_RomTranslated.GetTable().Output((unsigned char*)textBlock, m_Infos[m_InfoIndex].m_BlockLenght);
+
+	m_RomTranslated.Seek(m_Infos[m_InfoIndex].m_StartBlock);
+	m_RomTranslated.Write(textBlock, m_Infos[m_InfoIndex].m_BlockLenght);
+
+	m_RomTranslated.Seek(m_Infos[m_InfoIndex].m_StartPointers);
+	m_RomTranslated.Write(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
+
+	m_RomTranslated.Flush();
 }
 
 bool ItemEditor::IsInsideBlock(uint32_t offset)

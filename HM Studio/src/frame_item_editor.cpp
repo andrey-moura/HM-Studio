@@ -20,7 +20,7 @@ void ItemEditorFrame::UpdateItem()
 
 	if (m_RomOriginal.Console == console::GBA)
 	{
-		m_pItemName->SetLabel(m_Editor.GetName(true));
+		m_pItemName->SetValue(m_Editor.GetName(true));
 	}
 
 	m_pItemText->SetText(m_Editor.GetDescription(true));
@@ -62,6 +62,21 @@ void ItemEditorFrame::OnPrevClick(wxCommandEvent& event)
 	UpdateItem();
 }
 
+void ItemEditorFrame::OnSaveClick(wxCommandEvent& event)
+{
+	m_Editor.Save(m_pItemName->GetValue().ToStdString(), m_pItemText->GetText().ToStdString());
+	UpdateItem();
+
+	event.Skip();
+}
+
+void ItemEditorFrame::OnInsertClick(wxCommandEvent& event)
+{
+	m_Editor.InsertItens();
+
+	event.Skip();
+}
+
 void ItemEditorFrame::CreateGUIControls()
 {
 	//*******************************************************************************//
@@ -80,7 +95,9 @@ void ItemEditorFrame::CreateGUIControls()
 		menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE1 + i);
 	}	
 
-	menu->Append(menuFile, "File");	
+   menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnInsertClick, this, menuFile->Append(wxNewId(), "Insert", "Insert the itens")->GetId());
+
+   menu->Append(menuFile, "File");
 
 	SetMenuBar(menu);
 
@@ -92,10 +109,11 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemText = new STC(this, wxID_ANY);
 	m_pItemText->SetMaxLineLenght(28);
 
-	m_pSaveText = new wxButton(this, wxID_ANY, _("Save"));
+	m_pSaveText = new wxButton(this, wxID_ANY, "Save");
+	m_pSaveText->Bind(wxEVT_BUTTON, &ItemEditorFrame::OnSaveClick, this);
 
 	wxSize buttons_size(0, 0);
-	buttons_size.SetWidth(m_pSaveText->GetTextExtent(_("Save")).GetWidth() * 2);
+	buttons_size.SetWidth(m_pSaveText->GetTextExtent("Save").GetWidth() * 2);
 	buttons_size.SetHeight(m_pSaveText->GetSize().GetHeight());
 
 	m_pSaveText->SetMinSize(buttons_size);

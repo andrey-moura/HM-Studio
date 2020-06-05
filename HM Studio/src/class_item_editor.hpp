@@ -45,8 +45,14 @@ public:
 	uint32_t GetImgAdress(bool translated) const;
 	uint32_t GetPalAdress(bool translated) const;
 
+	void SetName(const std::string& name);
+	void SetDescription(const std::string& description);
+
+	void Save(const std::string& name, const std::string& description);
+
 	void GetItensInfos();
 	const std::vector<ItemInfo> GetInfos() { return m_Infos; }
+	void InsertItens();
 private:
 	void GetItens(bool translated);
 
