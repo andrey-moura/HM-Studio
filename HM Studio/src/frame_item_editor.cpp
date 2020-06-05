@@ -140,6 +140,7 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemIconView->SetMinSize(wxSize(64, 64));
 	m_pItemIconView->SetSize(wxSize(64, 64));
 	m_pItemIconView->SetScale(4);
+	m_pItemIconView->SetViewOnly(true);
 
 	wxBoxSizer* sizer10 = new wxBoxSizer(wxVERTICAL);
 	if (m_RomOriginal.Console == console::GBA)

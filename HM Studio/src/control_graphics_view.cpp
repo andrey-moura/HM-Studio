@@ -3,12 +3,10 @@
 GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_ANY), m_BlockSize(2, 2)
 {
 	Bind(wxEVT_PAINT, &GraphicsView::OnPaintEvent, this);
-	Bind(wxEVT_LEFT_DOWN, &GraphicsView::OnMouseDown, this);
-	Bind(wxEVT_RIGHT_DOWN, &GraphicsView::OnMouseDown, this);
-	Bind(wxEVT_MOTION, &GraphicsView::OnMouseDown, this);
 	SetBackgroundColour(parent->GetBackgroundColour());	
 	SetBackgroundStyle(wxBG_STYLE_PAINT);
-	SetDoubleBuffered(true);
+	SetDoubleBuffered(true);	
+	SetViewOnly(m_ViewOnly);
 }
 
 void GraphicsView::SetGraphics(Graphics* graphic)
@@ -73,6 +71,24 @@ bool GraphicsView::ToggleBlockGrid()
 	SetBlockGrid(!m_BlockGrid);
 	Refresh();
 	return GetBlockGrid();
+}
+
+void GraphicsView::SetViewOnly(bool set)
+{
+	if (set)
+	{
+		SetCursor(wxCURSOR_OPEN_HAND);		
+		Unbind(wxEVT_LEFT_DOWN, &GraphicsView::OnMouseDown, this);
+		Unbind(wxEVT_RIGHT_DOWN, &GraphicsView::OnMouseDown, this);
+		Unbind(wxEVT_MOTION, &GraphicsView::OnMouseDown, this);
+	}
+	else
+	{
+		SetCursor(wxCURSOR_DEFAULT);		
+		Bind(wxEVT_LEFT_DOWN, &GraphicsView::OnMouseDown, this);
+		Bind(wxEVT_RIGHT_DOWN, &GraphicsView::OnMouseDown, this);
+		Bind(wxEVT_MOTION, & GraphicsView::OnMouseDown, this);
+	}
 }
 
 void GraphicsView::OnDraw(wxDC& dc)

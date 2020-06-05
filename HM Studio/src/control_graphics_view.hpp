@@ -28,7 +28,9 @@ private:
 	wxSize m_BlockSize;
 
 	uint8_t m_Color1 = 1;
-	uint8_t m_Color2 = 0;	
+	uint8_t m_Color2 = 0;
+
+	bool m_ViewOnly = false;
 public:
 	void SetGraphics(Graphics* graphic);	
 	void SetScale(size_t scale);
@@ -51,6 +53,9 @@ public:
 
 	void DrawTileGrid(wxDC& dc);
 	void DrawBlockGrid(wxDC& dc);
+
+	void SetViewOnly(bool set);
+	bool IsViewOnly() { return m_ViewOnly; }
 //static helpers
 	static bool IsTouchingGrid(wxPoint pixel, size_t grid);
 //override
@@ -63,5 +68,5 @@ private:
 //events
 private:
 	void OnPaintEvent(wxPaintEvent& event);	
-	void OnMouseDown(wxMouseEvent& event);
+	void OnMouseDown(wxMouseEvent& event);	
 };
