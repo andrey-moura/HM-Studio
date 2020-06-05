@@ -29,7 +29,7 @@ public:
 private:
 	//void RomFromDialog();
 
-	void GetGraphicsList();	
+	//void GetGraphicsList();	
 	
 	RomFile m_RomOriginal;
 	RomFile m_RomTranslated;	
@@ -42,13 +42,16 @@ private:
 	void Zoom(int zoomMode);
 	void ToggleMenu(int id, bool check);
 	void GetGraphics(const GraphicsInfo& info, RomFile& rom);
-	inline void AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id);
-	void AppendGraphics(const GraphicsTreeItem& item);
-	void AppendGraphics(const GraphicsTreeParent& parent);
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);
 	void OnPalChanged(PaletteEvent& event);
+public:
+	void SetRootName(const wxString& name);
+
+	void AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id);
+	void AppendGraphics(const GraphicsTreeItem& item);
+	void AppendGraphics(const GraphicsTreeParent& parent);
 private:
 	void CreateGUIControls();	
 

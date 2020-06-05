@@ -35,6 +35,11 @@ void ItemEditorFrame::UpdateItem()
 	}	
 }
 
+GraphicsInfo ItemEditorFrame::GetInfo()
+{
+	return GraphicsInfo(m_Editor.GetImgAdress(true), m_Editor.GetPalAdress(true));
+}
+
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 {	
 	m_Editor.OpenItens(event.GetId() - 5051);
@@ -73,6 +78,35 @@ void ItemEditorFrame::OnSaveClick(wxCommandEvent& event)
 void ItemEditorFrame::OnInsertClick(wxCommandEvent& event)
 {
 	m_Editor.InsertItens();
+
+	event.Skip();
+}
+
+void ItemEditorFrame::AddToGraphicsFrame()
+{
+	GraphicsTreeParent parent(m_Editor.GetInfo().m_Name);
+
+	const auto& itens = m_Editor.GetCurItens(true);
+
+	for (const Item& item : itens)
+	{
+		parent.push_back(GraphicsTreeItem(item.GetName(), GraphicsInfo(item.GetImgAdress(), item.GetPalAdress())));
+	}
+
+	m_GraphicsFrame->AppendGraphics(parent);
+}
+
+void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
+{
+	if (m_GraphicsFrame == nullptr)
+	{
+		m_GraphicsFrame = new GraphicsEditorFrame(m_RomOriginal.Id);
+		m_GraphicsFrame->SetTitle("Item Images");
+
+		AddToGraphicsFrame();
+	}
+
+	m_GraphicsFrame->Show();
 
 	event.Skip();
 }
@@ -141,6 +175,7 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemIconView->SetSize(wxSize(64, 64));
 	m_pItemIconView->SetScale(4);
 	m_pItemIconView->SetViewOnly(true);
+	m_pItemIconView->Bind(wxEVT_LEFT_DCLICK, &ItemEditorFrame::OnImageDoubleClick, this);
 
 	wxBoxSizer* sizer10 = new wxBoxSizer(wxVERTICAL);
 	if (m_RomOriginal.Console == console::GBA)

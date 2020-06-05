@@ -22,12 +22,6 @@ struct ItemInfo
 
 	uint32_t m_StartBlock;
 	uint32_t m_BlockLenght;
-
-	uint32_t m_Adress1;
-	uint32_t m_Adress2;
-	uint32_t m_Adress3;
-	uint32_t m_Adress4;
-	uint32_t m_Adress5;
 };
 
 class ItemEditor
@@ -53,6 +47,10 @@ public:
 	void GetItensInfos();
 	const std::vector<ItemInfo> GetInfos() { return m_Infos; }
 	void InsertItens();
+
+	size_t GetInfoIndex() { return m_InfoIndex; }
+	const ItemInfo& GetInfo() const { return m_Infos[m_InfoIndex]; }
+	const std::vector<Item>& GetCurItens(bool translated) const { return translated ? m_Translated : m_Original; }
 private:
 	void GetItens(bool translated);
 

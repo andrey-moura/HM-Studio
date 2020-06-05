@@ -13,11 +13,14 @@
 #include <wx/statbmp.h>
 #include <wx/menu.h>
 
+#include "frame_graphics_editor.hpp"
+
 #include "class_stc.hpp"
+#include "control_graphics_view.hpp"
+
 #include "class_item.hpp"
 #include "class_rom_file.hpp"
 #include "class_item_editor.hpp"
-#include "control_graphics_view.hpp"
 
 class ItemEditorFrame : public wxFrame
 {
@@ -35,6 +38,8 @@ private:
 	bool m_IsOpen = false;
 
 	void UpdateItem();
+	GraphicsInfo GetInfo();
+	void AddToGraphicsFrame();
 //Events
 private:
 	void OnFileClick(wxCommandEvent& event);
@@ -42,6 +47,7 @@ private:
 	void OnPrevClick(wxCommandEvent& event);
 	void OnSaveClick(wxCommandEvent& event);
 	void OnInsertClick(wxCommandEvent& event);
+	void OnImageDoubleClick(wxMouseEvent& event);
 private:
 	void CreateGUIControls();
 	
@@ -61,4 +67,6 @@ private:
 	wxStaticBoxSizer* m_pOrigBoxSizer = nullptr;
 	
 	wxBoxSizer* m_pRootSizer = nullptr;
+
+	GraphicsEditorFrame* m_GraphicsFrame = nullptr;
 };

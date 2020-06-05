@@ -5,36 +5,36 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 	CreateGUIControls();
 }
 
-void GraphicsEditorFrame::GetGraphicsList()
-{		
-	AppendGraphics(GraphicsTreeItem("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496)));
-	
-	AppendGraphics(GraphicsTreeItem("Menu", GraphicsInfo(0x6C427c, 0x6C4680, 16, 128)));
-	
-	GraphicsTreeParent tv("TV Channels");
-	tv.push_back(GraphicsTreeItem("My Dear Princess",    GraphicsInfo(0x6C5400, 0x6CB0A4, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Fishing Hour",        GraphicsInfo(0x6C5D00, 0x6CB184, 32, 96)));
-	tv.push_back(GraphicsTreeItem("Goddess Game Show",   GraphicsInfo(0x6C6800, 0x6CB224, 32, 64)));
-	tv.push_back(GraphicsTreeItem("Life On The Farm",    GraphicsInfo(0x6C6C00, 0x6CB244, 32, 96)));
-	tv.push_back(GraphicsTreeItem("Aaron Changes",       GraphicsInfo(0x6C7200, 0x6CB284, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Mechabot Ultra",    	 GraphicsInfo(0x6C7500, 0x6CB2A9, 32, 48)));
-	tv.push_back(GraphicsTreeItem("News",                GraphicsInfo(0x6c7E00, 0x6CB384, 32, 80)));		
-	tv.push_back(GraphicsTreeItem("New Year Game Show",  GraphicsInfo(0x6c8300, 0x6CB3A4, 32, 48)));
-	tv.push_back(GraphicsTreeItem("TV Shopping",         GraphicsInfo(0x6C9400, 0x6CB504, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Forecast",            GraphicsInfo(0x6C9700, 0x6CB524, 32, 352)));
-	AppendGraphics(tv);
-
-	GraphicsTreeParent calendary("Calendar");
-	calendary.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));
-	AppendGraphics(calendary);
-	
-	AppendGraphics(GraphicsTreeItem("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));
-		
-	GraphicsTreeParent font("Font");
-	GraphicsTreeItem AZ("A-Z", GraphicsInfo(0x9ab734, 0x6F5D1C, 8, 304, 1, false));
-	font.push_back(AZ);
-	AppendGraphics(font);
-}
+//void GraphicsEditorFrame::GetGraphicsList()
+//{		
+//	AppendGraphics(GraphicsTreeItem("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496)));
+//	
+//	AppendGraphics(GraphicsTreeItem("Menu", GraphicsInfo(0x6C427c, 0x6C4680, 16, 128)));
+//	
+//	GraphicsTreeParent tv("TV Channels");
+//	tv.push_back(GraphicsTreeItem("My Dear Princess",    GraphicsInfo(0x6C5400, 0x6CB0A4, 32, 48)));
+//	tv.push_back(GraphicsTreeItem("Fishing Hour",        GraphicsInfo(0x6C5D00, 0x6CB184, 32, 96)));
+//	tv.push_back(GraphicsTreeItem("Goddess Game Show",   GraphicsInfo(0x6C6800, 0x6CB224, 32, 64)));
+//	tv.push_back(GraphicsTreeItem("Life On The Farm",    GraphicsInfo(0x6C6C00, 0x6CB244, 32, 96)));
+//	tv.push_back(GraphicsTreeItem("Aaron Changes",       GraphicsInfo(0x6C7200, 0x6CB284, 32, 48)));
+//	tv.push_back(GraphicsTreeItem("Mechabot Ultra",    	 GraphicsInfo(0x6C7500, 0x6CB2A9, 32, 48)));
+//	tv.push_back(GraphicsTreeItem("News",                GraphicsInfo(0x6c7E00, 0x6CB384, 32, 80)));		
+//	tv.push_back(GraphicsTreeItem("New Year Game Show",  GraphicsInfo(0x6c8300, 0x6CB3A4, 32, 48)));
+//	tv.push_back(GraphicsTreeItem("TV Shopping",         GraphicsInfo(0x6C9400, 0x6CB504, 32, 48)));
+//	tv.push_back(GraphicsTreeItem("Forecast",            GraphicsInfo(0x6C9700, 0x6CB524, 32, 352)));
+//	AppendGraphics(tv);
+//
+//	GraphicsTreeParent calendary("Calendar");
+//	calendary.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));
+//	AppendGraphics(calendary);
+//	
+//	AppendGraphics(GraphicsTreeItem("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));
+//		
+//	GraphicsTreeParent font("Font");
+//	GraphicsTreeItem AZ("A-Z", GraphicsInfo(0x9ab734, 0x6F5D1C, 8, 304, 1, false));
+//	font.push_back(AZ);
+//	AppendGraphics(font);
+//}
 
 void GraphicsEditorFrame::FromOriginal()
 {
@@ -166,6 +166,11 @@ void GraphicsEditorFrame::OnSelChanged(wxTreeEvent& event)
 	event.Skip();
 }
 
+void GraphicsEditorFrame::SetRootName(const wxString& name)
+{
+	m_pNavigator->AddRoot(name);
+}
+
 void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 {	
 	m_Graphic.SetWidth(info.m_Width);
@@ -188,7 +193,7 @@ void GraphicsEditorFrame::SaveImage()
 	m_Graphic.SaveToRom(m_RomTranslated);
 }
 
-inline void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
+void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
 {
 	m_LookUp.insert(std::make_pair(m_pNavigator->AppendItem(id, item.m_Name), item.m_Info));
 }
@@ -290,10 +295,9 @@ void GraphicsEditorFrame::CreateGUIControls()
 
 	m_pNavigator = new wxTreeCtrl(m_pLeftPanel, wxID_ANY);
 	m_pNavigator->SetSize(wxSize(200, m_pNavigator->GetSize().GetHeight()));
-	m_pNavigator->SetMinSize(wxSize(200, m_pNavigator->GetSize().GetHeight()));
-	m_Root = m_pNavigator->AddRoot("Graphics");
+	m_pNavigator->SetMinSize(wxSize(200, m_pNavigator->GetSize().GetHeight()));	
 	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);
-	GetGraphicsList();
+	//GetGraphicsList();
 
 	m_InfoViewer = new GraphicsInfoViewer(m_pLeftPanel);
 
