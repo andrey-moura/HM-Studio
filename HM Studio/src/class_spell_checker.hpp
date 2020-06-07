@@ -5,6 +5,8 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
+#include <moon/file.hpp>
+
 #include "class_file.hpp"
 #include "class_util_string.hpp"
 

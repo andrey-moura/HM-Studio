@@ -5,23 +5,6 @@ std::vector<std::string> SpellChecker::m_UserDics;
 bool SpellChecker::m_sInitialized = false;
 Hunspell* SpellChecker::m_Hunspell = nullptr;
 
-#ifdef _DEBUG
-void SpellChecker::Initialize() {}
-
-size_t SpellChecker::AddUserDic(const std::string& path) { return std::string::npos; }
-
-void SpellChecker::AddToTemp(const std::string& string) {}
-
-bool SpellChecker::Spell(const std::string& string) { return true; }
-
-std::vector<std::string> SpellChecker::Suggest(const std::string& string) { return std::vector<std::string>(); }
-
-void SpellChecker::AddToUser(const std::string& string, size_t index) {}
-
-const std::string& SpellChecker::GetWordChars() { return m_Language; }
-
-void SpellChecker::RemoveUserDic(size_t index) {}
-#else
 void SpellChecker::Initialize()
 {
 	m_Language = LANG;
@@ -40,15 +23,21 @@ void SpellChecker::Initialize()
 	if (m_Hunspell != nullptr)
 		delete m_Hunspell;
 
+#ifdef _DEBUG
+	m_Hunspell = new Hunspell("", "");
+#else //Release
 	m_Hunspell = new Hunspell(affDir.c_str(), dicDir.c_str());
-
+#endif
 	fileName.RemoveLastDir();
 	fileName.AppendDir("HM Studio");
 	fileName.AppendDir("Dics");
 	fileName.SetExt("usr");
 
+	Moon::File::MakeDir(fileName.GetPath().ToStdString());	
+
 	AddUserDic(fileName.GetFullPath().ToStdString());
-	AddToTemp("PlayerName");	
+	
+	AddToTemp("PlayerName");
 
 	m_sInitialized = true;
 }
@@ -83,9 +72,6 @@ size_t SpellChecker::AddUserDic(const std::string& path)
 
 void SpellChecker::RemoveUserDic(size_t index)
 {
-#ifdef _DEBUG
-	_STL_Verify(index < m_UserDics.size(), "index out of range");
-#endif	
 	const std::string& path = m_UserDics[index];
 	
 	std::string text = File::ReadAllText(path);
@@ -120,12 +106,14 @@ void SpellChecker::AddToTemp(const std::string& string)
 
 bool SpellChecker::Spell(const std::string& string)
 {
+#ifdef _DEBUG 
+	return true;
+#else
 	return m_Hunspell->spell(string);
+#endif
 }
 
 std::vector<std::string> SpellChecker::Suggest(const std::string& string)
 {
 	return m_Hunspell->suggest(string);
 }
-
-#endif

@@ -241,8 +241,11 @@ void STC::OnModified(wxStyledTextEvent& event)
 
 void STC::OnMouseRight(wxMouseEvent& event)
 {
-	ShowMenu(event.GetPosition());
-	//event.Skip();
+	size_t position = PositionFromPoint(event.GetPosition());
+	m_ClickedWordPos.first = WordStartPosition(position, false);
+	m_ClickedWordPos.second = WordEndPosition(position, false);
+	m_ClickedWord = GetTextRange(m_ClickedWordPos.first, m_ClickedWordPos.second).ToStdString();
+	ShowMenu(event.GetPosition());	
 }
 
 void STC::InsertOnCtrlKey(const std::string& s, char key)
@@ -314,8 +317,6 @@ void STC::SuggestToMenu(wxPoint point)
 
 		if (IndicatorValueAt(STC_INDIC_SPELL, start))
 		{
-			GetClickedWord(start, end);
-
 			if (m_ClickedWord.size() >= 2)
 			{				
 				std::vector<std::string> strings = SpellChecker::Suggest(m_ClickedWord);
@@ -381,14 +382,16 @@ void STC::OnSuggestionClick(wxCommandEvent& event)
 	{
 		if (item->GetId() == id)
 		{
-			DeleteClickedWord();
+			m_ClickedWord.clear();
+			DeleteRange(m_ClickedWordPos.first, m_ClickedWordPos.second - m_ClickedWordPos.first);
 			GotoPos(m_ClickedWordPos.first);
 			AddText(item->GetItemLabelText());
-			event.Skip();
 			return;
 		}
 	}	
 	
+	event.Skip();	
+
 #ifdef _DEBUG
 	_STL_REPORT_ERROR("Menu item not found in the menu.");
 #endif	
@@ -397,7 +400,7 @@ void STC::OnSuggestionClick(wxCommandEvent& event)
 void STC::OnAddToUserClick(wxCommandEvent& event)
 {	
 	SpellChecker::AddToUser(m_ClickedWord, 0);
-	DeleteClickedWord();
+	m_ClickedWord.clear();
 	SpellSTC(0, GetTextLength());
 	
 	event.Skip();
@@ -406,7 +409,7 @@ void STC::OnAddToUserClick(wxCommandEvent& event)
 void STC::OnAddToTempClick(wxCommandEvent& event)
 {	
 	SpellChecker::AddToTemp(m_ClickedWord);
-	DeleteClickedWord();
+	m_ClickedWord.clear();
 	SpellSTC(0, GetTextLength());
 	
 	event.Skip();
@@ -441,7 +444,7 @@ void STC::OnAddExtraClick(wxCommandEvent& event)
 		if(dic.first == name)
 		{		
 			SpellChecker::AddToUser(m_ClickedWord, dic.second);
-			DeleteClickedWord();
+			m_ClickedWord.clear();
 			SpellSTC(0, GetTextLength());
 			event.Skip();
 			return;
@@ -455,27 +458,15 @@ void STC::OnAddExtraClick(wxCommandEvent& event)
 
 void STC::OnUpperLowerCaseClick(wxCommandEvent& event)
 {
-	ConvertSelToUpperLower(event.GetId() == m_ID_UPPER);
-	event.Skip();	
-}
-
-void STC::ConvertSelToUpperLower(bool upper)
-{	
-	std::string range = GetSelectedText().ToStdString();
-	
-    char add = upper ? -32 : 32; 
-	char start = upper ? 'a' : 'A';
-	char end = upper ? 'z' : 'Z';	
-		
-	for(char& c : range)
-	{		
-		if(c >= start && c <= end)
-		{
-			c+=add;
-		}
+	if (event.GetId() == m_ID_LOWER)
+	{
+		LowerCase();
+	}
+	else
+	{
+		UpperCase();
 	}	
-	
-	ReplaceSelection(range);
+	event.Skip();	
 }
 
 void STC::DoBinds()

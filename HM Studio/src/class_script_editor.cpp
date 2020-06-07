@@ -307,6 +307,15 @@ void ScriptEditor::SetOffsets(uint32_t* offets)
 	}
 }
 
+void ScriptEditor::SetEvent(uint32_t index)
+{
+	uint32_t offset = GetOffset(true);
+	uint32_t offsetAdress = m_Info.StartPointers + (index * 4);
+
+	m_RomTranslated.WriteUInt32(offset, offsetAdress);
+	m_RomTranslated.Flush();
+}
+
 inline uint32_t ScriptEditor::ScriptSize(uint32_t* value)
 {
 	if (value[0] != SCRIPT_RIFF)

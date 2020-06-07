@@ -414,6 +414,20 @@ void cScriptEditor::OnCheckCodeClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void cScriptEditor::OnSetEventClick(wxCommandEvent& event)
+{
+	wxTextEntryDialog ted(this, "Got to script ", "Enter a number");
+	ted.SetTextValidator(wxFILTER_NUMERIC);
+	ted.SetMaxLength(4);
+
+	if (ted.ShowModal() == wxID_OK)
+	{		
+		m_Editor.SetEvent(std::stoi(ted.GetValue().ToStdString()));
+	}
+
+	event.Skip();
+}
+
 void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
 {
 	event.Skip();
@@ -509,7 +523,7 @@ void cScriptEditor::CreateGUIControls()
 	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckEOLClick, this, menuTools->Append(wxNewId(), "EOL Checker", nullptr, "Checking Tool")->GetId());
 	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckCodeClick, this, menuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
 	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Dumper/Inserter Tool")->GetId());
-
+	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnSetEventClick, this, menuTools->Append(wxNewId(), "Set event", nullptr, "Set event to trigger this script")->GetId());
 	//wxMenu* menuOptions = new wxMenu();	
 	
 	wxMenu* menuView = new wxMenu();

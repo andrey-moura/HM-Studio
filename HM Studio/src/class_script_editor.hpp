@@ -54,7 +54,7 @@ public:
 	uint32_t* GetOffsets(bool translated);
 	void SetOffset(uint32_t offset);
 	void SetOffsets(uint32_t* offets);
-	
+	void SetEvent(uint32_t index);
 	inline uint32_t ScriptSize(uint32_t* value);
 	inline uint32_t ScriptSize(const uint32_t& offset, bool translated);
 	uint32_t ScriptSize(const uint32_t& offset, uint8_t* bytes);

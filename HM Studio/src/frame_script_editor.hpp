@@ -56,6 +56,7 @@ private:
 	void OnConvertEOLClick(wxCommandEvent& event);
 	void OnCheckEOLClick(wxCommandEvent& event);
 	void OnCheckCodeClick(wxCommandEvent& event);
+	void OnSetEventClick(wxCommandEvent& event);
 //Text Editor Globals					
 	std::pair<int, int> m_IndicatorPos;	
 

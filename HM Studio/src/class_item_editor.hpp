@@ -51,6 +51,8 @@ public:
 	size_t GetInfoIndex() { return m_InfoIndex; }
 	const ItemInfo& GetInfo() const { return m_Infos[m_InfoIndex]; }
 	const std::vector<Item>& GetCurItens(bool translated) const { return translated ? m_Translated : m_Original; }
+	void Dump() const;
+	void DumpImages() const;
 private:
 	void GetItens(bool translated);
 
@@ -67,6 +69,6 @@ private:
 
 	uint32_t m_Adresses[5];
 
-	uint8_t m_Index;
+	uint8_t m_Index;	
 };
 

@@ -111,35 +111,54 @@ void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
 	event.Skip();
 }
 
+void ItemEditorFrame::OnDumpClick(wxCommandEvent& event)
+{
+	m_Editor.Dump();
+
+	event.Skip();
+}
+
+void ItemEditorFrame::OnDumpImgClick(wxCommandEvent& event)
+{
+	m_Editor.DumpImages();
+
+	event.Skip();
+}
+
 void ItemEditorFrame::CreateGUIControls()
 {
 	//*******************************************************************************//
 	//										MENU
 	//*******************************************************************************//	
 
-	wxMenuBar* menu = new wxMenuBar();
 
 	wxMenu* menuFile = new wxMenu();
 
-    const std::vector<ItemInfo> infos = m_Editor.GetInfos();
+	const std::vector<ItemInfo> infos = m_Editor.GetInfos();
 
 	for (size_t i = 0; i < infos.size(); ++i)
 	{
 		menuFile->Append(wxID_FILE1 + i, infos[i].m_Name);
 		menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnFileClick, this, wxID_FILE1 + i);
-	}	
+	}
 
-   menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnInsertClick, this, menuFile->Append(wxNewId(), "Insert", "Insert the itens")->GetId());
+	menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnInsertClick, this, menuFile->Append(wxNewId(), "Insert", "Insert the itens")->GetId());
 
-   menu->Append(menuFile, "File");
+	wxMenu* menuTools = new wxMenu();
+	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dumper", nullptr, "Export the itens")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpImgClick, this, menuTools->Append(wxNewId(), "Dump images", nullptr, "Export images")->GetId());
 
-	SetMenuBar(menu);
+	wxMenuBar* menuBar = new wxMenuBar();
+	menuBar->Append(menuFile, "File");
+	menuBar->Append(menuTools, "Tools");
+
+	SetMenuBar(menuBar);
 
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
 	if (m_RomOriginal.Console == console::GBA)
 		m_pItemName = new wxTextCtrl(this, wxID_ANY);
-	
+
 	m_pItemText = new STC(this, wxID_ANY);
 	m_pItemText->SetMaxLineLenght(28);
 
@@ -180,7 +199,7 @@ void ItemEditorFrame::CreateGUIControls()
 	wxBoxSizer* sizer10 = new wxBoxSizer(wxVERTICAL);
 	if (m_RomOriginal.Console == console::GBA)
 		sizer10->Add(m_pOrigItemName, 0, wxALL, 4);
-	sizer10->Add(m_pOrigItemDescription, 0, wxALL, 4);	
+	sizer10->Add(m_pOrigItemDescription, 0, wxALL, 4);
 
 	m_pOrigBox = new wxStaticBox(this, wxID_ANY, "Original");
 	m_pOrigBoxSizer = new wxStaticBoxSizer(m_pOrigBox, wxHORIZONTAL);
@@ -193,7 +212,7 @@ void ItemEditorFrame::CreateGUIControls()
 	if (m_RomOriginal.Console == console::GBA)
 		m_pRootSizer->Add(m_pItemName, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pItemText, 1, wxALL | wxEXPAND, 4);
-	m_pRootSizer->Add(m_pGUI_navigationSizer, 0, wxALL | wxEXPAND, 4);	
+	m_pRootSizer->Add(m_pGUI_navigationSizer, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pOrigBoxSizer, 0, wxALL | wxEXPAND, 4);
 
 	SetSizer(m_pRootSizer);

@@ -167,6 +167,69 @@ void ItemEditor::GetItens(bool translated)
 	delete[] dataBlock;
 }
 
+void ItemEditor::Dump() const
+{
+	uint32_t size = 0;
+
+	for (const Item& item : m_Translated)
+	{
+		if (m_RomOriginal.Console == console::GBA)
+			size += item.GetName().size() + 1;
+
+		size += item.GetDescription().size() + 1;
+	}
+
+	char* block = new char[size];
+
+	char* cur = block;
+
+	for (const Item& item : m_Translated)
+	{
+		memcpy(cur, item.GetName().c_str(), item.GetName().size() + 1);
+		cur += item.GetName().size() + 1;
+		memcpy(cur, item.GetDescription().c_str(), item.GetDescription().size() + 1);
+		cur += item.GetDescription().size() + 1;
+	}
+
+	std::string itemDir = Moon::File::AppenPath(m_RomTranslated.m_HomeDir, "Itens");
+
+	Moon::File::MakeDir(itemDir);
+
+	std::string path = Moon::File::SetName(itemDir, m_Infos[m_InfoIndex].m_Name + ".itens");
+
+	Moon::File::WriteAllBytes(path, block, size);
+
+	delete[] block;
+}
+
+void ItemEditor::DumpImages() const
+{
+	uint32_t size = m_Infos[m_InfoIndex].m_Count*((16*16)/2) + ((16*2)* m_Infos[m_InfoIndex].m_Count);
+
+	char* data = new char[size];
+	char* cur = data;
+
+	for (const Item& item : m_Translated)
+	{
+		m_RomTranslated.Seek(item.GetImgAdress());
+		m_RomTranslated.Read(cur, (16 * 16) / 2);
+		cur += (16 * 16) / 2;
+		m_RomTranslated.Seek(item.GetPalAdress());
+		m_RomTranslated.Read(cur, 16 * 2);
+		cur += 16 * 2;
+	}
+
+	std::string itemDir = Moon::File::AppenPath(m_RomTranslated.m_HomeDir, "Itens");
+
+	Moon::File::MakeDir(itemDir);
+
+	std::string path = Moon::File::SetName(itemDir, m_Infos[m_InfoIndex].m_Name + ".itensimg");
+
+	Moon::File::WriteAllBytes(path, data, size);
+
+	delete[] data;
+}
+
 void ItemEditor::InsertItens()
 {
 	uint8_t bpi = m_Infos[m_InfoIndex].m_WPI * 4;

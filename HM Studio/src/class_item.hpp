@@ -23,8 +23,8 @@ public:
 	void SetName(const std::string& name) { m_Name = name; }
 	void SetDescription(const std::string& description) { m_Description = description; }
 
-	std::string GetName() const { return m_Name; }
-	std::string GetDescription() const { return m_Description; }
+	const std::string& GetName() const { return m_Name; }
+	const std::string& GetDescription() const { return m_Description; }
 
 	uint32_t GetPalAdress() const { return m_PalAdress; }
 	uint32_t GetImgAdress() const { return m_ImgAdress; }

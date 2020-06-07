@@ -48,6 +48,8 @@ private:
 	void OnSaveClick(wxCommandEvent& event);
 	void OnInsertClick(wxCommandEvent& event);
 	void OnImageDoubleClick(wxMouseEvent& event);
+	void OnDumpClick(wxCommandEvent& event);
+	void OnDumpImgClick(wxCommandEvent& event);
 private:
 	void CreateGUIControls();
 	

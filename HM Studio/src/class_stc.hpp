@@ -26,8 +26,7 @@ public:
 	~STC() = default;
 public:
 	void SetMaxLineLenght(size_t lenght) { m_MaxLineLenght = lenght; }
-	void AddVar(const std::string& var) { m_Vars.push_back(var); }
-	void ConvertSelToUpperLower(bool upper);
+	void AddVar(const std::string& var) { m_Vars.push_back(var); }	
 	bool UserCanAddLine() { return m_UserCanAddLine; }
 	void SetUserCanAddLine(bool can);	
 private:
@@ -77,18 +76,7 @@ private:
 	size_t m_MenuSize;
 	std::vector<std::pair<std::string, size_t>> m_ExtraDics;
 	std::string m_ClickedWord;
-	std::pair<size_t, size_t> m_ClickedWordPos;	
-	__forceinline const void GetClickedWord(const size_t& start, const size_t& end)
-	{
-		m_ClickedWord = GetTextRange(start, end).ToStdString();
-		m_ClickedWordPos.first = start;
-		m_ClickedWordPos.second = start;		
-	}
-	__forceinline void DeleteClickedWord()
-	{
-		DeleteRange(m_ClickedWordPos.first, m_ClickedWordPos.second - m_ClickedWordPos.first);
-		m_ClickedWord.clear();
-	}
+	std::pair<size_t, size_t> m_ClickedWordPos;
 
 	size_t m_ID_UPPER;
 	size_t m_ID_LOWER;
