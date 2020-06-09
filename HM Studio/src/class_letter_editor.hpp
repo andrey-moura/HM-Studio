@@ -2,18 +2,34 @@
 
 #include <stdint.h>
 
-#define MFoMTPointers = new uint32_t[]
+#include "class_rom_file.hpp"
 
-struct RomInfo
+struct LetterInfo
 {
-	uint32_t* pointers;
-	uint32_t* start;
-	uint32_t* lenght;
+	uint32_t m_StartPointers;
+	uint32_t m_Count;
 };
 
+class LetterEditor
+{
+public:
+	LetterEditor(const id& console);
+	~LetterEditor() = default;
+private:
+	RomFile m_RomOriginal;
+	RomFile m_RomTranslated;
 
-//class LetterEditor
-//{
-//
-//};
+	LetterInfo m_Info;
 
+	std::string m_LetterDir;
+
+	void SetupRom();
+
+public:
+	RomFile& GetRom(bool translated);
+	void Dump(bool translated);
+
+	std::string GetPath(uint32_t number, bool translated);
+private:
+	uint32_t* GetPointers(bool translated);
+};

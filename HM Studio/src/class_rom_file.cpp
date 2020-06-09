@@ -37,12 +37,16 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	case console::GBA:
 		path.SetExt("gba");
 		m_EOL = 0x0d0a;
+		m_EolString = "\r\n";
 		m_MaxChars = 28;
+		m_PointerIndex = 0x08000000;
 		break;
 	case console::DS:
 		path.SetExt("nds");
 		m_EOL = 0x0a;
+		m_EolString = "\n";
 		m_MaxChars = 30;
+		m_PointerIndex = 0x02000000;
 		break;
 	default:
 		break;
@@ -248,6 +252,19 @@ void RomFile::WriteBytes(const void* bytes, const size_t size)
 {
 	this->Write(bytes, size);
 	this->Flush();
+}
+
+void RomFile::ConvertPointers(uint32_t* pointers, uint32_t count)
+{
+	for (size_t i = 0; i < count; ++i)
+	{
+		pointers[i] -= m_PointerIndex;
+	}
+}
+
+bool RomFile::IsPointer(const uint32_t& pointer)
+{
+	return (pointer & 0x0f000000) == m_PointerIndex;
 }
 
 void RomFile::BackupRom(const std::string& inform)

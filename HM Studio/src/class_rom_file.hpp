@@ -40,8 +40,10 @@ public:
 	std::string Name;
 	std::string State;
 	uint32_t m_EOL;
+	std::string m_EolString;
 	std::string m_HomeDir;
 	uint8_t m_MaxChars;
+	uint32_t m_PointerIndex;
 	//Table
 private:	
 	Moon::Hacking::Table m_Table;
@@ -56,6 +58,7 @@ public:
 	void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);
 	uint32_t GetEOL() const { return m_EOL; };
+	const std::string& GetEOlString() const { return m_EolString; }
 	inline const uint8_t GetLineMax() const {return m_MaxChars; }
 //File
 public:
@@ -82,4 +85,7 @@ public:
 
 	void WriteBytes(std::vector<uint8_t> bytes);
 	void WriteBytes(const void* bytes, const size_t size);
+
+	void ConvertPointers(uint32_t* pointers, uint32_t count);
+	bool IsPointer(const uint32_t& pointer);
 };

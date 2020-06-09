@@ -35,7 +35,7 @@ void MainFrame::CreateGUIControls()
 
 	m_pEditorScript = new wxButton(this, wxNewId(), "Script Editor");
 	m_pEditorItem = new wxButton(this, wxNewId(), "Item Editor");
-	m_pEditorText = new wxButton(this, wxNewId(), "Text Block Editor");
+	m_pEditorLetter = new wxButton(this, wxNewId(), "Letter Editor");
 	m_pEditorGraphics = new wxButton(this, wxNewId(), "Graphics Editor");
 
 	wxStaticBox* editorsBox = new wxStaticBox(this, wxID_ANY, "Editors");
@@ -43,7 +43,7 @@ void MainFrame::CreateGUIControls()
 
 	m_pEditorScript->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 	m_pEditorItem->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-	m_pEditorText->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
+	m_pEditorLetter->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 	m_pEditorGraphics->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
 
 	editorsSizer->AddSpacer(4);
@@ -51,7 +51,7 @@ void MainFrame::CreateGUIControls()
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorItem, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorText, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
+	editorsSizer->Add(m_pEditorLetter, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 	editorsSizer->AddSpacer(4);
 	editorsSizer->Add(m_pEditorGraphics, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
 
@@ -111,10 +111,10 @@ void MainFrame::OnEditorClick(wxCommandEvent& event)
 		ItemEditorFrame* itemEditor = new ItemEditorFrame(GetCurrentId());
 		itemEditor->Show();
 	}
-	else if (id == m_pEditorText->GetId())
+	else if (id == m_pEditorLetter->GetId())
 	{
-		TextBlockEditor* textBlockEditor = new TextBlockEditor(GetCurrentId());
-		textBlockEditor->Show();
+		LetterEditorFrame* letterEditor = new LetterEditorFrame(GetCurrentId());
+		letterEditor->Show();
 	}
 	else if (id == m_pEditorGraphics->GetId())
 	{
