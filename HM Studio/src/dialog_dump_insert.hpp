@@ -1,20 +1,15 @@
-#include <wx/dialog.h>
-#include <wx/radiobut.h>
-#include <wx/radiobox.h>
-#include <wx/stattext.h>
-#include <wx/statbox.h>
-#include <wx/textctrl.h>
-#include <wx/button.h>
-#include <wx/msgdlg.h>
+#pragma once
 
-#include "class_script_editor.hpp"
+#include <wx/wx.h>
+
+#include "class_editor.hpp"
 
 class InsertDumpDialog : public wxDialog
 {
 public:
-	InsertDumpDialog(ScriptEditor& editor);	
+	InsertDumpDialog(Editor* editor);
 private:
-	ScriptEditor& m_Editor;	
+	Editor* m_Editor = nullptr;
 	bool m_Translated = false;
 //GUI
 private:

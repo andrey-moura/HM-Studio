@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "class_editor.hpp"
+
 #include "class_rom_file.hpp"
 
 struct LetterInfo
@@ -10,26 +12,30 @@ struct LetterInfo
 	uint32_t m_Count;
 };
 
-class LetterEditor
+class LetterEditor : public Editor
 {
 public:
-	LetterEditor(const id& console);
+	LetterEditor(const id& id);
 	~LetterEditor() = default;
 private:
-	RomFile m_RomOriginal;
-	RomFile m_RomTranslated;
-
 	LetterInfo m_Info;
-
 	std::string m_LetterDir;
 
-	void SetupRom();
+	std::string m_Original;
+	std::string m_Translated;
 
-public:
-	RomFile& GetRom(bool translated);
-	void Dump(bool translated);
-
-	std::string GetPath(uint32_t number, bool translated);
+	uint32_t m_Number;
 private:
 	uint32_t* GetPointers(bool translated);
+public:
+	bool Open(uint32_t number);
+	std::string& GetText(bool translated);
+	void SetText(const std::string& text);
+	void SaveToFile();
+public:
+	std::string GetPath(const uint32_t& number, const bool& translated);
+	std::string GetPath(const bool& translated) { return GetPath(m_Number, translated); }
+	void SetupRom();
+public:
+	virtual void Dump(bool translated);
 };

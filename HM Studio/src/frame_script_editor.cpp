@@ -258,8 +258,8 @@ void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 
 void cScriptEditor::OnDumpInsertClick(wxCommandEvent& event)
 {
-	InsertDumpDialog(m_Editor).ShowModal();
-	event.Skip();
+	//InsertDumpDialog(m_Editor).ShowModal();
+	//event.Skip();
 }
 
 void cScriptEditor::CheckAndGoScript(size_t number, size_t index)

@@ -1,6 +1,6 @@
 #include "dialog_dump_insert.hpp"
 
-InsertDumpDialog::InsertDumpDialog(ScriptEditor& editor) : wxDialog(nullptr, wxID_ANY, "Dump/Insert Scripts"), m_Editor(editor)
+InsertDumpDialog::InsertDumpDialog(Editor* editor) : wxDialog(nullptr, wxID_ANY, "Dump/Insert Scripts"), m_Editor(editor)
 {
 	CreateGUIControls();
 }
@@ -81,14 +81,14 @@ void InsertDumpDialog::OnDumpClick(wxCommandEvent& event)
 {
 	if (m_Translated)
 	{
-		if (wxMessageDialog(this, "This will replace the translated script, if any. Are you sure?", "Huh?", wxYES_NO).ShowModal() != wxID_YES)
+		if (wxMessageDialog(this, "This will replace the translated data, if any. Are you sure?", "Huh?", wxYES_NO).ShowModal() != wxID_YES)
 		{
 			event.Skip();
 			return;
 		}
 	}
 
-	m_Editor.Dump(m_Translated);
+	m_Editor->Dump(m_Translated);
 
 	event.Skip();
 }

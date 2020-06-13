@@ -1,8 +1,36 @@
 #include "class_letter_editor.hpp"
 
-LetterEditor::LetterEditor(const id& id) : m_RomOriginal(id, false), m_RomTranslated(id, true)
+LetterEditor::LetterEditor(const id& id) : Editor(id)
 {
-	SetupRom();
+	SetupRom();	
+}
+
+bool LetterEditor::Open(uint32_t number)
+{
+	if (number > m_Info.m_Count)
+		return false;
+
+	m_Original = Moon::File::ReadAllText(GetPath(number, false));
+	m_Translated = Moon::File::ReadAllText(GetPath(number, true));
+
+	m_Number = number;
+
+	return true;
+}
+
+std::string& LetterEditor::GetText(bool translated)
+{
+	return translated ? m_Translated : m_Original;
+}
+
+void LetterEditor::SetText(const std::string& text)
+{
+	m_Translated = text;
+}
+
+void LetterEditor::SaveToFile()
+{		
+	Moon::File::WriteAllText(GetPath(true), m_Translated);
 }
 
 uint32_t* LetterEditor::GetPointers(bool translated)
@@ -18,7 +46,7 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 	return pointers;
 }
 
-void LetterEditor::Dump(bool translated)
+void LetterEditor::Dump(bool translated) 
 {
 	RomFile& rom = GetRom(translated);
 	uint32_t* pointers = GetPointers(translated);	
@@ -53,7 +81,10 @@ void LetterEditor::Dump(bool translated)
 			rom.Seek(textPointers[i]);
 			letter.append(eol);
 			letter.append(rom.ReadString());
-		}		
+		}
+
+		const Moon::Hacking::Table& table = rom.GetTable();
+		table.Input(letter);
 
 		Moon::File::WriteAllText(GetPath(i, translated), letter);
 	}
@@ -83,7 +114,7 @@ void LetterEditor::SetupRom()
 	Moon::File::MakeDir(Moon::File::AppenPath(m_LetterDir, m_RomTranslated.State));
 }
 
-std::string LetterEditor::GetPath(uint32_t number, bool translated)
+std::string LetterEditor::GetPath(const uint32_t& number, const bool& translated)
 {	
 	const std::string& state = GetRom(translated).State;
 
@@ -93,9 +124,4 @@ std::string LetterEditor::GetPath(uint32_t number, bool translated)
 
 	fn.SetFullName("Letter_" + state + "_" + std::to_string(number) + ".letter");
 	return fn.GetFullPath().ToStdString();
-}
-
-RomFile& LetterEditor::GetRom(bool translated)
-{
-	return translated ? m_RomTranslated : m_RomOriginal;
 }
