@@ -60,6 +60,9 @@ public:
 	uint32_t GetEOL() const { return m_EOL; };
 	const std::string& GetEOlString() const { return m_EolString; }
 	inline const uint8_t GetLineMax() const {return m_MaxChars; }
+
+	wxString ReplaceWideChars(std::string& text);
+	void ReplaceWideChars(wxString& text);	
 //File
 public:
 	//void ReadInt32(uint32_t& value);

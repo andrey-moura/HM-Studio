@@ -7,13 +7,14 @@ LetterEditor::LetterEditor(const id& id) : Editor(id)
 
 bool LetterEditor::Open(uint32_t number)
 {
-	if (number > m_Info.m_Count)
+	if (number > m_Count)
 		return false;
 
 	m_Original = Moon::File::ReadAllText(GetPath(number, false));
 	m_Translated = Moon::File::ReadAllText(GetPath(number, true));
 
 	m_Number = number;
+	m_Index = number;
 
 	return true;
 }
@@ -28,20 +29,20 @@ void LetterEditor::SetText(const std::string& text)
 	m_Translated = text;
 }
 
-void LetterEditor::SaveToFile()
+void LetterEditor::SaveFile()
 {		
 	Moon::File::WriteAllText(GetPath(true), m_Translated);
 }
 
 uint32_t* LetterEditor::GetPointers(bool translated)
 {
-	uint32_t* pointers = new uint32_t[m_Info.m_Count];
+	uint32_t* pointers = new uint32_t[m_Count];
 
 	RomFile& rom = GetRom(translated);
-	rom.Seek(m_Info.m_StartPointers);
-	rom.Read(pointers, m_Info.m_Count);
+	rom.Seek(m_StartPointers);
+	rom.Read(pointers, m_Count*4);
 
-	m_RomOriginal.ConvertPointers(pointers, m_Info.m_Count);
+	rom.ConvertPointers(pointers, m_Count);
 
 	return pointers;
 }
@@ -49,13 +50,13 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 void LetterEditor::Dump(bool translated) 
 {
 	RomFile& rom = GetRom(translated);
-	uint32_t* pointers = GetPointers(translated);	
+	uint32_t* letterPointers = GetPointers(translated);	
 
 	std::string eol = rom.GetEOlString();
 
-	for (size_t i = 0; i < m_Info.m_Count; ++i)
+	for (size_t letterIndex = 0; letterIndex < m_Count; ++letterIndex)
 	{
-		rom.Seek(pointers[i]);
+		rom.Seek(letterPointers[letterIndex]);
 
 		uint32_t pointer = rom.ReadUInt32();
 		std::vector<uint32_t> textPointers;
@@ -84,12 +85,12 @@ void LetterEditor::Dump(bool translated)
 		}
 
 		const Moon::Hacking::Table& table = rom.GetTable();
-		table.Input(letter);
+		table.Input(letter);		
 
-		Moon::File::WriteAllText(GetPath(i, translated), letter);
+		Moon::File::WriteAllText(GetPath(letterIndex, translated), letter);
 	}
 
-	delete[] pointers;
+	delete[] letterPointers;
 }
 
 void LetterEditor::SetupRom()
@@ -101,8 +102,8 @@ void LetterEditor::SetupRom()
 	case id::FoMT:
 		break;
 	case id::MFoMT:
-		m_Info.m_StartPointers = 0x1110EC;
-		m_Info.m_Count = 190;
+		m_StartPointers = 0x1110EC;
+		m_Count = 190;
 		break;
 	default:
 		break;

@@ -129,6 +129,45 @@ void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 	}
 }
 
+void RomFile::ReplaceWideChars(wxString& text)
+{
+	const wchar_t* txt = text.wc_str();
+
+	if (Console == console::GBA)
+	{		
+		size_t pos = text.find((wchar_t)0x2605);
+
+		while (pos != std::string::npos)
+		{
+			text[pos++] = 0x81;
+			text.insert(pos++, 1, wchar_t(0x0161));
+			pos = text.find((wchar_t)0x2605, pos);
+		}
+	}	
+}
+
+wxString RomFile::ReplaceWideChars(std::string& text)
+{
+	wxString ret = text;	
+	const char* textData = text.data();
+	const wchar_t* retData = ret.wc_str();	
+	const wchar_t* search = L"\x81\x0161";	
+
+	if (Console == console::GBA)
+	{		
+		size_t pos = ret.find(search);
+
+		while (pos != std::string::npos)
+		{
+			ret[pos++] = (wchar_t)0x2605;
+			ret.erase(pos, 1);
+			pos = ret.find(search, pos);
+		}
+	}
+
+	return ret;
+}
+
 int8_t RomFile::ReadInt8()
 {
 	int8_t value = 0;

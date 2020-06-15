@@ -1,12 +1,14 @@
 #pragma once
 #include <wx/wx.h>
 
+#include "frame_editor.hpp"
+
 #include "dialog_dump_insert.hpp"
 
 #include "class_letter_editor.hpp"
 #include "class_stc.hpp"
 
-class LetterEditorFrame : public wxFrame 
+class LetterEditorFrame : public EditorFrame
 {
 public:
 	LetterEditorFrame(const id& id);
@@ -19,9 +21,9 @@ private:
 private:
 	void UpdateText();
 private:
-	void OnOpenClick(wxCommandEvent& event);
-	void OnSaveClick(wxCommandEvent& event);
-	void OnDumpClick(wxCommandEvent& event);
+	//Override from base
+	void OnSaveFile();
+	void OnDumpClick(wxCommandEvent& event);	
 private:
 	void CreateGUIControls();
 };
