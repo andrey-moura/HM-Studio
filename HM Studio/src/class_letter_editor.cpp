@@ -93,6 +93,105 @@ void LetterEditor::Dump(bool translated)
 	delete[] letterPointers;
 }
 
+void LetterEditor::Insert()
+{
+	std::vector<std::string> letters_lines_all;
+	std::vector<uint32_t> letters_counts_all;
+	std::vector<uint32_t> lines_pointers_all;
+	std::string letter_block;
+	letter_block.reserve(m_BlockSize);
+	letters_counts_all.reserve(m_Count);
+
+	uint32_t end_line = std::string::npos;
+
+	std::vector<uint32_t> letters_pointers_all;
+	letters_pointers_all.reserve(m_Count);
+	
+	const Moon::Hacking::Table table = m_RomTranslated.GetTable();
+
+	for (size_t letterIndex = 0; letterIndex < m_Count; ++letterIndex)
+	{
+		auto lines = Moon::File::ReadAllLines(GetPath(letterIndex, true), true);
+		std::vector<uint32_t> letter_pointers;		
+		//I don't know why, but this slows down in debug mode
+#ifndef _DEBUG
+		letter_pointers.reserve(lines.size());
+		letters_lines_all.reserve(letters_lines_all.size() + lines.size());
+#endif // !_DEBUG		
+		letters_counts_all.push_back(lines.size());
+
+		for (auto& line : lines)
+		{
+			bool add_line = true;
+			table.Output(line);
+
+			if (line.empty())
+			{
+				if (end_line == std::string::npos)
+				{
+					while (letter_block.size() % 4 != 0)
+						letter_block.push_back('\0');
+
+					end_line = ToBlockPointer(letter_block.size());
+
+					letter_block.append(4, '\0');
+				}
+
+				letter_pointers.push_back(end_line);
+				continue;
+			}
+			else
+			{
+				//Looks back for find a matching string				
+				for (size_t compare_index = letters_lines_all.size()-1; compare_index != std::string::npos; --compare_index)
+				{
+					const std::string& compare_line = letters_lines_all[compare_index];
+
+					if (compare_line == line)
+					{
+						add_line = false;
+						lines_pointers_all.push_back(lines_pointers_all[compare_index]);
+						letter_pointers.push_back(lines_pointers_all[compare_index]);
+						break;
+					}
+				}
+			}
+
+			letters_lines_all.push_back(line);
+
+			if (add_line)
+			{
+				lines_pointers_all.push_back(ToBlockPointer(letter_block.size()));
+				letter_pointers.push_back(ToBlockPointer(letter_block.size()));
+				letter_block.append(line);
+				letter_block.push_back('\0');
+			}
+		}
+
+		while (letter_block.size() % 4 != 0)
+			letter_block.push_back('\0');
+
+		letters_pointers_all.push_back(ToBlockPointer(letter_block.size()));
+		letter_block.append((const char*)letter_pointers.data(), letters_counts_all[letterIndex] * 4);
+		letter_block.append(4, '\0');
+	}
+
+	if (letter_block.size() > m_BlockSize)
+	{
+		return;
+	}
+	else
+	{
+		letter_block.resize(m_BlockSize);
+	}
+
+	m_RomTranslated.Seek(m_StartPointers);
+	m_RomTranslated.WriteBytes(letters_pointers_all);
+
+	m_RomTranslated.Seek(m_StartBlock);
+	m_RomTranslated.WriteBytes(letter_block.data(), m_BlockSize);
+}
+
 void LetterEditor::SetupRom()
 {	
 	switch (m_RomOriginal.Id)
@@ -102,7 +201,9 @@ void LetterEditor::SetupRom()
 	case id::FoMT:
 		break;
 	case id::MFoMT:
-		m_StartPointers = 0x1110EC;
+		m_StartPointers = 0x1110EC;		
+		m_BlockSize = 0x107DC;
+		m_StartBlock = 0x1113E4;
 		m_Count = 190;
 		break;
 	default:

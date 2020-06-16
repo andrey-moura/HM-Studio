@@ -14,6 +14,7 @@ private:
 //GUI
 private:
 	wxBoxSizer* m_RootSizer = nullptr;
+	wxButton* m_InsertButton = nullptr;
 
 	void CreateGUIControls();
 //Events

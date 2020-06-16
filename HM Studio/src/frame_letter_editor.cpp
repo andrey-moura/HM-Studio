@@ -3,12 +3,13 @@
 LetterEditorFrame::LetterEditorFrame(const id& id) : m_Editor(id), EditorFrame("Letter Editor", &m_Editor)
 {
 	CreateGUIControls();
+
+	m_Editor.Insert();
 }
 
 LetterEditorFrame::~LetterEditorFrame()
 {
 }
-
 
 void LetterEditorFrame::UpdateText()
 {	
@@ -19,7 +20,7 @@ void LetterEditorFrame::UpdateText()
 }
 
 void LetterEditorFrame::OnSaveFile()
-{
+{	
 	wxString text = m_TextTranslated->GetText();
 	m_Editor.GetRom(false).ReplaceWideChars(text);
 

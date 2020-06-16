@@ -86,7 +86,12 @@ public:
 	void ReadBytes(std::vector<uint8_t> &bytes, size_t size);
 	std::vector<uint8_t> ReadBytes(size_t offset, size_t size);
 
-	void WriteBytes(std::vector<uint8_t> bytes);
+	template<class T>
+	inline void WriteBytes(std::vector<T> bytes)
+	{
+		WriteBytes(bytes.data(), bytes.size() * sizeof T);
+	}	
+
 	void WriteBytes(const void* bytes, const size_t size);
 
 	void ConvertPointers(uint32_t* pointers, uint32_t count);

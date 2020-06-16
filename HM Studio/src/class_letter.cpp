@@ -1,18 +1,24 @@
 #include "class_letter.hpp"
 
-Letter::Letter(RomFile& rom, uint32_t startPointers, uint32_t count)
+Letter::Letter(const std::string& letter) : m_Lines(letter)
 {
-	uint32_t* pointers = new uint32_t[count];
+	
+}
 
-	rom.Seek(startPointers);
-	rom.Read(pointers, count * 4);
+std::vector<size_t> Letter::GetLineMatches(const Letter& other)
+{
+	auto otherLines = Moon::String::ViewLines(other.m_Lines, false);
+	auto lines = Moon::String::ViewLines(m_Lines);
 
-	for (int i = 0; i < count; ++i)
+	std::vector<size_t> ret;	
+
+	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 	{
-		pointers[i] &= ROM_BUS_NOT;
+		for (size_t otherIndex = 0; otherIndex < otherLines.size(); ++otherIndex)
+		{
+			ret.push_back(lineIndex);
+		}
 	}
 
-	m_Start = pointers[0];
-
-	delete[] pointers;
+	return ret;
 }

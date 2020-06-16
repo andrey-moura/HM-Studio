@@ -8,16 +8,10 @@ class Letter
 {
 public:
 	Letter() = default;
-	Letter(RomFile& rom, uint32_t startPointers, uint32_t count);
+	Letter(const std::string& letter);
 private:
-	std::vector<std::string> m_Lines;
-	uint32_t m_Start;
-	uint32_t m_End;
-	uint32_t m_StartPointers;
+	std::string m_Lines;
 public:
-	std::vector<std::string> GetLines() { return m_Lines; }
-	uint32_t GetStart() { return m_Start; }
-	uint32_t GetEnd() { return m_End; }
-	uint32_t GetStartPointers() { return m_StartPointers; }
+	std::vector<size_t> GetLineMatches(const Letter& other);
 };
 

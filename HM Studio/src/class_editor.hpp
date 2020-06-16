@@ -23,12 +23,11 @@ public:
 	virtual void UpdateText() {};
 	virtual void SaveFile() {};
 	virtual void Insert() {};
+	virtual void Dump(bool translated) { };
 
 	virtual size_t GetIndex() { return m_Index; }
 	virtual size_t GetCount() { return m_Count; }
 public:
 	RomFile& GetRom(const bool& translated);
-public:		
-	virtual void Dump(bool translated) { };
 };
 

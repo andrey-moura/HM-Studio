@@ -281,12 +281,6 @@ void RomFile::ReadBytes(std::vector<uint8_t>& bytes, size_t size)
 	this->Read(bytes.data(), size);
 }
 
-void RomFile::WriteBytes(std::vector<uint8_t> bytes)
-{
-	this->Write(bytes.data(), bytes.size());
-	this->Flush();
-}
-
 void RomFile::WriteBytes(const void* bytes, const size_t size)
 {
 	this->Write(bytes, size);

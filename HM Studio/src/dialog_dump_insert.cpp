@@ -43,15 +43,16 @@ void InsertDumpDialog::CreateGUIControls()
 	wxButton* dump = new wxButton(this, wxID_ANY, "Dump");
 	dump->Bind(wxEVT_BUTTON, &InsertDumpDialog::OnDumpClick, this);
 
-	wxButton* insert = new wxButton(this, wxID_ANY, "Insert");
-	insert->Bind(wxEVT_BUTTON, &InsertDumpDialog::OnInsertClick, this);
+	m_InsertButton = new wxButton(this, wxID_ANY, "Insert");
+	m_InsertButton->Enable(false);
+	m_InsertButton->Bind(wxEVT_BUTTON, &InsertDumpDialog::OnInsertClick, this);
 
 	m_RootSizer = new wxBoxSizer(wxVERTICAL);
 	m_RootSizer->Add(rangeBox, 0, wxEXPAND);
 	m_RootSizer->Add(fromToSizer, 0, wxEXPAND);
 	m_RootSizer->Add(stateBox, 0, wxEXPAND);
 	m_RootSizer->Add(dump);
-	m_RootSizer->Add(insert);
+	m_RootSizer->Add(m_InsertButton);
 
 	wxBoxSizer* globalSizer = new wxBoxSizer(wxVERTICAL);
 	globalSizer->Add(m_RootSizer, 1, wxEXPAND | wxALL, 4);
@@ -72,8 +73,9 @@ void InsertDumpDialog::OnRangeTypeChanged(wxCommandEvent& event)
 
 void InsertDumpDialog::OnStateChanged(wxCommandEvent& event)
 {
-	m_Translated = (bool)event.GetSelection();
-
+	m_Translated = (bool)event.GetSelection();	
+	m_InsertButton->Enable(m_Translated);
+	
 	event.Skip();
 }
 
@@ -87,7 +89,7 @@ void InsertDumpDialog::OnDumpClick(wxCommandEvent& event)
 			return;
 		}
 	}
-
+	
 	m_Editor->Dump(m_Translated);
 
 	event.Skip();
@@ -95,6 +97,16 @@ void InsertDumpDialog::OnDumpClick(wxCommandEvent& event)
 
 void InsertDumpDialog::OnInsertClick(wxCommandEvent& event)
 {
+	if (m_Translated)
+	{
+		if (wxMessageDialog(this, "This will make several changes in you rom, are you sure?", "Huh?", wxYES_NO).ShowModal() != wxID_YES)
+		{
+			event.Skip();
+			return;
+		}
+	}
+
+	m_Editor->Insert();
 
 	event.Skip();
 }
