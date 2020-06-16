@@ -26,8 +26,6 @@ private:
 	uint32_t m_BlockSize;
 private:
 	uint32_t* GetPointers(bool translated);	
-
-	void GetAllLines(std::vector<std::string>& letters_lines_all, std::vector<uint32_t>& letters_counts_all);
 public:
 	bool Open(uint32_t number);
 	std::string& GetText(bool translated);
