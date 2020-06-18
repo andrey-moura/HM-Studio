@@ -18,12 +18,19 @@ private:
 
 	STC* m_TextOriginal = nullptr;
 	STC* m_TextTranslated = nullptr;
+
+	wxString m_TypingControl;
+	bool m_AlreadyTyping;
+	bool m_Garbage;
 private:
 	void UpdateText();
 private:
 	//Override from base
 	void OnSaveFile();
+private:
 	void OnDumpClick(wxCommandEvent& event);	
+	void STCKeyDown(wxKeyEvent& event);
+	void STCKeyUp(wxKeyEvent& event);
 private:
 	void CreateGUIControls();
 };

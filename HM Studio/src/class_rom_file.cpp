@@ -108,20 +108,7 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 
 void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 {
-	//m_VarTable.Output(text, m_Table);
-
-	StopWatch watch;
-	watch.Start();
-
-	for (std::string& str : text)
-	{
-		m_Table.Output(str);
-	}
-
-	watch.Stop();
-	uint64_t elapsed = watch.Elapsed();
-
-	std::string();
+	m_VarTable.Output(text, m_Table);
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
@@ -134,34 +121,63 @@ void RomFile::ReplaceWideChars(wxString& text)
 	const wchar_t* txt = text.wc_str();
 
 	if (Console == console::GBA)
-	{		
-		size_t pos = text.find((wchar_t)0x2605);
+	{
+		const wchar_t tblab[3]{ 0x81, (wchar_t)(m_Table[0xab] & 0x00FF), '\0' };
+		const wchar_t tbla8[3]{ 0x81, (wchar_t)(m_Table[0xa8] & 0x00FF), '\0' };
+		const wchar_t tblaa[3]{ 0x81, (wchar_t)(m_Table[0xaa] & 0x00FF), '\0' };
 
-		while (pos != std::string::npos)
+		std::vector<std::pair<wchar_t, const wchar_t*>> table;
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2605, L"\x81\x0161"));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2666, L"\x81\x0178"));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2191, tblab)); //Up arrow
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2192, tbla8));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2193, tblaa));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2022, L"\x81\x45"));
+
+		for (const auto& tbl : table)
 		{
-			text[pos++] = 0x81;
-			text.insert(pos++, 1, wchar_t(0x0161));
-			pos = text.find((wchar_t)0x2605, pos);
+			size_t pos = text.find(tbl.first);
+
+			while (pos != std::string::npos)
+			{
+				text[pos++] = tbl.second[0];
+				text.insert(pos++, 1, tbl.second[1]);
+				pos = text.find(tbl.first, pos);
+			}
 		}
 	}	
 }
 
 wxString RomFile::ReplaceWideChars(std::string& text)
 {
-	wxString ret = text;	
-	const char* textData = text.data();
-	const wchar_t* retData = ret.wc_str();	
-	const wchar_t* search = L"\x81\x0161";	
+	wxString ret = text;
+
+	const wchar_t* txt = ret.wc_str();
 
 	if (Console == console::GBA)
-	{		
-		size_t pos = ret.find(search);
+	{
+		const wchar_t tblab[3]{ 0x81, (wchar_t)(m_Table[0xab] & 0x00FF), '\0' };
+		const wchar_t tbla8[3]{ 0x81, (wchar_t)(m_Table[0xa8] & 0x00FF), '\0' };
+		const wchar_t tblaa[3]{ 0x81, (wchar_t)(m_Table[0xaa] & 0x00FF), '\0' };
 
-		while (pos != std::string::npos)
+		std::vector<std::pair<wchar_t, const wchar_t*>> table;
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2605, L"\x81\x0161"));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2666, L"\x81\x0178"));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2191, tblab)); //Up arrow
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2192, tbla8));
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2193, tblaa)); //Down arrow
+		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2022, L"\x81\x45"));
+
+		for (const auto& tbl : table)
 		{
-			ret[pos++] = (wchar_t)0x2605;
-			ret.erase(pos, 1);
-			pos = ret.find(search, pos);
+			size_t pos = ret.find(tbl.second);
+
+			while (pos != std::string::npos)
+			{
+				ret[pos++] = tbl.first;
+				ret.erase(pos, 1);
+				pos = ret.find(tbl.second, pos);
+			}
 		}
 	}
 

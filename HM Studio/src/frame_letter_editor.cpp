@@ -3,8 +3,6 @@
 LetterEditorFrame::LetterEditorFrame(const id& id) : m_Editor(id), EditorFrame("Letter Editor", &m_Editor)
 {
 	CreateGUIControls();
-
-	m_Editor.Insert();
 }
 
 LetterEditorFrame::~LetterEditorFrame()
@@ -22,7 +20,9 @@ void LetterEditorFrame::UpdateText()
 void LetterEditorFrame::OnSaveFile()
 {	
 	wxString text = m_TextTranslated->GetText();
-	m_Editor.GetRom(false).ReplaceWideChars(text);
+	const wchar_t* data = text.wc_str();
+
+	m_Editor.GetRom(true).ReplaceWideChars(text);
 
 	Moon::File::WriteAllText(m_Editor.GetPath(true), text.ToStdString());
 }
@@ -31,6 +31,76 @@ void LetterEditorFrame::OnDumpClick(wxCommandEvent& event)
 {
 	InsertDumpDialog(&m_Editor).ShowModal();
 
+	event.Skip();
+}
+
+void LetterEditorFrame::STCKeyDown(wxKeyEvent& event)
+{	
+	int keyCode = event.GetKeyCode();
+
+	if (event.GetModifiers() != wxMOD_CONTROL || m_Garbage || keyCode == wxKeyCode::WXK_CONTROL)
+	{
+		event.Skip();
+		return;
+	}	
+	if (keyCode >= WXK_NUMPAD0)
+	{
+		if (keyCode <= WXK_NUMPAD9)
+		{
+			m_TypingControl.append(1, (char)(keyCode - 276));
+			m_AlreadyTyping = true;
+		}
+	}
+	else if (keyCode >= '0' && keyCode <= '9')
+	{
+		m_TypingControl.append(1, (char)keyCode);
+		m_AlreadyTyping = true;
+	}
+	else
+	{
+		m_Garbage = true;
+	}
+
+	event.Skip();
+}
+
+void LetterEditorFrame::STCKeyUp(wxKeyEvent& event)
+{
+	int keyCode = event.GetKeyCode();
+
+	if (keyCode != WXK_CONTROL || !m_TypingControl.size())
+	{
+		event.Skip();
+		return;
+	}
+
+	m_Garbage = false;
+	long line = 0;
+	if (!m_TypingControl.ToLong(&line))
+	{
+		event.Skip();
+		return;
+	}
+
+	if (line == 0)
+	{
+		wxMessageBox(wxT("Please, do not use 0 based line index."), wxT("Huh?"), wxICON_WARNING);
+		line = 1;
+	}
+
+	--line;
+
+	if (m_TextOriginal->GetLineCount() >= line)
+	{
+		size_t curLine = m_TextTranslated->GetCurrentLine();
+		size_t curLinePosition = m_TextTranslated->PositionFromLine(curLine);
+
+		m_TextTranslated->DeleteRange(curLinePosition, m_TextTranslated->SendMsg(2350, curLine, 0));
+		m_TextTranslated->InsertText(curLinePosition, m_TextOriginal->GetLineText(line));
+		m_TextTranslated->LineEnd();
+	}
+
+	m_TypingControl.clear();
 	event.Skip();
 }
 
@@ -63,6 +133,9 @@ void LetterEditorFrame::CreateGUIControls()
 
 	m_TextOriginal->SetMaxLineLenght(m_Editor.GetRom(false).GetLineMax());
 	m_TextOriginal->SetEOLMode(eolMode);
+
+	m_TextTranslated->Bind(wxEVT_KEY_DOWN, &LetterEditorFrame::STCKeyDown, this);
+	m_TextTranslated->Bind(wxEVT_KEY_UP, &LetterEditorFrame::STCKeyUp, this);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
 	rootSizer->Add(m_TextTranslated, 1, wxEXPAND, 0);
