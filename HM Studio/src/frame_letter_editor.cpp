@@ -2,7 +2,7 @@
 
 LetterEditorFrame::LetterEditorFrame(const id& id) : m_Editor(id), EditorFrame("Letter Editor", &m_Editor)
 {
-	CreateGUIControls();
+	CreateGUIControls();	
 }
 
 LetterEditorFrame::~LetterEditorFrame()
@@ -25,6 +25,45 @@ void LetterEditorFrame::OnSaveFile()
 	m_Editor.GetRom(true).ReplaceWideChars(text);
 
 	Moon::File::WriteAllText(m_Editor.GetPath(true), text.ToStdString());
+}
+
+void LetterEditorFrame::FindText(const wxString& search, bool useTable, bool translated)
+{
+	STC* stc = translated ? m_TextTranslated : m_TextOriginal;
+	
+	size_t pos = stc->FindText(0, stc->GetTextLength(), search);
+
+	//while (pos != std::string::npos)
+	//{
+	//	
+	//}
+}
+
+void LetterEditorFrame::ReplaceTxt(const wxString& search, const wxString& replace, bool useTable)
+{
+	wxString text = m_TextTranslated->GetText();
+	text.Replace(search, replace, true);
+	m_TextTranslated->SetText(text);
+}
+
+void LetterEditorFrame::RemovePaddingSpaces()
+{
+	for (size_t i = 0; i < m_TextTranslated->GetLineCount(); ++i)
+	{
+		wxString line = m_TextTranslated->GetLineText(i);
+
+		if (line.ends_with(L' '))
+		{
+			line.RemoveLast();
+
+			while (line.ends_with(L' '))
+			{
+				line.RemoveLast();
+			}
+
+			m_TextTranslated->ReplaceLineText(line, i);
+		}
+	}
 }
 
 void LetterEditorFrame::OnDumpClick(wxCommandEvent& event)
@@ -91,12 +130,8 @@ void LetterEditorFrame::STCKeyUp(wxKeyEvent& event)
 	--line;
 
 	if (m_TextOriginal->GetLineCount() >= line)
-	{
-		size_t curLine = m_TextTranslated->GetCurrentLine();
-		size_t curLinePosition = m_TextTranslated->PositionFromLine(curLine);
-
-		m_TextTranslated->DeleteRange(curLinePosition, m_TextTranslated->SendMsg(2350, curLine, 0));
-		m_TextTranslated->InsertText(curLinePosition, m_TextOriginal->GetLineText(line));
+	{		
+		m_TextTranslated->ReplaceLineText(m_TextOriginal->GetLineText(line), m_TextTranslated->GetCurrentLine());
 		m_TextTranslated->LineEnd();
 	}
 
@@ -106,21 +141,24 @@ void LetterEditorFrame::STCKeyUp(wxKeyEvent& event)
 
 void LetterEditorFrame::CreateGUIControls()
 {	
-	wxMenu* menuLetter = new wxMenu();
-	Bind(wxEVT_MENU, &LetterEditorFrame::OnGoFileClick, this, menuLetter->Append(wxID_OPEN, "Open\tCtrl-O")->GetId());
-	Bind(wxEVT_MENU, &LetterEditorFrame::OnPrevFileClick, this, menuLetter->Append(wxNewId(), "Previous\tCtrl-Left")->GetId());
-	Bind(wxEVT_MENU, &LetterEditorFrame::OnProxFileClick, this, menuLetter->Append(wxNewId(), "Next\tCtrl-Right")->GetId());
-	Bind(wxEVT_MENU, &LetterEditorFrame::OnSaveFileClick, this, menuLetter->Append(wxID_SAVE, "Save\tCtrl-S")->GetId());
+	//wxMenu* menuLetter = new wxMenu();
+	//Bind(wxEVT_MENU, &LetterEditorFrame::OnGoFileClick, this, menuLetter->Append(wxID_OPEN, "Open\tCtrl-O")->GetId());
+	//Bind(wxEVT_MENU, &LetterEditorFrame::OnPrevFileClick, this, menuLetter->Append(wxNewId(), "Previous\tCtrl-Left")->GetId());
+	//Bind(wxEVT_MENU, &LetterEditorFrame::OnProxFileClick, this, menuLetter->Append(wxNewId(), "Next\tCtrl-Right")->GetId());
+	//Bind(wxEVT_MENU, &LetterEditorFrame::OnSaveFileClick, this, menuLetter->Append(wxID_SAVE, "Save\tCtrl-S")->GetId());
 
-	wxMenu* menuTools = new wxMenu();
-	menuTools->Bind(wxEVT_MENU, &LetterEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dump/Insert")->GetId());
+	//wxMenu* menuTools = new wxMenu();
+	//menuTools->Bind(wxEVT_MENU, &LetterEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dump/Insert")->GetId());
 
-	wxMenuBar* menuBar = new wxMenuBar();	
-	menuBar->Append(menuLetter, "Letter");
-	menuBar->Append(menuTools, "Tools");
+	//wxMenuBar* menuBar = new wxMenuBar();	
+	//menuBar->Append(menuLetter, "Letter");
+	//menuBar->Append(menuTools, "Tools");
 
-	SetMenuBar(menuBar);
+	//SetMenuBar(menuBar);
 
+	CreateMyMenuBar();
+	CreateSearchMenu();
+	CreateToolsMenu();
 	CreateMyToolBar();
 	CreateMyStatusBar(1);
 

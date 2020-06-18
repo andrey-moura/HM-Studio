@@ -13,6 +13,7 @@
 #include <wx/stc/stc.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
+#include <wx/../../src/stc/scintilla/include/Scintilla.h>
 
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
@@ -65,6 +66,11 @@ public:
 	inline void Highlight(size_t start, size_t lenght, int style);
 	inline void HighlightAll(const std::vector<size_t>& indexes, size_t lenght, int style);
 	inline void FindAll(size_t start, size_t end, const std::string& s, std::vector<size_t>& result);
+	//Returns the start pos of the line
+	size_t DeleteLine(size_t ln);
+	//Returns the start pos of the line
+	size_t CleanLine(size_t ln);
+	void ReplaceLineText(const wxString& line, size_t ln);
 private:	
 	inline void VerifyLineLenght(size_t line);
 	inline void VerifyLineLenghtFromPos(size_t from, size_t to);

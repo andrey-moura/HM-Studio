@@ -30,8 +30,8 @@ public:
 	
 	void SetEol(const std::string& eol, const std::string& raw) { m_EOL = eol; m_RawEOL = raw; }
 
-	std::string GetSearch();
-	std::string GetReplace();
+	wxString GetSearch();
+	wxString GetReplace();
 	
 private:
 	void OnFindAllClick(wxCommandEvent& event);

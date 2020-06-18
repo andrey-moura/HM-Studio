@@ -114,6 +114,26 @@ void STC::SetUserCanAddLine(bool can)
 	m_UserCanAddLine = can;
 }
 
+size_t STC::DeleteLine(size_t ln)
+{
+	size_t lnStart = PositionFromLine(ln);
+	DeleteRange(lnStart, SendMsg(SCI_LINELENGTH, ln, 0));
+	return lnStart;
+}
+
+size_t STC::CleanLine(size_t ln)
+{
+	size_t lnStart = DeleteLine(ln);
+	InsertText(lnStart, m_Eol);
+	return lnStart;
+}
+
+void STC::ReplaceLineText(const wxString& line, size_t ln)
+{
+	size_t lnStart = CleanLine(ln);
+	InsertText(lnStart, line);
+}
+
 void STC::OnKeyPress(wxKeyEvent& event)
 {
 	char key = event.GetUnicodeKey();

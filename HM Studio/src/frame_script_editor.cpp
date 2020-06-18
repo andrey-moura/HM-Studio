@@ -193,8 +193,8 @@ void cScriptEditor::FindText()
 
 	if (dialog.ShowModal() != wxID_CANCEL)
 	{
-		std::string search = dialog.GetSearch();
-		std::string replace = dialog.GetReplace();
+		std::string search = dialog.GetSearch().ToStdString();
+		std::string replace = dialog.GetReplace().ToStdString();
 		bool inScript = dialog.InScript();
 		bool extended = dialog.Extended();
 		bool translated = dialog.Translated();
