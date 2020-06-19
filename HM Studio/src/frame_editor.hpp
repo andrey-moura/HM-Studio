@@ -4,6 +4,7 @@
 #include "class_editor.hpp"
 #include "frame_search_script.hpp"
 #include "window_find_results.hpp"
+#include "dialog_dump_insert.hpp"
 
 class EditorFrame : public wxFrame
 {
@@ -41,7 +42,7 @@ protected:
 //Override this
 	virtual void OnSaveFile();
 //Override this
-	virtual void OnInsertFile();
+	virtual void OnDumperInserter();
 //Override this
 	virtual void UpdateText() {}
 //Override this
@@ -55,14 +56,14 @@ protected:
 //Override this
 	virtual void SetIndex(size_t index);
 //Override this
-	virtual void RemovePaddingSpaces();
+	virtual void RemovePaddingSpaces() {}
 //Events	
-protected:	
+private:	
 	void OnPrevFileClick(wxCommandEvent& event);
 	void OnProxFileClick(wxCommandEvent& event);
 	void OnGoFileClick(wxCommandEvent& event);
 	void OnSaveFileClick(wxCommandEvent& event);
-	void OnInsertFileClick(wxCommandEvent& event);	
+	void OnDumperInserterClick(wxCommandEvent& event);	
 	void OnFindTextClick(wxCommandEvent& event);	
 	void OnFindNextClick(wxCommandEvent& event);
 	void OnRemoveSpacesClick(wxCommandEvent& event);

@@ -22,8 +22,8 @@ public:
 	virtual bool Open(uint32_t number) { return false; }
 	virtual void UpdateText() {};
 	virtual void SaveFile() {};
-	virtual void Insert() {};
-	virtual void Dump(bool translated) { };
+	virtual void InsertAll() {};
+	virtual void DumpAll(bool translated) { };
 
 	virtual size_t GetIndex() { return m_Index; }
 	virtual void SetIndex(size_t index) { m_Index = index; }

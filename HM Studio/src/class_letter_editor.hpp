@@ -36,6 +36,6 @@ public:
 	std::string GetPath(const bool& translated) { return GetPath(m_Number, translated); }
 	void SetupRom();
 public:
-	virtual void Dump(bool translated);
-	virtual void Insert();
+	virtual void DumpAll(bool translated);
+	virtual void InsertAll();
 };

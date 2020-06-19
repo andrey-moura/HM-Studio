@@ -66,13 +66,6 @@ void LetterEditorFrame::RemovePaddingSpaces()
 	}
 }
 
-void LetterEditorFrame::OnDumpClick(wxCommandEvent& event)
-{
-	InsertDumpDialog(&m_Editor).ShowModal();
-
-	event.Skip();
-}
-
 void LetterEditorFrame::STCKeyDown(wxKeyEvent& event)
 {	
 	int keyCode = event.GetKeyCode();
@@ -146,15 +139,6 @@ void LetterEditorFrame::CreateGUIControls()
 	//Bind(wxEVT_MENU, &LetterEditorFrame::OnPrevFileClick, this, menuLetter->Append(wxNewId(), "Previous\tCtrl-Left")->GetId());
 	//Bind(wxEVT_MENU, &LetterEditorFrame::OnProxFileClick, this, menuLetter->Append(wxNewId(), "Next\tCtrl-Right")->GetId());
 	//Bind(wxEVT_MENU, &LetterEditorFrame::OnSaveFileClick, this, menuLetter->Append(wxID_SAVE, "Save\tCtrl-S")->GetId());
-
-	//wxMenu* menuTools = new wxMenu();
-	//menuTools->Bind(wxEVT_MENU, &LetterEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dump/Insert")->GetId());
-
-	//wxMenuBar* menuBar = new wxMenuBar();	
-	//menuBar->Append(menuLetter, "Letter");
-	//menuBar->Append(menuTools, "Tools");
-
-	//SetMenuBar(menuBar);
 
 	CreateMyMenuBar();
 	CreateSearchMenu();

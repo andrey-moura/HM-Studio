@@ -30,8 +30,6 @@ private:
 	void FindText(const wxString& search, bool useTable, bool translated);
     void ReplaceTxt(const wxString& search, const wxString& replace, bool useTable);	
 	void RemovePaddingSpaces();
-private:
-	void OnDumpClick(wxCommandEvent& event);	
 	void STCKeyDown(wxKeyEvent& event);
 	void STCKeyUp(wxKeyEvent& event);
 private:

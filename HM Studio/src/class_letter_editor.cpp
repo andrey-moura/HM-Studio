@@ -47,7 +47,7 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 	return pointers;
 }
 
-void LetterEditor::Dump(bool translated) 
+void LetterEditor::DumpAll(bool translated)
 {
 	RomFile& rom = GetRom(translated);
 	uint32_t* letterPointers = GetPointers(translated);	
@@ -93,7 +93,7 @@ void LetterEditor::Dump(bool translated)
 	delete[] letterPointers;
 }
 
-void LetterEditor::Insert()
+void LetterEditor::InsertAll()
 {
 	std::vector<std::string> letters_lines_all;
 	std::vector<uint32_t> letters_counts_all;

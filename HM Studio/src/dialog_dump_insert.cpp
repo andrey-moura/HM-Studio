@@ -90,7 +90,7 @@ void InsertDumpDialog::OnDumpClick(wxCommandEvent& event)
 		}
 	}
 	
-	m_Editor->Dump(m_Translated);
+	m_Editor->DumpAll(m_Translated);
 
 	event.Skip();
 }
@@ -106,7 +106,7 @@ void InsertDumpDialog::OnInsertClick(wxCommandEvent& event)
 		}
 	}
 
-	m_Editor->Insert();
+	m_Editor->InsertAll();
 
 	event.Skip();
 }
