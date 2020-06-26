@@ -25,17 +25,20 @@ private:
 	uint32_t m_StartBlock;
 	uint32_t m_BlockSize;
 private:
-	uint32_t* GetPointers(bool translated);	
+	uint32_t* GetPointers(bool translated);
+	void SetPointer(size_t number, uint32_t offset);
 public:
 	bool Open(uint32_t number);
 	std::string& GetText(bool translated);
 	void SetText(const std::string& text);
 	void SaveFile();
+	void SaveText(const std::string& text);
 public:
 	std::string GetPath(const uint32_t& number, const bool& translated);
 	std::string GetPath(const bool& translated) { return GetPath(m_Number, translated); }
 	void SetupRom();
 public:
-	virtual void DumpAll(bool translated);
-	virtual void InsertAll();
+	void DumpAll(bool translated);
+	void InsertAll();
+	void InsertFile();
 };

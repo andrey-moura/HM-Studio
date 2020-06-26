@@ -30,7 +30,7 @@ void EditorFrame::CreateMyToolBar()
 	Bind(wxEVT_TOOL, &EditorFrame::OnProxFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Following File", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, true), "Following File")->GetId());
 	Bind(wxEVT_TOOL, &EditorFrame::OnGoFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Got to File", wxImage(16, 16, goScriptRgb, goScriptAlpha, true), "Go to File")->GetId());
 	Bind(wxEVT_TOOL, &EditorFrame::OnSaveFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Save the File", wxImage(16, 16, saveScriptRgb, saveScriptAlpha, true), "Save the File")->GetId());
-	//Bind(wxEVT_TOOL, &EditorFrame::OnInsertClick, this, m_pToolBar->AddTool(wxNewId(), L"Insert File", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, true), "Insert the File")->GetId());
+	Bind(wxEVT_TOOL, &EditorFrame::OnInsertFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Insert File", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, true), "Insert the File")->GetId());
 
 	m_pToolBar->Realize();	
 }
@@ -190,6 +190,12 @@ void EditorFrame::OnDumperInserter()
 	InsertDumpDialog(m_pEditor).ShowModal();
 }
 
+void EditorFrame::OnInsertFile()
+{
+	OnSaveFile();
+	m_pEditor->InsertFile();
+}
+
 void EditorFrame::OnPrevFileClick(wxCommandEvent& event)
 {
 	OnPrevFile();
@@ -235,5 +241,11 @@ void EditorFrame::OnFindNextClick(wxCommandEvent& event)
 void EditorFrame::OnRemoveSpacesClick(wxCommandEvent& event)
 {
 	RemovePaddingSpaces();
+	event.Skip();
+}
+
+void EditorFrame::OnInsertFileClick(wxCommandEvent& event)
+{
+	OnInsertFile();
 	event.Skip();
 }

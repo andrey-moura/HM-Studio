@@ -11,7 +11,7 @@ LetterEditorFrame::~LetterEditorFrame()
 
 void LetterEditorFrame::UpdateText()
 {	
-	m_TextOriginal->SetText(m_Editor.GetRom(true).ReplaceWideChars(m_Editor.GetText(false)));
+	m_TextOriginal->SetText(m_Editor.GetRom(false).ReplaceWideChars(m_Editor.GetText(false)));
 	m_TextTranslated->SetText(m_Editor.GetRom(true).ReplaceWideChars(m_Editor.GetText(true)));
 
 	UpdateIndex();
@@ -19,12 +19,10 @@ void LetterEditorFrame::UpdateText()
 
 void LetterEditorFrame::OnSaveFile()
 {	
-	wxString text = m_TextTranslated->GetText();
-	const wchar_t* data = text.wc_str();
-
-	m_Editor.GetRom(true).ReplaceWideChars(text);
-
-	Moon::File::WriteAllText(m_Editor.GetPath(true), text.ToStdString());
+	wxString text = m_TextTranslated->GetText();	
+	m_Editor.GetRom(true).ReplaceWideChars(text);	
+	m_pEditor->SaveText(text.ToStdString());
+	m_pEditor->SaveFile();
 }
 
 void LetterEditorFrame::FindText(const wxString& search, bool useTable, bool translated)

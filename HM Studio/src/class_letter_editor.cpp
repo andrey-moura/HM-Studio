@@ -47,6 +47,16 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 	return pointers;
 }
 
+void LetterEditor::SetPointer(size_t number, uint32_t offset)
+{	
+	m_RomTranslated.WriteUInt32(m_RomTranslated.ConvertOffsets(offset), (number*4)+m_StartPointers);
+}
+
+void LetterEditor::SaveText(const std::string& text)
+{
+	m_Translated = text;
+}
+
 void LetterEditor::DumpAll(bool translated)
 {
 	RomFile& rom = GetRom(translated);
@@ -190,6 +200,78 @@ void LetterEditor::InsertAll()
 
 	m_RomTranslated.Seek(m_StartBlock);
 	m_RomTranslated.WriteBytes(letter_block.data(), m_BlockSize);
+}
+
+void LetterEditor::InsertFile()
+{
+	auto lines = Moon::String::ViewLines(m_Translated, true);
+
+	std::string letter;
+
+	std::vector<uint32_t> pointers;
+	pointers.resize(lines.size());
+
+	uint32_t end_line = std::string::npos;
+	uint32_t letter_pointer = 0;
+
+	for (size_t line_index = 0; line_index < lines.size(); ++line_index)
+	{
+		if (pointers[line_index])
+			continue;
+
+		if (lines[line_index].empty())
+		{
+			if (end_line == std::string::npos)
+			{
+				while (letter.size() % 4 != 0)
+					letter.push_back('\0');
+
+				end_line = letter.size();
+
+				letter.append(4, '\0');
+			}
+
+			pointers[line_index] = end_line;
+			continue;
+		}
+
+		pointers[line_index] = letter.size();
+
+		letter.append(lines[line_index]);
+		letter.push_back('\0');
+
+		for (size_t compare_index = line_index + 1; compare_index < lines.size(); ++compare_index)
+		{			
+			if (lines[compare_index] == lines[line_index])
+			{
+				pointers[compare_index] = pointers[line_index];
+			}
+		}
+	}
+
+	const Moon::Hacking::Table& table = m_RomTranslated.GetTable();
+	table.Output(letter);
+
+	while (letter.size() % 4 != 0)
+		letter.push_back('\0');
+
+	letter_pointer = letter.size();
+
+	uint32_t free_space = m_RomTranslated.FindFreeSpace(letter.size()+ (lines.size() * 4));
+
+	for (uint32_t& pointer : pointers)
+		pointer = m_RomOriginal.ConvertOffsets(free_space + pointer);
+
+	letter.append((const char*)pointers.data(), lines.size() * 4);
+	letter.append(4, '\0');
+
+
+	if (free_space == std::string::npos)
+		return;	
+
+	SetPointer(m_Number, free_space + letter_pointer);
+	m_RomTranslated.Seek(free_space);
+	m_RomTranslated.WriteBytes(letter.c_str(), letter.size());	
 }
 
 void LetterEditor::SetupRom()

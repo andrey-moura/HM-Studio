@@ -44,6 +44,8 @@ public:
 	std::string m_HomeDir;
 	uint8_t m_MaxChars;
 	uint32_t m_PointerIndex;
+	uint32_t m_End;
+	uint32_t m_FreeSpace;
 	//Table
 private:	
 	Moon::Hacking::Table m_Table;
@@ -62,7 +64,9 @@ public:
 	inline const uint8_t GetLineMax() const {return m_MaxChars; }
 
 	wxString ReplaceWideChars(std::string& text);
-	void ReplaceWideChars(wxString& text);	
+	void ReplaceWideChars(wxString& text);
+
+	uint32_t GetBusStart() { return m_PointerIndex; }
 //File
 public:
 	//void ReadInt32(uint32_t& value);
@@ -75,6 +79,8 @@ public:
 	uint16_t ReadUInt16(uint32_t off);
 	uint32_t ReadUInt32();
 	uint64_t ReadUint64(uint32_t off);
+
+	uint32_t FindFreeSpace(uint32_t size);
 
 	uint32_t ReadPointer32(uint32_t offset);
 
@@ -95,5 +101,8 @@ public:
 	void WriteBytes(const void* bytes, const size_t size);
 
 	void ConvertPointers(uint32_t* pointers, uint32_t count);
+	void ConvertOffsets(uint32_t* offsets, uint32_t count);
+	uint32_t ConvertOffsets(uint32_t offset);
+	uint32_t ConvertPointers(uint32_t pointer);
 	bool IsPointer(const uint32_t& pointer);
 };

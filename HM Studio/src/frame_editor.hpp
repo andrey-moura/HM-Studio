@@ -57,6 +57,8 @@ protected:
 	virtual void SetIndex(size_t index);
 //Override this
 	virtual void RemovePaddingSpaces() {}
+//Override this
+	virtual void OnInsertFile();
 //Events	
 private:	
 	void OnPrevFileClick(wxCommandEvent& event);
@@ -67,5 +69,6 @@ private:
 	void OnFindTextClick(wxCommandEvent& event);	
 	void OnFindNextClick(wxCommandEvent& event);
 	void OnRemoveSpacesClick(wxCommandEvent& event);
+	void OnInsertFileClick(wxCommandEvent& event);
 };
 

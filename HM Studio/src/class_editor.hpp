@@ -24,7 +24,8 @@ public:
 	virtual void SaveFile() {};
 	virtual void InsertAll() {};
 	virtual void DumpAll(bool translated) { };
-
+	virtual void InsertFile() {};
+	virtual void SaveText(const std::string& text) {};
 	virtual size_t GetIndex() { return m_Index; }
 	virtual void SetIndex(size_t index) { m_Index = index; }
 	virtual size_t GetCount() { return m_Count; }

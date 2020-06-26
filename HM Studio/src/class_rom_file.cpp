@@ -1,4 +1,4 @@
-#include "class_rom_file.hpp"
+﻿#include "class_rom_file.hpp"
 
 RomFile::RomFile(id i, bool translated) : wxFile()
 {
@@ -9,11 +9,13 @@ RomFile::RomFile(id i, bool translated) : wxFile()
 	{
 	case id::FoMT:			
 		Name = "FoMT";
-		Console = console::GBA;
+		Console = console::GBA;		
 		break;
 	case id::MFoMT:		
 		Name = "MFoMT";
 		Console = console::GBA;
+		m_End = 0x9D98C8;
+		m_FreeSpace = 0x626738;
 		break;
 	case id::DS:		
 		Name = "DS";
@@ -102,7 +104,7 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{		
-		Moon::String::Replace(text[i], "\5\f", "\5\f" + m_EOL);
+		Moon::String::Replace(text[i], "\x05\x0c", "\x05\x0c" + m_EolString);
 	}	
 }
 
@@ -112,7 +114,7 @@ void RomFile::OutputTextWithVariables(std::vector<std::string>& text)
 
 	for (size_t i = 0; i < text.size(); ++i)
 	{
-		Moon::String::Replace(text[i], "\5\f" + m_EOL, "\5\f");
+		Moon::String::Replace(text[i], "\x05\x0c" + m_EolString, "\x05\x0c");
 	}
 }
 
@@ -122,26 +124,31 @@ void RomFile::ReplaceWideChars(wxString& text)
 
 	if (Console == console::GBA)
 	{
-		const wchar_t tblab[3]{ 0x81, (wchar_t)(m_Table[0xab] & 0x00FF), '\0' };
-		const wchar_t tbla8[3]{ 0x81, (wchar_t)(m_Table[0xa8] & 0x00FF), '\0' };
-		const wchar_t tblaa[3]{ 0x81, (wchar_t)(m_Table[0xaa] & 0x00FF), '\0' };
+		std::vector<std::pair<wchar_t, char>> table;
+		table.reserve(8);
+		table.push_back(std::pair<wchar_t, char>(0x2190, 0xa9)); //←
+		table.push_back(std::pair<wchar_t, char>(0x2191, 0xaa)); //↑
+		table.push_back(std::pair<wchar_t, char>(0x2192, 0xa8)); //→
+		table.push_back(std::pair<wchar_t, char>(0x2193, 0xab)); //↓
+		table.push_back(std::pair<wchar_t, char>(0x2605, 0x9a)); //★
+		table.push_back(std::pair<wchar_t, char>(0x2606, 0x99)); //☆
+		table.push_back(std::pair<wchar_t, char>(0x2666, 0x9F)); //♦
+		table.push_back(std::pair<wchar_t, char>(0x2022, 0x45)); //•
+		
+		wxString replace(1, '0');
 
-		std::vector<std::pair<wchar_t, const wchar_t*>> table;
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2605, L"\x81\x0161"));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2666, L"\x81\x0178"));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2191, tblab)); //Up arrow
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2192, tbla8));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2193, tblaa));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2022, L"\x81\x45"));
-
-		for (const auto& tbl : table)
+		for (auto& tbl : table)
 		{
+			tbl.second = m_Table[tbl.second];
+
+			replace = tbl.second; //The char need to be converted to wxString first
+
 			size_t pos = text.find(tbl.first);
 
 			while (pos != std::string::npos)
 			{
-				text[pos++] = tbl.second[0];
-				text.insert(pos++, 1, tbl.second[1]);
+				text[pos++] = 0x81;
+				text.insert(pos++, 1, replace[0]);
 				pos = text.find(tbl.first, pos);
 			}
 		}
@@ -156,27 +163,34 @@ wxString RomFile::ReplaceWideChars(std::string& text)
 
 	if (Console == console::GBA)
 	{
-		const wchar_t tblab[3]{ 0x81, (wchar_t)(m_Table[0xab] & 0x00FF), '\0' };
-		const wchar_t tbla8[3]{ 0x81, (wchar_t)(m_Table[0xa8] & 0x00FF), '\0' };
-		const wchar_t tblaa[3]{ 0x81, (wchar_t)(m_Table[0xaa] & 0x00FF), '\0' };
+		std::vector<std::pair<wchar_t, char>> table;
+		table.reserve(8);
+		table.push_back(std::pair<wchar_t, char>(0x2190, 0xa9)); //←
+		table.push_back(std::pair<wchar_t, char>(0x2191, 0xaa)); //↑
+		table.push_back(std::pair<wchar_t, char>(0x2192, 0xa8)); //→
+		table.push_back(std::pair<wchar_t, char>(0x2193, 0xab)); //↓
+		table.push_back(std::pair<wchar_t, char>(0x2605, 0x9a)); //★
+		table.push_back(std::pair<wchar_t, char>(0x2606, 0x99)); //☆
+		table.push_back(std::pair<wchar_t, char>(0x2666, 0x9F)); //♦
+		table.push_back(std::pair<wchar_t, char>(0x2022, 0x45)); //•		
 
-		std::vector<std::pair<wchar_t, const wchar_t*>> table;
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2605, L"\x81\x0161"));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2666, L"\x81\x0178"));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2191, tblab)); //Up arrow
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2192, tbla8));
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2193, tblaa)); //Down arrow
-		table.push_back(std::pair<wchar_t, const wchar_t*>((wchar_t)0x2022, L"\x81\x45"));
+		wxString search(L"\x81 ");
+		const wchar_t* src = search.wx_str();		
 
-		for (const auto& tbl : table)
+		for (auto& tbl : table)
 		{
-			size_t pos = ret.find(tbl.second);
+			tbl.second = m_Table[tbl.second];
+
+			search.RemoveLast();
+			search.append(tbl.second);
+
+			size_t pos = ret.find(search);
 
 			while (pos != std::string::npos)
 			{
 				ret[pos++] = tbl.first;
 				ret.erase(pos, 1);
-				pos = ret.find(tbl.second, pos);
+				pos = ret.find(search, pos);
 			}
 		}
 	}
@@ -303,11 +317,29 @@ void RomFile::WriteBytes(const void* bytes, const size_t size)
 	this->Flush();
 }
 
+uint32_t RomFile::ConvertPointers(uint32_t pointer)
+{
+	return pointer - m_PointerIndex;
+}
+
 void RomFile::ConvertPointers(uint32_t* pointers, uint32_t count)
 {
 	for (size_t i = 0; i < count; ++i)
 	{
 		pointers[i] -= m_PointerIndex;
+	}
+}
+
+uint32_t RomFile::ConvertOffsets(uint32_t offset)
+{
+	return offset + m_PointerIndex;
+}
+
+void RomFile::ConvertOffsets(uint32_t* offsets, uint32_t count)
+{
+	for (size_t i = 0; i < count; ++i)
+	{
+		offsets[i] += m_PointerIndex;
 	}
 }
 
@@ -326,4 +358,35 @@ void RomFile::BackupRom(const std::string& inform)
 		destination.Mkdir();
 
 	wxCopyFile(Path, destination.GetFullPath(), true);	
+}
+
+uint32_t RomFile::FindFreeSpace(uint32_t size)
+{
+	std::string block;
+	block.resize(m_FreeSpace);
+
+	Seek(m_End);
+	Read(block.data(), m_FreeSpace);
+
+	std::string buffer;
+	buffer.resize(size+8, 0xff);
+
+	size_t pos = block.find(buffer);	
+
+//I don't know why, but my ROM got filled with 0x00 in the end instead of 0xff
+//ToDo::Remove this section
+	if(pos == std::string::npos)
+	{
+		memset(buffer.data(), 0, size+8);		
+		pos = block.find(buffer);		
+	}
+
+	if (pos == std::string::npos)
+		return pos;
+
+	if (pos % 4 == 0) pos += 4;	 else while (pos % 4 != 0) ++pos;
+
+	pos += 4;
+
+	return pos + m_End;
 }
