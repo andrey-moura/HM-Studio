@@ -25,15 +25,16 @@ public:
 	virtual void InsertAll() {};
 	virtual void DumpAll(bool translated) { };
 	virtual void InsertFile() {};
-	virtual void SaveText(const std::string& text) {};
+	virtual bool SaveText(const std::string& text) { return true; }
 	virtual size_t GetIndex() { return m_Index; }
-	virtual void SetIndex(size_t index) { m_Index = index; }
+	virtual bool SetIndex(size_t index);
 	virtual size_t GetCount() { return m_Count; }
 
-	virtual size_t IsOpened() { return m_Number != std::string::npos; }
+	virtual bool IsOpened() { return m_Number != std::string::npos; }
 
 	virtual std::vector<size_t> Find(const std::string& search, bool useTable, bool translated) { return std::vector<size_t>(); }
 public:
 	RomFile& GetRom(const bool& translated);
+	const RomFile& GetRom(const bool& translated) const;
 };
 

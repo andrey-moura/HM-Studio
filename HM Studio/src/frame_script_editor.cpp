@@ -1,11 +1,11 @@
 #include "frame_script_editor.hpp"
 
-cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), romOriginal(i, false), romTranslated(i, true), m_Editor(romOriginal, romTranslated)
+cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), m_Editor(i)
 {
 	CreateGUIControls();
 	SetupRom(); 
-	ConfigureSTC(tScriptOriginal, romOriginal);
-	ConfigureSTC(tScriptTranslated, romOriginal);
+	ConfigureSTC(tScriptOriginal, m_Editor.GetRom(false));
+	ConfigureSTC(tScriptTranslated, m_Editor.GetRom(true));
 	RestoreText();
 }
 
@@ -16,7 +16,7 @@ cScriptEditor::~cScriptEditor()
 
 void cScriptEditor::SetupRom()
 {	
-	this->SetTitle("ScriptEditor::" + romOriginal.Name);
+	this->SetTitle("ScriptEditor::" + m_Editor.GetRom(false).Name);
 
 	wxFileName fn(m_Editor.GetScriptDir());
 	fn.AppendDir("Backup");
@@ -164,7 +164,7 @@ void cScriptEditor::UpdateScriptDic()
 
 void cScriptEditor::UpdateScript()
 {
-	this->SetTitle(wxString("ScriptEditor::") << romOriginal.Name << " - " << m_Editor.GetNumber());
+	this->SetTitle(wxString("ScriptEditor::") << m_Editor.GetRom(false).Name << " - " << m_Editor.GetNumber());
 		
 	UpdateScriptDic();
 	UpdateText();
@@ -364,7 +364,7 @@ void cScriptEditor::InsertScript()
 {
 	SaveScript();
 	
-	ScriptFlags flag = m_Editor.Insert(m_Editor.GetScript(), m_Editor.GetNumber());
+	ScriptFlags flag = m_Editor.InsertFile(m_Editor.GetScript(), m_Editor.GetNumber());
 
 	std::string message;	
 

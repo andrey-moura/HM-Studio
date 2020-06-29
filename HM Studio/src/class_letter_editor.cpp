@@ -52,9 +52,10 @@ void LetterEditor::SetPointer(size_t number, uint32_t offset)
 	m_RomTranslated.WriteUInt32(m_RomTranslated.ConvertOffsets(offset), (number*4)+m_StartPointers);
 }
 
-void LetterEditor::SaveText(const std::string& text)
+bool LetterEditor::SaveText(const std::string& text)
 {
 	m_Translated = text;
+	return true;
 }
 
 void LetterEditor::DumpAll(bool translated)

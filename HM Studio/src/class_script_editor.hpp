@@ -10,6 +10,7 @@
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
 #include "class_file.hpp"
+#include "class_editor.hpp"
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
 #include "window_find_results.hpp"
@@ -35,10 +36,10 @@ enum class ScriptFlags
 	INSERT_NONE
 };
 
-class ScriptEditor
+class ScriptEditor : public Editor
 {
 public:
-	ScriptEditor(RomFile& original, RomFile& translated);
+	ScriptEditor(const id& id);
 
 	~ScriptEditor() = default;
 public:	
@@ -46,8 +47,6 @@ public:
 	std::string GetPath(size_t number, bool translated) const;	
 
 	const std::string& GetScriptDir() const { return m_ScriptDir; }
-public:
-	RomFile& GetRom(bool translated) const;
 public:
 	uint32_t GetOffset(bool translated, size_t number);
 	uint32_t GetOffset(bool translated);
@@ -62,8 +61,8 @@ public:
 	RomInfo GetRomInformation();
 
 	void Dump(bool translated);
-	ScriptFlags Insert(Script& script, uint32_t number);
-	void Insert();
+	ScriptFlags InsertFile(Script& script, uint32_t number);
+	void InsertAll();
 private:
 	void InsertSmaller(Script& script, uint32_t offset, uint32_t oldSize);
 	bool InsertLarger(const Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);
@@ -92,7 +91,6 @@ public:
 	bool IsOpened() { return m_Opened; }
 	bool ProxText();
 	bool PrevText();
-	bool SetIndex(size_t index);
 	size_t GetCount() { return m_ScriptOriginal.Count(); }
 	bool SaveText(const std::string& text);
 	void SetText(const std::vector<std::string>& text);	
@@ -118,13 +116,6 @@ private:
 
 	std::vector<std::string> m_Original;
 	std::vector<std::string> m_Translated;
-
-	size_t m_Index = 0;
 	size_t m_Size;
-	size_t m_Number;	
-
-	RomFile& m_RomOriginal;
-	RomFile& m_RomTranslated;
-
 	bool m_Opened = false;
 };

@@ -69,10 +69,6 @@ private:
 private:
 	void BackupText();
 	void RestoreText();
-//Rom manipulation
-private:
-	RomFile romOriginal;
-	RomFile romTranslated;
 //Script manipulation
 private:
 	void OpenScript(size_t index);
