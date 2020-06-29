@@ -103,7 +103,7 @@ void MainFrame::OnEditorClick(wxCommandEvent& event)
 
 	if (id == m_pEditorScript->GetId())
 	{
-		cScriptEditor* scriptEditor = new cScriptEditor(GetCurrentId());
+		ScriptEditorFrame* scriptEditor = new ScriptEditorFrame(GetCurrentId());
 		scriptEditor->Show();
 	}
 	else if (id == m_pEditorItem->GetId())

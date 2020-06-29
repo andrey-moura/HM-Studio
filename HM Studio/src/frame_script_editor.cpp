@@ -1,6 +1,6 @@
 #include "frame_script_editor.hpp"
 
-cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), m_Editor(i)
+ScriptEditorFrame::ScriptEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor"), m_Editor(i)
 {
 	CreateGUIControls();
 	SetupRom(); 
@@ -9,12 +9,12 @@ cScriptEditor::cScriptEditor(id i) : wxFrame(nullptr, wxID_ANY, "Script Editor")
 	RestoreText();
 }
 
-cScriptEditor::~cScriptEditor()
+ScriptEditorFrame::~ScriptEditorFrame()
 {
 
 }
 
-void cScriptEditor::SetupRom()
+void ScriptEditorFrame::SetupRom()
 {	
 	this->SetTitle("ScriptEditor::" + m_Editor.GetRom(false).Name);
 
@@ -34,7 +34,7 @@ void cScriptEditor::SetupRom()
 	}
 }
 
-void cScriptEditor::ConfigureSTC(STC* stc, const RomFile& rom)
+void ScriptEditorFrame::ConfigureSTC(STC* stc, const RomFile& rom)
 {		
 	const VarTable& table = rom.GetVarTable();	
 	
@@ -51,7 +51,7 @@ void cScriptEditor::ConfigureSTC(STC* stc, const RomFile& rom)
 	stc->InsertOnCtrlKey(std::string(1, (char)0x0c) + stc->GetEOL().ToStdString(), 'R');
 }
 
-void cScriptEditor::BackupText()
+void ScriptEditorFrame::BackupText()
 {	
 	size_t max = 0;
 
@@ -83,7 +83,7 @@ void cScriptEditor::BackupText()
 	File::WriteAllText(m_BackupFile, buffer);
 }
 
-void cScriptEditor::RestoreText()
+void ScriptEditorFrame::RestoreText()
 {
 	bool good = true;
 
@@ -132,13 +132,13 @@ void cScriptEditor::RestoreText()
 	}
 }
 
-void cScriptEditor::OpenScript(size_t index)
+void ScriptEditorFrame::OpenScript(size_t index)
 {	
 	m_Editor.OpenScript(index);	
 	UpdateScript();
 }
 
-void cScriptEditor::SaveScript()
+void ScriptEditorFrame::SaveScript()
 {		
 	m_Editor.SaveScript();
 
@@ -148,7 +148,7 @@ void cScriptEditor::SaveScript()
 	}
 }
 
-void cScriptEditor::UpdateScriptDic()
+void ScriptEditorFrame::UpdateScriptDic()
 {	
 	if (m_DicIndex != std::string::npos)
 	{
@@ -162,7 +162,7 @@ void cScriptEditor::UpdateScriptDic()
 	tScriptTranslated->AppendDicToMenu("Script", m_DicIndex);
 }
 
-void cScriptEditor::UpdateScript()
+void ScriptEditorFrame::UpdateScript()
 {
 	this->SetTitle(wxString("ScriptEditor::") << m_Editor.GetRom(false).Name << " - " << m_Editor.GetNumber());
 		
@@ -171,11 +171,11 @@ void cScriptEditor::UpdateScript()
 }
 
 //ToDo: Fix this
-void cScriptEditor::CheckAllCode()
+void ScriptEditorFrame::CheckAllCode()
 {
 }
 
-void cScriptEditor::FindText()
+void ScriptEditorFrame::FindText()
 {
 	FrameSearchScript dialog;
 
@@ -234,19 +234,19 @@ void cScriptEditor::FindText()
 	Layout();
 }
 
-void cScriptEditor::tScritpTranslatedOnModified(wxStyledTextEvent& event)
+void ScriptEditorFrame::tScritpTranslatedOnModified(wxStyledTextEvent& event)
 {	
 	event.Skip();
 }
 
-void cScriptEditor::tScriptTranslatedOnUi(wxStyledTextEvent& event)
+void ScriptEditorFrame::tScriptTranslatedOnUi(wxStyledTextEvent& event)
 {		
-	CallAfter(&cScriptEditor::UpdateStatusText, tScriptTranslated);
+	CallAfter(&ScriptEditorFrame::UpdateStatusText, tScriptTranslated);
 
 	event.Skip();	
 }
 
-void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnProxScriptClick(wxCommandEvent& event)
 {
 	CheckAndGoScript(m_Editor.GetNumber() + 1);
 
@@ -256,13 +256,13 @@ void cScriptEditor::OnProxScriptClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnDumpInsertClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnDumpInsertClick(wxCommandEvent& event)
 {
 	//InsertDumpDialog(m_Editor).ShowModal();
 	//event.Skip();
 }
 
-void cScriptEditor::CheckAndGoScript(size_t number, size_t index)
+void ScriptEditorFrame::CheckAndGoScript(size_t number, size_t index)
 {
 	switch (m_Editor.CheckAndGoScript(number))
 	{
@@ -282,7 +282,7 @@ void cScriptEditor::CheckAndGoScript(size_t number, size_t index)
 	}
 }
 
-void cScriptEditor::GoScript()
+void ScriptEditorFrame::GoScript()
 {
 	wxTextEntryDialog ted(this, "Got to script ", "Enter a number");
 	ted.SetTextValidator(wxFILTER_NUMERIC);
@@ -294,7 +294,7 @@ void cScriptEditor::GoScript()
 	}	
 }
 
-void cScriptEditor::PrevText()
+void ScriptEditorFrame::PrevText()
 {
 	if (m_Editor.PrevText())
 	{
@@ -302,7 +302,7 @@ void cScriptEditor::PrevText()
 	}
 }
 
-void cScriptEditor::ProxText()
+void ScriptEditorFrame::ProxText()
 {
 	if (m_Editor.ProxText())
 	{
@@ -310,7 +310,7 @@ void cScriptEditor::ProxText()
 	}
 }
 
-void cScriptEditor::HorizontalMode()
+void ScriptEditorFrame::HorizontalMode()
 {
 	if (m_Vertical) SetEditorHorizontal();
 	else SetEditorVertical();
@@ -318,7 +318,7 @@ void cScriptEditor::HorizontalMode()
 	m_Vertical = !m_Vertical;	
 }
 
-void cScriptEditor::GetTextFrom()
+void ScriptEditorFrame::GetTextFrom()
 {
 	TextFromScriptDialog dialog(m_Editor);
 
@@ -329,7 +329,7 @@ void cScriptEditor::GetTextFrom()
 	}	
 }
 
-void cScriptEditor::SaveText()
+void ScriptEditorFrame::SaveText()
 {
 	m_Editor.SaveText(tScriptTranslated->GetText().ToStdString());
 
@@ -341,12 +341,12 @@ void cScriptEditor::SaveText()
 	UpdateText();
 }
 
-void cScriptEditor::ShowResultWindow(const FilesResults& results)
+void ScriptEditorFrame::ShowResultWindow(const FilesResults& results)
 {
 	if (!m_pFindResultsWindow)
 	{
 		m_pFindResultsWindow = new FindResultsWindow(this);
-		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &cScriptEditor::OnResultClick, this);
+		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &ScriptEditorFrame::OnResultClick, this);
 		global_sizer->Add(m_pFindResultsWindow, 0, wxEXPAND, 0);
 	}
 
@@ -360,7 +360,7 @@ void cScriptEditor::ShowResultWindow(const FilesResults& results)
 	this->Raise();
 }
 
-void cScriptEditor::InsertScript()
+void ScriptEditorFrame::InsertScript()
 {
 	SaveScript();
 	
@@ -402,19 +402,19 @@ void cScriptEditor::InsertScript()
 	wxMessageBox(message, succes ? "Yeah!!" : "Huh?", icon, this);
 }
 
-void cScriptEditor::OnCheckEOLClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnCheckEOLClick(wxCommandEvent& event)
 {	
 	ShowResultWindow(m_Editor.CheckEOL());
 	event.Skip();
 }
 
-void cScriptEditor::OnCheckCodeClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnCheckCodeClick(wxCommandEvent& event)
 {
 	ShowResultWindow(m_Editor.CheckCode());
 	event.Skip();
 }
 
-void cScriptEditor::OnSetEventClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnSetEventClick(wxCommandEvent& event)
 {
 	wxTextEntryDialog ted(this, "Got to script ", "Enter a number");
 	ted.SetTextValidator(wxFILTER_NUMERIC);
@@ -428,12 +428,12 @@ void cScriptEditor::OnSetEventClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnSTCLeftDown(wxMouseEvent& event)
+void ScriptEditorFrame::OnSTCLeftDown(wxMouseEvent& event)
 {
 	event.Skip();
 }
 
-void cScriptEditor::OnResultClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnResultClick(wxCommandEvent& event)
 {	
 	const SearchResult& result = *(SearchResult*)event.GetClientData();	
 	
@@ -445,24 +445,24 @@ void cScriptEditor::OnResultClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-size_t cScriptEditor::GetNumberFromResult(const SearchResult& result)
+size_t ScriptEditorFrame::GetNumberFromResult(const SearchResult& result)
 {
 	return std::stoi(result.GetTitle().substr(result.GetTitle().find("_", 7) + 1).ToStdString());
 }
 
-size_t cScriptEditor::GetIndexFromResult(const SearchResult& result, size_t clicked)
+size_t ScriptEditorFrame::GetIndexFromResult(const SearchResult& result, size_t clicked)
 {
 	return std::stoi(result.GetHits()[clicked].substr(7).ToStdString());
 }
 
-void cScriptEditor::SetTextRange()
+void ScriptEditorFrame::SetTextRange()
 {
 	DialogTextRange dialog(this);
 	
 	dialog.ShowModal();	
 }
 
-void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
+void ScriptEditorFrame::UpdateStatusText(wxStyledTextCtrl* stc)
 {
 	statusBar->SetStatusText(wxString("Size: ") << std::to_string(stc->GetTextLength()), 1);
 
@@ -478,7 +478,7 @@ void cScriptEditor::UpdateStatusText(wxStyledTextCtrl* stc)
 	statusBar->SetStatusText(wxString("Col: ") << tScriptTranslated->GetColumn(tScriptTranslated->GetCurrentPos()), 4);
 }
 
-void cScriptEditor::UpdateText()
+void ScriptEditorFrame::UpdateText()
 {	
 	tScriptOriginal->SetText(m_Editor.GetCurOriginal());
 	tScriptTranslated->SetText(m_Editor.GetCurTranslated());	
@@ -488,7 +488,7 @@ void cScriptEditor::UpdateText()
 	tScriptTranslated->SetModified(false);
 }
 
-void cScriptEditor::CreateGUIControls()
+void ScriptEditorFrame::CreateGUIControls()
 {
 	this->SetBackgroundColour(wxColour(240, 240, 240));
 
@@ -512,7 +512,7 @@ void cScriptEditor::CreateGUIControls()
 
 	wxMenu* menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, "Move To");
-	menuEdit->Bind(wxEVT_MENU, &cScriptEditor::OnConvertEOLClick, this, menuEdit->Append(wxNewId(), "Convert EOL")->GetId());
+	menuEdit->Bind(wxEVT_MENU, &ScriptEditorFrame::OnConvertEOLClick, this, menuEdit->Append(wxNewId(), "Convert EOL")->GetId());
 
 	wxMenu* menuSearch = new wxMenu();
 	menuSearch->Append(wxID_FIND, "Find Text\tCtrl-F");
@@ -520,10 +520,10 @@ void cScriptEditor::CreateGUIControls()
 	menuSearch->Append(wxID_ANY, "Find Next Script");	
 
 	wxMenu* menuTools = new wxMenu();
-	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckEOLClick, this, menuTools->Append(wxNewId(), "EOL Checker", nullptr, "Checking Tool")->GetId());
-	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnCheckCodeClick, this, menuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
-	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Dumper/Inserter Tool")->GetId());
-	menuTools->Bind(wxEVT_MENU, &cScriptEditor::OnSetEventClick, this, menuTools->Append(wxNewId(), "Set event", nullptr, "Set event to trigger this script")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckEOLClick, this, menuTools->Append(wxNewId(), "EOL Checker", nullptr, "Checking Tool")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckCodeClick, this, menuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnDumpInsertClick, this, menuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Dumper/Inserter Tool")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnSetEventClick, this, menuTools->Append(wxNewId(), "Set event", nullptr, "Set event to trigger this script")->GetId());
 	//wxMenu* menuOptions = new wxMenu();	
 	
 	wxMenu* menuView = new wxMenu();
@@ -540,7 +540,7 @@ void cScriptEditor::CreateGUIControls()
 	//m_pMenuBar->Append(menuOptions, "Options");
 	m_pMenuBar->Append(menuView, "View");
 
-	m_pMenuBar->Bind(wxEVT_MENU, &cScriptEditor::OnMenuClick, this);
+	m_pMenuBar->Bind(wxEVT_MENU, &ScriptEditorFrame::OnMenuClick, this);
 	SetMenuBar(m_pMenuBar);
 
 	statusBar = CreateStatusBar(5);
@@ -568,17 +568,17 @@ void cScriptEditor::CreateGUIControls()
 
 	tScriptOriginal = new STC(this, wxID_ANY);
 	
-	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &cScriptEditor::tScritpTranslatedOnModified, this);
-	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &cScriptEditor::tScriptTranslatedOnUi, this);
-	tScriptTranslated->Bind(wxEVT_LEFT_DOWN, &cScriptEditor::OnSTCLeftDown, this);
+	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &ScriptEditorFrame::tScritpTranslatedOnModified, this);
+	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &ScriptEditorFrame::tScriptTranslatedOnUi, this);
+	tScriptTranslated->Bind(wxEVT_LEFT_DOWN, &ScriptEditorFrame::OnSTCLeftDown, this);
 
 	editor_save_text = new wxButton(this, ID_STRSAVE, "Save");
-	editor_save_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
+	editor_save_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnNavigationClick, this);
 	editor_prev_text = new wxButton(this, ID_STRPREV, "<<");
-	editor_prev_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
+	editor_prev_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnNavigationClick, this);
 	editor_prev_text->SetMinSize(button_min_size);
 	editor_next_text = new wxButton(this, ID_STRPROX, ">>");
-	editor_next_text->Bind(wxEVT_BUTTON, &cScriptEditor::OnNavigationClick, this);
+	editor_next_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnNavigationClick, this);
 	editor_next_text->SetMinSize(button_min_size);
 
 	editor_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -601,7 +601,7 @@ void cScriptEditor::CreateGUIControls()
 	global_sizer->SetSizeHints(this);
 }
 
-void cScriptEditor::SetEditorVertical()
+void ScriptEditorFrame::SetEditorVertical()
 {	
 	if (editor_sizer != nullptr)
 		editor_sizer->SetOrientation(wxVERTICAL);
@@ -612,7 +612,7 @@ void cScriptEditor::SetEditorVertical()
 	global_sizer->SetSizeHints(this);
 }
 
-void cScriptEditor::SetEditorHorizontal()
+void ScriptEditorFrame::SetEditorHorizontal()
 {
 	if (editor_buttons_sizer != nullptr)
 	{
@@ -629,14 +629,14 @@ void cScriptEditor::SetEditorHorizontal()
 	global_sizer->SetSizeHints(this);
 }
 
-void cScriptEditor::OpenInHexEditor(int id)
+void ScriptEditorFrame::OpenInHexEditor(int id)
 {
 	wxString path = m_Editor.GetPath(id == ID_HEXTRANS);	
 
 	wxExecute(wxString("MoonHex -f ") << "\"" << path << "\"");
 }
 
-void cScriptEditor::OnMenuClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnMenuClick(wxCommandEvent& event)
 {
 	int id = event.GetId();	
 
@@ -667,21 +667,21 @@ void cScriptEditor::OnMenuClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-void cScriptEditor::OnNavigationClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnNavigationClick(wxCommandEvent& event)
 {	
 	StringMenuTools(event.GetId());
 
 	event.Skip();
 }
 
-void cScriptEditor::OnToolBarClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnToolBarClick(wxCommandEvent& event)
 {	
 	ScriptMenuTools(event.GetId());
 
 	event.Skip();
 }
 
-void cScriptEditor::OnConvertEOLClick(wxCommandEvent& event)
+void ScriptEditorFrame::OnConvertEOLClick(wxCommandEvent& event)
 {	
 	for (std::string& text : m_Editor.GetTranlated())
 		Moon::String::ConvertLineEnds(text, 0x0d0a);
@@ -689,7 +689,7 @@ void cScriptEditor::OnConvertEOLClick(wxCommandEvent& event)
 	event.Skip();
 }
 
-bool cScriptEditor::ScriptMenuTools(int id)
+bool ScriptEditorFrame::ScriptMenuTools(int id)
 {
 	switch (id)
 	{
@@ -728,7 +728,7 @@ bool cScriptEditor::ScriptMenuTools(int id)
 	return true;
 }
 
-bool cScriptEditor::StringMenuTools(int id)
+bool ScriptEditorFrame::StringMenuTools(int id)
 {
 	switch (id)
 	{
@@ -752,7 +752,7 @@ bool cScriptEditor::StringMenuTools(int id)
 	return true;
 }
 
-bool cScriptEditor::OthersMenuTools(int id)
+bool ScriptEditorFrame::OthersMenuTools(int id)
 {
 	switch (id)
 	{
@@ -792,7 +792,7 @@ bool cScriptEditor::OthersMenuTools(int id)
 	return true;
 }
 
-void cScriptEditor::CreateMyToolBar()
+void ScriptEditorFrame::CreateMyToolBar()
 {
 
 	uint8_t* prevScriptRgb = new uint8_t[768] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23, 0x89, 0xbc, 0x3b, 0x97, 0xc4, 0x49, 0x9d, 0xc7, 0x38, 0x95, 0xc3, 0x04, 0x79, 0xb3, 0x07, 0x7a, 0xb4, 0x07, 0x7a, 0xb4, 0x08, 0x7a, 0xb4, 0x0a, 0x7c, 0xb5, 0x0f, 0x7f, 0xb6, 0x14, 0x81, 0xb8, 0xe0, 0xee, 0xf6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x85, 0xbe, 0xda, 0xa7, 0xcf, 0xe4, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xba, 0xda, 0xe9, 0xc9, 0xe2, 0xee, 0x4f, 0x9f, 0xc8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x88, 0xba, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfb, 0xfe, 0xfe, 0xfb, 0xfe, 0xfe, 0xfc, 0xfe, 0xfe, 0xfc, 0xfe, 0xfe, 0xfc, 0xfe, 0xfe, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0x41, 0x99, 0xc6, 0xc2, 0xdf, 0xec, 0x34, 0x92, 0xc1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x49, 0x9e, 0xc8, 0xff, 0xff, 0xff, 0xf3, 0xf9, 0xfc, 0xf1, 0xf8, 0xfb, 0xf1, 0xf8, 0xfb, 0xf1, 0xf8, 0xfb, 0xf1, 0xf8, 0xfb, 0xf2, 0xf8, 0xfb, 0xf5, 0xfa, 0xfc, 0xff, 0xff, 0xff, 0x01, 0x77, 0xb2, 0x1c, 0x85, 0xba, 0x22, 0x89, 0xbc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf4, 0xf9, 0xfc, 0x56, 0xa5, 0xcc, 0xff, 0xff, 0xff, 0xeb, 0xf6, 0xf9, 0xea, 0xf5, 0xf9, 0xeb, 0xf5, 0xf9, 0xeb, 0xf5, 0xf9, 0xeb, 0xf5, 0xf9, 0xeb, 0xf5, 0xf9, 0xf5, 0xfa, 0xfc, 0xfd, 0xfe, 0xfe, 0x36, 0x8e, 0xb9, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xce, 0xe4, 0xef, 0x88, 0xbf, 0xdb, 0xff, 0xff, 0xff, 0xe5, 0xf1, 0xf7, 0xe4, 0xf1, 0xf7, 0xe4, 0xf1, 0xf7, 0xe4, 0xf1, 0xf7, 0xe4, 0xf1, 0xf7, 0xe4, 0xf1, 0xf7, 0xf6, 0xfa, 0xfd, 0xc8, 0xe2, 0xee, 0x55, 0x9d, 0xc2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x92, 0xc3, 0xda, 0x59, 0x99, 0x46, 0x76, 0xa0, 0x00, 0x30, 0x7b, 0x00, 0xdd, 0xee, 0xf5, 0xdd, 0xee, 0xf5, 0xdd, 0xee, 0xf5, 0xdd, 0xee, 0xf5, 0xdc, 0xee, 0xf5, 0xfa, 0xfc, 0xfe, 0xa3, 0xcf, 0xe4, 0x77, 0xaf, 0xca, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0xa5, 0x46, 0x7e, 0xa9, 0x00, 0xd4, 0xe1, 0x71, 0x38, 0x80, 0x00, 0xd6, 0xea, 0xf2, 0xd6, 0xea, 0xf2, 0xd6, 0xea, 0xf3, 0xd6, 0xea, 0xf3, 0xd5, 0xea, 0xf3, 0xff, 0xff, 0xff, 0x79, 0xb8, 0xd6, 0x9b, 0xc1, 0xd5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87, 0xb3, 0x59, 0x7f, 0xae, 0x00, 0xc4, 0xda, 0x58, 0xd5, 0xe4, 0x80, 0x37, 0x7f, 0x00, 0x37, 0x7f, 0x00, 0x36, 0x7e, 0x00, 0x34, 0x7d, 0x00, 0x74, 0xa8, 0x47, 0xce, 0xe7, 0xf0, 0xff, 0xff, 0xff, 0x4b, 0x9f, 0xc9, 0xc2, 0xd8, 0xe3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x84, 0xb1, 0x53, 0x81, 0xb2, 0x00, 0xc7, 0xe0, 0x60, 0x97, 0xc3, 0x00, 0xd8, 0xe8, 0x93, 0xd1, 0xe6, 0x4d, 0xd2, 0xe7, 0x4e, 0xd2, 0xe7, 0x4a, 0xdf, 0xec, 0x90, 0x39, 0x7f, 0x00, 0xca, 0xe3, 0xee, 0xff, 0xff, 0xff, 0x31, 0x90, 0xc1, 0xf5, 0xf5, 0xf5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x47, 0x8a, 0x00, 0xcd, 0xe6, 0x63, 0x9a, 0xca, 0x00, 0x98, 0xc8, 0x00, 0x97, 0xc7, 0x00, 0x99, 0xc8, 0x00, 0x99, 0xc8, 0x00, 0x99, 0xc8, 0x00, 0xcf, 0xe7, 0x6b, 0x3c, 0x81, 0x00, 0xd2, 0xe9, 0xf0, 0xfd, 0xfe, 0xff, 0x0a, 0x7c, 0xb5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0x9f, 0x42, 0x81, 0xb9, 0x00, 0x9f, 0xd3, 0x00, 0x9c, 0xd0, 0x00, 0x9c, 0xd0, 0x00, 0x9f, 0xd5, 0x00, 0xa1, 0xd7, 0x00, 0xa1, 0xd7, 0x00, 0xc0, 0xe7, 0x3a, 0x3c, 0x81, 0x00, 0xdc, 0xee, 0xf4, 0xe2, 0xf0, 0xf6, 0x25, 0x87, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xdd, 0xdd, 0xdd, 0x75, 0xa0, 0x46, 0x80, 0xbc, 0x00, 0xa0, 0xd8, 0x00, 0xa2, 0xd9, 0x00, 0x43, 0x84, 0x00, 0x4a, 0x88, 0x00, 0x4b, 0x89, 0x00, 0x4a, 0x88, 0x00, 0x80, 0xae, 0x4c, 0xea, 0xf4, 0xf8, 0x61, 0xab, 0xcf, 0x71, 0xa9, 0xc4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xde, 0xde, 0xde, 0x75, 0xa0, 0x46, 0x80, 0xbe, 0x00, 0xa6, 0xe4, 0x00, 0x4b, 0x89, 0x00, 0x14, 0x84, 0xdd, 0x18, 0x85, 0xd0, 0x17, 0x84, 0xcb, 0x14, 0x82, 0xc4, 0x12, 0x80, 0xb7, 0x26, 0x88, 0xba, 0xe5, 0xe5, 0xe5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xde, 0xde, 0xde, 0x72, 0x9e, 0x42, 0x85, 0xc6, 0x00, 0x4f, 0x8b, 0x00, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xd0, 0xd0, 0xd0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xdd, 0xdd, 0xdd, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -825,15 +825,15 @@ void cScriptEditor::CreateMyToolBar()
 
 	m_pToolBar->Realize();
 	
-	m_pToolBar->Bind(wxEVT_TOOL, &cScriptEditor::OnToolBarClick, this);
+	m_pToolBar->Bind(wxEVT_TOOL, &ScriptEditorFrame::OnToolBarClick, this);
 }
 
-void cScriptEditor::ScriptTextRange(size_t from, size_t to, size_t script)
+void ScriptEditorFrame::ScriptTextRange(size_t from, size_t to, size_t script)
 {
 
 }
 
-DialogTextRange::DialogTextRange(cScriptEditor* parent) : wxDialog(nullptr, wxID_ANY, "Select range"), m_pParent(parent)
+DialogTextRange::DialogTextRange(ScriptEditorFrame* parent) : wxDialog(nullptr, wxID_ANY, "Select range"), m_pParent(parent)
 {
 	CreateGUIControls();
 }

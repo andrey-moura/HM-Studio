@@ -22,11 +22,11 @@
 #include "class_script_editor.hpp"
 #include "class_spell_checker.hpp"
 
-class cScriptEditor : public wxFrame
+class ScriptEditorFrame : public wxFrame
 {
 public:
-	cScriptEditor(id i);
-	~cScriptEditor();	
+	ScriptEditorFrame(id i);
+	~ScriptEditorFrame();	
 
 	void SetupRom(); 
 //Events
@@ -152,10 +152,10 @@ private:
 class DialogTextRange : public wxDialog
 {
 public:
-	DialogTextRange(cScriptEditor* parent);
+	DialogTextRange(ScriptEditorFrame* parent);
 	~DialogTextRange() = default;
 
-	cScriptEditor* m_pParent = nullptr;
+	ScriptEditorFrame* m_pParent = nullptr;
 //Events
 private:
 	void OnGoButton(wxCommandEvent& event);
