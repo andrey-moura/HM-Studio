@@ -676,7 +676,69 @@ ScriptFlags ScriptEditor::InsertFile(Script& script, uint32_t number)
 
 void ScriptEditor::InsertAll()
 {
+	std::string script_block;
+	script_block.reserve(m_Info.BlockLenght);
 
+	std::vector<uint32_t> scripts_pointers;
+	scripts_pointers.reserve(m_Info.ScriptCount);
+
+	uint32_t oldOffset = 0;
+
+	//We'll use this buffer to fill scripts in the end of the
+	//ROM. But we'll not delete and allocate again, we'll alocate
+	//once, and grow if we need a larger buffer.
+	std::string ffbuffer;
+
+	for (size_t script_number = 0; script_number < m_Info.ScriptCount; ++script_number)
+	{
+		oldOffset = GetOffset(true, script_number);
+
+		if (m_RomTranslated.IsInsideFreeSpace(oldOffset))
+		{
+			m_RomTranslated.Seek(oldOffset);
+
+			if (m_RomTranslated.ReadUInt32() == SCRIPT_RIFF)
+			{
+				uint32_t size = m_RomTranslated.ReadUInt32();
+
+				if (size > ffbuffer.size())
+				{
+					ffbuffer.resize(size, 0xff);
+				}
+
+				m_RomTranslated.Seek(oldOffset);
+				m_RomTranslated.WriteBytes(ffbuffer.data(), size);
+			}
+		}
+
+		Script script = File::ReadAllBytes(GetPath(script_number, true));
+
+		if (!script)
+		{
+			wxMessageBox(wxString(L"Failed to load script ") << script_number << L".", L"Huh?", wxICON_ERROR);
+			return;
+		}
+
+		scripts_pointers.push_back(script_block.size()+m_Info.StartScript);
+		script_block.append((const char*)script.GetData(), script.GetRiffLenght());
+
+		while (script_block.size() % 4 != 0)
+			script_block.push_back('\0');
+	}
+
+	if (script_block.size() > m_Info.BlockLenght)
+	{
+		wxMessageBox(wxString(L"Failed to insert. No enough space."), L"Huh?", wxICON_ERROR);
+		return;
+	}
+
+	script_block.resize(m_Info.BlockLenght, '\0');
+	m_RomOriginal.ConvertOffsets(scripts_pointers.data(), m_Info.ScriptCount);
+
+	m_RomTranslated.Seek(m_Info.StartPointers);
+	m_RomTranslated.WriteBytes(scripts_pointers);
+	m_RomTranslated.Seek(m_Info.StartScript);
+	m_RomTranslated.Write(script_block.data(), script_block.size());
 }
 
 ScriptFlags ScriptEditor::CheckAndGoScript(size_t index)

@@ -6,6 +6,7 @@
 
 #include <wx/filename.h>
 #include <wx/progdlg.h>
+#include <wx/msgdlg.h>
 
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
@@ -106,7 +107,6 @@ public:
 
 	void UpdateScript();
 	Script& GetScript() { return m_ScriptTranslated; }
-
 
 	FilesResults CheckEOL();
 	FilesResults CheckCode();

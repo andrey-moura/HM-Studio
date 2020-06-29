@@ -47,6 +47,10 @@ public:
 	const char* operator[](int index) const;
 	bool operator==(const Script& other) const;
 	bool operator!=(const Script& other) const;
+	inline operator bool()
+	{
+		return m_data != nullptr;
+	}
 public:
 	//Gets the text of this script.
 	std::vector<std::string> GetText();
