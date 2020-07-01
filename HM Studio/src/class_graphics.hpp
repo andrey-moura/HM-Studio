@@ -71,7 +71,7 @@ struct Palette {
 class Graphics
 {
 public:
-	Graphics(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false);
+	Graphics(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false, uint32_t tilewidth = 8, uint32_t tileheight = 8);
 	Graphics() = default;
 	~Graphics();
 private:
@@ -80,7 +80,8 @@ private:
 	Palette m_Pal;	
 	uint32_t m_ImgOffset;
 	uint32_t m_PalOffset;
-
+	uint32_t m_TileWidth;
+	uint32_t m_TileHeight;
 	Palette m_Palette;
 	uint8_t* m_8bppData = nullptr;
 	uint8_t m_Bpp;
@@ -108,6 +109,8 @@ public:
 	uint8_t* GetData() { return m_8bppData; }
 	bool IsPlanar() const { return m_Planar; }
 	bool IsReversed() const { return m_Reversed; }
+	uint32_t GetTileWidth() const { return m_TileWidth; }
+	uint32_t GetTileHeight() const { return m_TileHeight; }
 
 	void SetWidth(uint32_t width);
 	void SetHeight(uint32_t height);
@@ -116,6 +119,8 @@ public:
 	void SetBpp(uint8_t bpp);
 	void SetPlanar(bool planar);
 	void SetReversed(bool reversed);
+	void SetTileWidth(uint32_t width);
+	void SetTileHeight(uint32_t height);
 
 	void OrderTiles(uint8_t* src, uint8_t* dst);
 

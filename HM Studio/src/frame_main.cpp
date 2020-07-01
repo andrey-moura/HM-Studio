@@ -119,6 +119,7 @@ void MainFrame::OnEditorClick(wxCommandEvent& event)
 	else if (id == m_pEditorGraphics->GetId())
 	{
 		GraphicsEditorFrame* graphicsEditor = new GraphicsEditorFrame(GetCurrentId());
+		graphicsEditor->GetGraphicsList();
 		graphicsEditor->Show();
 	}
 

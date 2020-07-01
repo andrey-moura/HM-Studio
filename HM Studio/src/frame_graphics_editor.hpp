@@ -26,10 +26,10 @@ class GraphicsEditorFrame : public wxFrame
 public:
 	GraphicsEditorFrame(id i);
 	~GraphicsEditorFrame() = default;
-private:
-	//void RomFromDialog();
 
-	//void GetGraphicsList();	
+	void GetGraphicsList();
+private:
+	//void RomFromDialog();	
 	
 	RomFile m_RomOriginal;
 	RomFile m_RomTranslated;	
@@ -45,7 +45,7 @@ private:
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);
-	void OnPalChanged(PaletteEvent& event);
+	void OnPalChanged(PaletteEvent& event);	
 public:
 	void SetRootName(const wxString& name);
 

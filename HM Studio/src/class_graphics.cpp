@@ -1,7 +1,7 @@
 #include "class_graphics.hpp"
 
-Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar) :
-	m_Bpp(bpp), m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
+Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar, uint32_t tilewidth, uint32_t tileheight) :
+	m_Bpp(bpp), m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar), m_TileWidth(tilewidth), m_TileHeight(tileheight)
 {
 
 }
@@ -109,19 +109,27 @@ void Graphics::SaveToRom(RomFile& file)
 }
 
 void Graphics::OrderTiles(uint8_t* src, uint8_t* dst)
-{	
-	size_t xCount = m_Width / 8;
+{
+	size_t tile_count_x = m_Width / m_TileWidth;
+	size_t tile_count_y = m_Height / m_TileHeight;
+	size_t tile_bytes = m_TileWidth * m_TileHeight;
 
-	for (size_t tileY = 0; tileY < m_Height / 8; ++tileY)
+	unsigned char* srcTile = src;
+	size_t line_offset = 0;
+
+	for (size_t cur_tile_y = 0; cur_tile_y < tile_count_y; ++cur_tile_y)
 	{
-		for (size_t y = 0; y < 8; ++y)
+		for (size_t cur_line = 0, line_offset = 0; cur_line < m_TileHeight; ++cur_line, line_offset += m_TileWidth)
 		{
-			for (size_t tileX = 0; tileX < xCount; ++tileX)
+			srcTile = src+ (cur_tile_y * (tile_bytes * tile_count_x));
+
+			for (size_t cur_tile_x = 0; cur_tile_x < tile_count_x; ++cur_tile_x)
 			{
-				memcpy(dst, src + (tileX * 64) + (y * 8) + (tileY * (64 * xCount)), 8);
-				dst += 8;
+				memcpy(dst, srcTile + line_offset, m_TileWidth);
+				dst += m_TileWidth;
+				srcTile += tile_bytes;
 			}
-		}
+		}		
 	}
 }
 
@@ -204,6 +212,16 @@ void Graphics::SetPlanar(bool planar)
 void Graphics::SetReversed(bool reversed)
 {
 	m_Reversed = reversed;
+}
+
+void Graphics::SetTileWidth(uint32_t width)
+{
+	VerifyAndSet(width, m_TileWidth);
+}
+
+void Graphics::SetTileHeight(uint32_t height)
+{
+	VerifyAndSet(height, m_TileHeight);
 }
 
 template <class T>

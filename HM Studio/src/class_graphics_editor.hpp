@@ -12,6 +12,8 @@ struct GraphicsInfo
 {
 	short m_Width;
 	short m_Height;
+	short m_TileWidth;
+	short m_TileHeight;
 	uint32_t m_ImageAdress;
 	uint32_t m_PaletteAdress;
 	void(GraphicsEditorFrame::* m_Function)(const RomFile&) = nullptr;
@@ -20,7 +22,7 @@ struct GraphicsInfo
 	bool m_Planar;
 
 	GraphicsInfo();
-	GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width = 16, short height = 16, char bpp = 4, bool reversed = true, bool planar = false);
+	GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width = 16, short height = 16, char bpp = 4, bool reversed = true, bool planar = false, short tilewidth = 8, short tileheight = 8);
 };
 
 struct GraphicsTreeItem

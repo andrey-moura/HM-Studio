@@ -148,32 +148,32 @@ void GraphicsView::DrawTileGrid(wxDC& dc)
 
 	if (colStart == 0)
 	{
-		colStart = 8;
+		colStart = m_Graphic->GetTileWidth();
 	}
 	else
 	{
-		while (colStart % 8 != 0)
+		while (colStart % m_Graphic->GetTileWidth() != 0)
 			++colStart;
 	}	
 
 	if (rowStart == 0)
 	{
-		rowStart = 8;
+		rowStart = m_Graphic->GetTileHeight();
 	}
 	else
 	{
-		while (rowStart % 8 != 0)
+		while (rowStart % m_Graphic->GetTileHeight() != 0)
 			++rowStart;
 	}
 
 	//vertical lines
-	for (size_t col = colStart; col < posEnd.GetCol(); col += 8)
+	for (size_t col = colStart; col < posEnd.GetCol(); col += m_Graphic->GetTileWidth())
 	{
 		dc.DrawLine(wxPoint(col, posStart.GetRow()) * m_Scale, wxPoint(col, posEnd.GetRow()) * m_Scale);
 	}
 
 	//horizontal lines
-	for (size_t row = rowStart; row < posEnd.GetRow(); row += 8)
+	for (size_t row = rowStart; row < posEnd.GetRow(); row += m_Graphic->GetTileHeight())
 	{
 		dc.DrawLine(wxPoint(posStart.GetCol(), row) * m_Scale, wxPoint(posEnd.GetCol(), row) * m_Scale);
 	}
@@ -270,11 +270,11 @@ void GraphicsView::OnMouseDown(wxMouseEvent& event)
 
 					if (m_TileGrid)
 					{
-						if (IsTouchingGrid(wxPoint(curPos.GetCol(), curPos.GetRow()), 8))
-						{
+						//if (IsTouchingGrid(wxPoint(curPos.GetCol(), curPos.GetRow()), 8))
+						//{
 							//ToDo: If is touching, just redraw the pixel at x+1 and y+1 and with w-1 and h-1
-							DrawTileGrid(dc);
-						}
+//							DrawTileGrid(dc);
+	//					}
 					}
 					if (m_BlockGrid)
 					{
