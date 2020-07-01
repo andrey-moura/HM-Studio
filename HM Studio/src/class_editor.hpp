@@ -1,6 +1,8 @@
 #pragma once
 
 #include "class_rom_file.hpp"
+#include "window_find_results.hpp"
+#include <wx/progdlg.h>
 
 class Editor
 {
@@ -15,6 +17,9 @@ protected:
 	size_t m_Index;
 
 	size_t m_Count;
+
+	std::string m_Type;
+	std::string m_FileExt;
 public:
 	bool NextFile();
 	bool PreviousFile();
@@ -33,6 +38,10 @@ public:
 	virtual bool IsOpened() { return m_Number != std::string::npos; }
 
 	virtual std::vector<size_t> Find(const std::string& search, bool useTable, bool translated) { return std::vector<size_t>(); }
+	virtual FilesResults FindInFiles(std::string& search, bool useTable, bool translated);
+
+	virtual std::string GetPath(const size_t& number, const bool& translated) const { return ""; }
+	virtual std::string GetPath(const bool& translated) const { return ""; }
 public:
 	RomFile& GetRom(const bool& translated);
 	const RomFile& GetRom(const bool& translated) const;

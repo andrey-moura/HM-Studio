@@ -4,9 +4,10 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 
+#include <moon/bit_conv.hpp>
+
 #include "class_graphics.hpp"
 #include "class_graphics_editor.hpp"
-#include "class_bit_converter.hpp"
 
 class GraphicsInfoViewer : public wxWindow
 {	

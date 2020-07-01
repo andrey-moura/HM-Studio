@@ -7,6 +7,8 @@ ScriptEditorFrame::ScriptEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Script 
 	ConfigureSTC(tScriptOriginal, m_Editor.GetRom(false));
 	ConfigureSTC(tScriptTranslated, m_Editor.GetRom(true));
 	RestoreText();
+
+	Moon::BitConverter::ReverseBits(0b10110100);	
 }
 
 ScriptEditorFrame::~ScriptEditorFrame()

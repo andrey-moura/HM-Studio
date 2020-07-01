@@ -140,6 +140,7 @@ void LetterEditorFrame::CreateGUIControls()
 
 	CreateMyMenuBar();
 	CreateSearchMenu();
+	CreateViewMenu();
 	CreateToolsMenu();
 	CreateMyToolBar();
 	CreateMyStatusBar(1);

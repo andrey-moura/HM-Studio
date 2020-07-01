@@ -2,7 +2,9 @@
 
 LetterEditor::LetterEditor(const id& id) : Editor(id)
 {
-	SetupRom();	
+	SetupRom();
+	m_Type = "Letter";
+	m_FileExt = "letter";
 }
 
 bool LetterEditor::Open(uint32_t number)
@@ -299,8 +301,8 @@ void LetterEditor::SetupRom()
 	Moon::File::MakeDir(Moon::File::AppenPath(m_LetterDir, m_RomTranslated.State));
 }
 
-std::string LetterEditor::GetPath(const uint32_t& number, const bool& translated)
-{	
+std::string LetterEditor::GetPath(const size_t& number, const bool& translated) const
+{
 	const std::string& state = GetRom(translated).State;
 
 	wxFileName fn;

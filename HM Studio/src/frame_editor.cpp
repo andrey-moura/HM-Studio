@@ -45,9 +45,7 @@ void EditorFrame::CreateMyMenuBar()
 }
 
 void EditorFrame::CreateSearchMenu()
-{
-	CreateMyMenuBar();
-
+{	
 	m_pMenuSearch = new wxMenu();
 	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindTextClick, this, m_pMenuSearch->Append(wxID_FIND, L"Find Text\tCtrl-F")->GetId());
 	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindNextClick, this, m_pMenuSearch->Append(wxNewId(), L"Find Next\tF3")->GetId());
@@ -55,10 +53,16 @@ void EditorFrame::CreateSearchMenu()
 	m_pMenuBar->Append(m_pMenuSearch, L"Find");
 }
 
+void EditorFrame::CreateViewMenu()
+{
+	m_pMenuView = new wxMenu();	
+	Bind(wxEVT_MENU, &EditorFrame::OnAlwaysOnTopClick, this, m_pMenuView->AppendCheckItem(wxID_TOP, L"Always on Top")->GetId());
+	Bind(wxEVT_MENU, &EditorFrame::OnShowFindResultClick, this, m_pMenuView->AppendCheckItem(wxNewId(), L"Find Results")->GetId());
+	m_pMenuBar->Append(m_pMenuView, L"View");
+}
+
 void EditorFrame::CreateToolsMenu()
 {
-	CreateMyMenuBar();
-
 	m_pMenuTools = new wxMenu();
 
 	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxNewId(), "Remove Padding Spaces", nullptr, "Removes spaces after line end")->GetId());
@@ -149,7 +153,8 @@ void EditorFrame::OnFindText()
 			}
 			else
 			{
-				//ShowResultWindow(m_Editor.FindInScripts(search, useTable, translated));
+				std::string s = search.ToStdString();
+				ShowResultWindow(m_pEditor->FindInFiles(s, useTable, translated));
 			}
 		}
 		else
@@ -180,6 +185,23 @@ void EditorFrame::FindText(const wxString& search, bool useTable, bool translate
 		m_pEditor->SetIndex(m_FindPositions[m_FindIndex]);
 }
 
+void EditorFrame::ShowResultWindow(const FilesResults& results)
+{
+	if (!m_pFindResultsWindow)
+	{
+		m_pFindResultsWindow = new FindResultsWindow(this);
+		m_pFindResultsWindow->Bind(EVT_FINDRESULT_CLICK, &EditorFrame::OnResultClick, this);
+		GetSizer()->Add(m_pFindResultsWindow, 1, wxEXPAND, 0);
+	}
+
+	m_pFindResultsWindow->SetFindResults(results);	
+	m_pFindResultsWindow->Show(true);
+
+	Layout();
+	this->Restore();
+	this->Raise();
+}
+
 void EditorFrame::ReplaceTxt(const wxString& search, const wxString& replace, bool useTable)
 {
 	UpdateText();
@@ -194,6 +216,11 @@ void EditorFrame::OnInsertFile()
 {
 	OnSaveFile();
 	m_pEditor->InsertFile();
+}
+
+void EditorFrame::OnShowResultWindow()
+{
+	m_pFindResultsWindow->Show(!m_pFindResultsWindow->IsShown());
 }
 
 void EditorFrame::OnPrevFileClick(wxCommandEvent& event)
@@ -247,5 +274,23 @@ void EditorFrame::OnRemoveSpacesClick(wxCommandEvent& event)
 void EditorFrame::OnInsertFileClick(wxCommandEvent& event)
 {
 	OnInsertFile();
+	event.Skip();
+}
+
+void EditorFrame::OnAlwaysOnTopClick(wxCommandEvent& event)
+{
+	OnAlwaysOnTop();
+	event.Skip();
+}
+
+void EditorFrame::OnShowFindResultClick(wxCommandEvent& event)
+{
+	OnShowResultWindow();
+	event.Skip();
+}
+
+void EditorFrame::OnResultClick(wxCommandEvent& event)
+{
+	OnResultClick();
 	event.Skip();
 }

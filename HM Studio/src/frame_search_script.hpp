@@ -7,6 +7,7 @@
 
 #include <moon/file.hpp>
 #include <moon/string.hpp>
+#include <moon/bit_conv.hpp>
 
 #include "class_util_string.hpp"
 
@@ -24,7 +25,7 @@ public:
 	bool Translated() { return m_pTranslated->GetValue(); }
 	bool UseTable() { return m_pUseTable->GetValue(); }
 	void InScript(bool inScript);
-
+	void ReplaceScapeFormat(wxString& text);
 	std::string m_RawEOL;
 	std::string m_EOL;
 	

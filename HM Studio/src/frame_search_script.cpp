@@ -72,7 +72,10 @@ wxString FrameSearchScript::GetSearch()
 	wxString search = m_pInputFind->GetValue();
 
 	if (Extended())
+	{
 		search.Replace(m_EOL, m_RawEOL);		
+		ReplaceScapeFormat(search);
+	}
 
 	return search;
 }
@@ -82,7 +85,10 @@ wxString FrameSearchScript::GetReplace()
 	wxString replace = m_pInputReplace->GetValue();
 
 	if (Extended())
+	{
 		replace.Replace(m_EOL, m_RawEOL);
+		ReplaceScapeFormat(replace);
+	}
 
 	return replace;
 }
@@ -101,6 +107,27 @@ void FrameSearchScript::OnTextEnter(wxCommandEvent& event)
 	m_pModeBox->SetSelection(1);
 
 	event.Skip();
+}
+
+void FrameSearchScript::ReplaceScapeFormat(wxString& text)
+{
+	std::string find = "\\x0";
+
+	for (size_t i = 0; i < 256; ++i)
+	{
+		find[2] = std::to_string(i).at(0);
+
+		size_t pos = text.find(find);
+
+		while (pos != std::string::npos)
+		{
+			char byte = Moon::BitConverter::FromHexNibble(text[pos + 2]);
+			text.erase(pos, 2);
+			text[pos] = (char)i;
+
+			pos = text.find(find, pos);
+		}
+	}
 }
 
 void FrameSearchScript::CreateGUIControls()

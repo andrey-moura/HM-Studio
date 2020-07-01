@@ -5,6 +5,7 @@
 #include "frame_search_script.hpp"
 #include "window_find_results.hpp"
 #include "dialog_dump_insert.hpp"
+#include "window_find_results.hpp"
 
 class EditorFrame : public wxFrame
 {
@@ -19,13 +20,17 @@ protected:
 	void CreateMyStatusBar(size_t count);
 	void CreateSearchMenu();
 	void CreateToolsMenu();
-	void UpdateIndex();
+	void CreateViewMenu();
+	void UpdateIndex();	
+	void ShowResultWindow(const FilesResults& results);
 protected:
 	wxToolBar* m_pToolBar = nullptr;
 	wxMenuBar* m_pMenuBar = nullptr;
 	wxMenu* m_pMenuSearch = nullptr;
 	wxMenu* m_pMenuTools = nullptr;
+	wxMenu* m_pMenuView = nullptr;	
 	wxStatusBar* m_pStatusBar = nullptr;
+	FindResultsWindow* m_pFindResultsWindow = nullptr;
 
 	wxString m_Type;
 
@@ -59,6 +64,12 @@ protected:
 	virtual void RemovePaddingSpaces() {}
 //Override this
 	virtual void OnInsertFile();
+//Override this
+	virtual void OnAlwaysOnTop() { ToggleWindowStyle(wxSTAY_ON_TOP); }
+//Override this
+	virtual void OnShowResultWindow();
+//Override this
+	virtual void OnResultClick() {};
 //Events	
 private:	
 	void OnPrevFileClick(wxCommandEvent& event);
@@ -70,5 +81,8 @@ private:
 	void OnFindNextClick(wxCommandEvent& event);
 	void OnRemoveSpacesClick(wxCommandEvent& event);
 	void OnInsertFileClick(wxCommandEvent& event);
+	void OnAlwaysOnTopClick(wxCommandEvent& event);
+	void OnResultClick(wxCommandEvent& event);
+	void OnShowFindResultClick(wxCommandEvent& event);
 };
 

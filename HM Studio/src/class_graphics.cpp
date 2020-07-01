@@ -39,7 +39,7 @@ void Graphics::LoadFromRom(RomFile& file)
 			uint8_t byte = raw[i];
 
 			if (!m_Reversed)
-				byte = BitConverter::ReverseBits(byte);
+				byte = Moon::BitConverter::ReverseBits(byte);
 
 			for (size_t bit = 0; bit < bits; ++bit)
 			{				
