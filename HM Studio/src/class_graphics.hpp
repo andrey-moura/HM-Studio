@@ -106,7 +106,9 @@ public:
 	uint32_t GetPalOffset() const { return m_PalOffset; }
 	uint8_t GetBpp() const { return m_Bpp; }
 	const Palette& GetPalette() const { return m_Palette; }
+	Palette& GetPalette() { return m_Palette; }
 	uint8_t* GetData() { return m_8bppData; }
+	const uint8_t* GetData() const { return m_8bppData; }
 	bool IsPlanar() const { return m_Planar; }
 	bool IsReversed() const { return m_Reversed; }
 	uint32_t GetTileWidth() const { return m_TileWidth; }
@@ -121,6 +123,7 @@ public:
 	void SetReversed(bool reversed);
 	void SetTileWidth(uint32_t width);
 	void SetTileHeight(uint32_t height);
+	void SetData(unsigned char* bytes) { m_8bppData = bytes; }
 
 	void OrderTiles(uint8_t* src, uint8_t* dst);
 

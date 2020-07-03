@@ -8,7 +8,8 @@ Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, 
 
 Graphics::~Graphics()
 {
-	delete[] m_8bppData;
+	if (m_8bppData)
+		delete[] m_8bppData;
 }
 
 void Graphics::LoadFromRom(RomFile& file)
@@ -17,7 +18,7 @@ void Graphics::LoadFromRom(RomFile& file)
 	uint8_t mask = (1 << m_Bpp) - 1;
 	uint32_t newSize = m_Width * m_Height;
 	uint32_t rawSize = newSize / bits;
-	uint32_t palSize = (1 << m_Bpp) * 2;	
+	uint32_t palSize = (1 << m_Bpp) * 2;
 
 	uint8_t* linear8bpp = new uint8_t[newSize];
 

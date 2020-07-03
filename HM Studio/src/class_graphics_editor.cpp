@@ -18,7 +18,7 @@ GraphicsTreeItem::GraphicsTreeItem(const std::string& name, const GraphicsInfo& 
 
 }
 
-GraphicsTreeParent::GraphicsTreeParent(const std::string& name) : m_Name(name), std::vector<GraphicsTreeItem>()
+GraphicsTreeParent::GraphicsTreeParent(const std::string& name, bool mount) : m_Name(name), m_CanMount(mount)
 {
 
 }

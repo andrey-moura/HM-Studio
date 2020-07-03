@@ -3,6 +3,13 @@
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
 	CreateGUIControls();
+
+	wxFileName fn;
+	fn.SetPath(m_RomTranslated.m_HomeDir);
+	fn.AppendDir(L"Graphics");
+
+	m_RootDir = fn.GetFullPath();
+	Moon::File::MakeDir(m_RootDir.ToStdString());
 }
 
 void GraphicsEditorFrame::GetGraphicsList()
@@ -33,11 +40,27 @@ void GraphicsEditorFrame::GetGraphicsList()
 	AppendGraphics(GraphicsTreeItem("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));
 
 	AppendGraphics(GraphicsTreeItem("Font", GraphicsInfo(0x9ab020, 0x6F5D1C, 192, 228, 1, false, false, 8, 12)));	
+
+	GraphicsTreeParent start("Start", true);
+	start.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E4008, 0x6E470C, 64, 32)));
+	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4408, 0x6E470C, 32, 32)));
+	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4608, 0x6E470C, 16, 32)));
+
+	AppendGraphics(start);
+
+	// AppendGraphics();
 }
 
 void GraphicsEditorFrame::FromOriginal()
 {
-	GetGraphics(m_Index->second, m_RomOriginal);
+	if (m_IsPieces)
+	{
+		GetGraphicsPieces(m_MountGraphics[m_MountIndex], m_RomOriginal);
+	}
+	else
+	{
+		GetGraphics(m_Index->second, m_RomOriginal);
+	}
 }
 
 void GraphicsEditorFrame::ExportImage()
@@ -72,6 +95,26 @@ void GraphicsEditorFrame::ExportImage()
 	}
 }
 
+void GraphicsEditorFrame::SaveFile()
+{
+	wxFileName fn;
+	fn.SetPath(m_RootDir);
+	fn.SetName(m_pNavigator->GetItemText(m_Index->first));
+	fn.SetExt(L"bin");	
+
+	std::vector<uint8_t> bytes;
+	bytes.resize(((m_Index->second.m_Width * m_Index->second.m_Height) / (8 / m_Index->second.m_Bpp)));
+
+	GRAPHICS_HEADER* header = (GRAPHICS_HEADER*)bytes.data();
+	header->riff = 0x46464952;
+	header->size = ((m_Index->second.m_Width * m_Index->second.m_Height) / (8 / m_Index->second.m_Bpp));
+	header->bpp = m_Index->second.m_Bpp;
+
+	m_RomTranslated.Seek(m_Index->second.m_ImageAdress);
+	m_RomTranslated.Read(bytes.data() + sizeof GRAPHICS_HEADER, header->size);
+	Moon::File::WriteAllBytes(fn.GetFullPath().ToStdString(), bytes);
+}
+
 void GraphicsEditorFrame::ImportImage()
 {
 	wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, OFN_FILEMUSTEXIST);
@@ -103,6 +146,12 @@ void GraphicsEditorFrame::ImportImage()
 	}
 
 	m_ImageView->Refresh();
+}
+
+void GraphicsEditorFrame::OnSaveFileClick(wxCommandEvent& event)
+{
+	SaveFile();
+	event.Skip();
 }
 
 void GraphicsEditorFrame::OnMenuBarClick(wxCommandEvent& event)
@@ -152,17 +201,29 @@ void GraphicsEditorFrame::OnMenuBarClick(wxCommandEvent& event)
 
 void GraphicsEditorFrame::OnSelChanged(wxTreeEvent& event)
 {
+	event.Skip();
+
 	wxTreeItemId id = event.GetItem();	
+
+	for (size_t i = 0; i < m_MountGraphics.size(); ++i)
+	{
+		if (m_MountGraphics[i].m_Id == id)
+		{
+			GetGraphicsPieces(m_MountGraphics[i], m_RomTranslated);
+			m_MountIndex = i;
+			m_IsPieces = true;
+			return;
+		}
+	}
 
 	MAP::iterator it = m_LookUp.find(id);
 
 	if (it != m_LookUp.end())
 	{
 		m_Index = it;
+		m_IsPieces = false;
 		GetGraphics(it->second, m_RomTranslated);
-	}
-
-	event.Skip();
+	}	
 }
 
 void GraphicsEditorFrame::SetRootName(const wxString& name)
@@ -189,6 +250,53 @@ void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 	m_InfoViewer->SetInfo(info);
 }
 
+void GraphicsEditorFrame::GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom)
+{
+	wxSize size;
+	std::vector<Graphics> graphics;
+
+	size.y = parent[0].m_Info.m_Height;
+
+	for (const GraphicsTreeItem& item : parent)
+	{
+		size.x += item.m_Info.m_Width;
+
+		graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
+		graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);
+		graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
+		graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
+	}
+
+	for (Graphics& cur_graphics : graphics)
+		cur_graphics.LoadFromRom(rom);
+
+	unsigned char* bytes = new unsigned char[size.GetWidth() * size.GetHeight()];
+
+	for (size_t y = 0, x = 0; y < size.GetHeight(); ++y, x = 0)
+	{
+		for (const Graphics& cur_graphics : graphics)
+		{
+			memcpy(bytes + (x + (y * size.GetWidth())), cur_graphics.GetData() + (y * cur_graphics.GetWidth()), cur_graphics.GetWidth());
+			x += cur_graphics.GetWidth();
+		}
+	}
+
+	m_Graphic = graphics[0];
+
+	uint32_t palSize = (1 << m_Graphic.GetBpp()) * 2;
+	uint8_t* rawPal = new uint8_t[palSize];
+	rom.Seek(m_Graphic.GetPalOffset());
+	rom.Read(rawPal, palSize);
+
+	m_Graphic.GetPalette().DecodeColors((uint16_t*)rawPal, m_Graphic.GetBpp());
+
+	m_Graphic.SetWidth(size.GetWidth());
+	m_Graphic.SetHeight(size.GetHeight());
+	m_Graphic.SetData(bytes);
+	m_ImageView->SetGraphics(&m_Graphic);
+	m_PalCtrl->SetPal(m_Graphic.GetPalette());
+}
+
 void GraphicsEditorFrame::SaveImage()
 {
 	m_Graphic.SaveToRom(m_RomTranslated);
@@ -204,9 +312,15 @@ void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item)
 	AppendGraphics(item, m_Root);
 }
 
-void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeParent& parent)
+void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent)
 {
 	wxTreeItemId id = m_pNavigator->AppendItem(m_Root, parent.GetName());
+
+	if (parent.CanMount())
+	{
+		parent.m_Id = id;
+		m_MountGraphics.push_back(parent);
+	}
 
 	for (const GraphicsTreeItem& item : parent)
 	{
@@ -257,7 +371,7 @@ void GraphicsEditorFrame::CreateGUIControls()
 {
 	wxMenu* menuFile = new wxMenu();
 	menuFile->Append(wxID_OPEN, "Open");
-	menuFile->Append(wxID_SAVE, "Save");
+	menuFile->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnSaveFileClick, this, menuFile->Append(wxID_SAVE, "Save")->GetId());
 	menuFile->Append(wxID_CLOSE, "Close");
 
 	wxMenu* menuImage = new wxMenu();

@@ -19,6 +19,13 @@
 #include "class_graphics_editor.hpp"
 #include "palctrl.hpp"
 
+struct GRAPHICS_HEADER
+{	
+	uint32_t riff;
+	uint32_t size;
+	uint32_t bpp;
+};
+
 #define MAP std::map<wxTreeItemId, GraphicsInfo>
 
 class GraphicsEditorFrame : public wxFrame
@@ -35,6 +42,13 @@ private:
 	RomFile m_RomTranslated;	
 	Graphics m_Graphic;
 
+	wxString m_RootDir;
+
+	std::vector<GraphicsTreeParent> m_MountGraphics;
+	size_t m_MountIndex = 0;
+
+	bool m_IsPieces = false;
+
 	void ExportImage();
 	void ImportImage();
 	void FromOriginal();
@@ -42,8 +56,12 @@ private:
 	void Zoom(int zoomMode);
 	void ToggleMenu(int id, bool check);
 	void GetGraphics(const GraphicsInfo& info, RomFile& rom);
+	void GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom);
+
+	void SaveFile();
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
+	void OnSaveFileClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);
 	void OnPalChanged(PaletteEvent& event);	
 public:
@@ -51,7 +69,7 @@ public:
 
 	void AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id);
 	void AppendGraphics(const GraphicsTreeItem& item);
-	void AppendGraphics(const GraphicsTreeParent& parent);
+	void AppendGraphics(GraphicsTreeParent& parent);
 private:
 	void CreateGUIControls();	
 

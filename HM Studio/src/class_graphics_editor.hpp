@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <wx/treebase.h>
+
 #include "class_rom_file.hpp"
 
 class GraphicsEditorFrame;
@@ -36,10 +38,13 @@ struct GraphicsTreeItem
 class GraphicsTreeParent : public std::vector<GraphicsTreeItem>
 {
 public:
-	GraphicsTreeParent(const std::string& name);
+	GraphicsTreeParent(const std::string& name, bool mount = false);
 private:
 	std::string m_Name;
-public:
+	bool m_CanMount = false;
+public:	
+	wxTreeItemId m_Id;
+	bool CanMount() const { return m_CanMount; }
 	std::string GetName() const { return m_Name; }
 };
 
