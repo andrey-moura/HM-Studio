@@ -126,7 +126,8 @@ public:
 	void SetData(unsigned char* bytes) { m_8bppData = bytes; }
 
 	void OrderTiles(uint8_t* src, uint8_t* dst);
+	void DOrderTiles(uint8_t* src, uint8_t* dst);
 
 	void LoadFromRom(RomFile& file);
-	void SaveToRom(RomFile& file);
+	void InsertImage(RomFile& file);
 };

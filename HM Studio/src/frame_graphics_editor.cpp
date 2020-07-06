@@ -129,7 +129,7 @@ void GraphicsEditorFrame::ExportImage()
 	bitmap.SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 }
 
-void GraphicsEditorFrame::SaveFile()
+void GraphicsEditorFrame::SaveImage()
 {
 	wxFileName fn;
 	fn.SetPath(m_RootDir);
@@ -184,7 +184,13 @@ void GraphicsEditorFrame::ImportImage()
 
 void GraphicsEditorFrame::OnSaveFileClick(wxCommandEvent& event)
 {
-	SaveFile();
+	SaveImage();
+	event.Skip();
+}
+
+void GraphicsEditorFrame::OnInsertClick(wxCommandEvent& event)
+{
+	InsertImage();
 	event.Skip();
 }
 
@@ -331,9 +337,9 @@ void GraphicsEditorFrame::GetGraphicsPieces(const GraphicsTreeParent& parent, Ro
 	m_PalCtrl->SetPal(m_Graphic.GetPalette());
 }
 
-void GraphicsEditorFrame::SaveImage()
+void GraphicsEditorFrame::InsertImage()
 {
-	m_Graphic.SaveToRom(m_RomTranslated);
+	m_Graphic.InsertImage(m_RomTranslated);
 }
 
 void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
@@ -446,15 +452,12 @@ void GraphicsEditorFrame::OnPalChanged(PaletteEvent& event)
 
 void GraphicsEditorFrame::CreateGUIControls()
 {
-	wxMenu* menuFile = new wxMenu();
-	menuFile->Append(wxID_OPEN, "Open");
-	menuFile->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnSaveFileClick, this, menuFile->Append(wxID_SAVE, "Save")->GetId());
-	menuFile->Append(wxID_CLOSE, "Close");
-
 	wxMenu* menuImage = new wxMenu();
+	menuImage->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnSaveFileClick, this, menuImage->Append(wxID_SAVE, "Save")->GetId());
 	menuImage->Append(ID_IMPORT, "Import");
 	menuImage->Append(ID_EXPORT, "Export");
 	menuImage->Append(wxID_COPY, "From Original");
+	menuImage->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnInsertClick, this, menuImage->Append(wxNewId(), "Insert")->GetId());
 
 	wxMenu* zoomMenu = new wxMenu();
 	zoomMenu->Append(ID_ZOOM_IN, "In");
@@ -473,8 +476,7 @@ void GraphicsEditorFrame::CreateGUIControls()
 	viewMenu->AppendCheckItem(ID_TILE_GRID, "Tile Grid");
 	viewMenu->AppendCheckItem(ID_BLOCK_GRID, "Block Grid");
 
-	wxMenuBar* menuBar = new wxMenuBar();
-	menuBar->Append(menuFile, "File");
+	wxMenuBar* menuBar = new wxMenuBar();	
 	menuBar->Append(menuImage, "Image");
 	menuBar->Append(viewMenu, "View");
 	menuBar->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnMenuBarClick, this);

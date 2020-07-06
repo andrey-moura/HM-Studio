@@ -53,15 +53,15 @@ private:
 	void ImportImage();
 	void FromOriginal();
 	void SaveImage();
+	void InsertImage();
 	void Zoom(int zoomMode);
 	void ToggleMenu(int id, bool check);
 	void GetGraphics(const GraphicsInfo& info, RomFile& rom);
-	void GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom);
-
-	void SaveFile();
+	void GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom);	
 private:
 	void OnMenuBarClick(wxCommandEvent& event);
 	void OnSaveFileClick(wxCommandEvent& event);
+	void OnInsertClick(wxCommandEvent& event);
 	void OnSelChanged(wxTreeEvent& event);
 	void OnPalChanged(PaletteEvent& event);	
 public:

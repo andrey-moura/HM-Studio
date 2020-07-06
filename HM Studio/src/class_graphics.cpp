@@ -75,7 +75,7 @@ void Graphics::LoadFromRom(RomFile& file)
 	ClearAllocation();
 }
 
-void Graphics::SaveToRom(RomFile& file)
+void Graphics::InsertImage(RomFile& file)
 {
 	uint8_t bits = 8 / m_Bpp;
 	uint8_t mask = (1 << m_Bpp) - 1;
@@ -85,7 +85,7 @@ void Graphics::SaveToRom(RomFile& file)
 
 	uint8_t* linear8bpp = new uint8_t[newSize];
 
-	OrderTiles(m_8bppData, linear8bpp);
+	DOrderTiles(m_8bppData, linear8bpp);
 
 	uint8_t* raw = new uint8_t[rawSize];
 
@@ -97,16 +97,25 @@ void Graphics::SaveToRom(RomFile& file)
 
 		for (size_t bit = 0; bit < bits; ++bit)
 		{
-			uint8_t byte = linear8bpp[curByte];
+			uint8_t byte = linear8bpp[curByte];							
 
 			uint8_t shiftCount = (m_Bpp * bit);
 
-			raw[i] |= (byte << shiftCount);
+			raw[i] |= (byte << shiftCount);							
+
 			++curByte;
 		}
+
+		if (!m_Reversed)
+			raw[i] = Moon::BitConverter::ReverseBits(raw[i]);
 	}
 
-	File::WriteAllBytes("8bpp", raw, rawSize);
+	file.Seek(m_ImgOffset);
+	file.Write(raw, rawSize);
+	file.Flush();
+
+	delete[] linear8bpp;
+	delete[] raw;
 }
 
 void Graphics::OrderTiles(uint8_t* src, uint8_t* dst)
@@ -131,6 +140,38 @@ void Graphics::OrderTiles(uint8_t* src, uint8_t* dst)
 				srcTile += tile_bytes;
 			}
 		}		
+	}	
+}
+
+void Graphics::DOrderTiles(uint8_t* src, uint8_t* dst)
+{
+	size_t tile_count_x = m_Width / m_TileWidth;
+	size_t tile_count_y = m_Height / m_TileHeight;
+	size_t tile_bytes = m_TileWidth * m_TileHeight;
+
+	unsigned char* _src = src;	
+	unsigned char* _dst = dst;
+	size_t line_offset = 0;
+
+	unsigned char* tile_start = src;
+
+	for (size_t tile_y = 0; tile_y < tile_count_y; ++tile_y)
+	{
+		tile_start = src + (m_TileHeight * m_Width) * tile_y;
+
+		for (size_t tile_x = 0; tile_x < tile_count_x; tile_x++)
+		{
+			_src = tile_start;
+
+			for (size_t line = 0; line < m_TileHeight; line++)
+			{
+				memcpy(dst, _src, m_TileWidth);
+				_src += m_Width;
+				dst += m_TileWidth;
+			}
+
+			tile_start += 8;
+		}
 	}
 }
 
