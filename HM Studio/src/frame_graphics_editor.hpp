@@ -70,6 +70,7 @@ public:
 	void AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id);
 	void AppendGraphics(const GraphicsTreeItem& item);
 	void AppendGraphics(GraphicsTreeParent& parent);
+	void AppendGraphics(GraphicsTreeParent& parent, wxTreeItemId gran_parent);
 private:
 	void CreateGUIControls();	
 

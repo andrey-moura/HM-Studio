@@ -42,10 +42,25 @@ public:
 private:
 	std::string m_Name;
 	bool m_CanMount = false;
+	std::vector<GraphicsTreeParent> m_Childs;
 public:	
 	wxTreeItemId m_Id;
 	bool CanMount() const { return m_CanMount; }
 	std::string GetName() const { return m_Name; }
+	void append(const GraphicsTreeParent& parent)
+	{
+		m_Childs.push_back(parent);
+	}
+
+	size_t child_size()
+	{
+		return m_Childs.size();
+	}
+
+	std::vector<GraphicsTreeParent>& get_childs()
+	{
+		return m_Childs;
+	}
 };
 
 class GraphicsEditor

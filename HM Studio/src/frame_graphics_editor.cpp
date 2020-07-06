@@ -31,22 +31,54 @@ void GraphicsEditorFrame::GetGraphicsList()
 	tv.push_back(GraphicsTreeItem("New Year Game Show",  GraphicsInfo(0x6c8300, 0x6CB3A4, 32, 48)));
 	tv.push_back(GraphicsTreeItem("TV Shopping",         GraphicsInfo(0x6C9400, 0x6CB504, 32, 48)));
 	tv.push_back(GraphicsTreeItem("Forecast",            GraphicsInfo(0x6C9700, 0x6CB524, 32, 352)));
-	AppendGraphics(tv);
-
-	GraphicsTreeParent calendary("Calendar");
-	calendary.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4C58, 0x6F5D1C, 16, 160)));
-	AppendGraphics(calendary);
+	AppendGraphics(tv);	
 	
 	AppendGraphics(GraphicsTreeItem("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));
 
-	AppendGraphics(GraphicsTreeItem("Font", GraphicsInfo(0x9ab020, 0x6F5D1C, 192, 228, 1, false, false, 8, 12)));	
+	AppendGraphics(GraphicsTreeItem("Font", GraphicsInfo(0x9ab020, 0x6F5D1C, 192, 228, 1, false, false, 8, 12)));
+
+	GraphicsTreeParent miss("Miss", true);
+	miss.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E3130, 0x6E3834, 64, 32)));
+	miss.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3530, 0x6E3834, 32, 32)));
+	miss.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3730, 0x6E3834, 16, 32)));
+	AppendGraphics(miss);
+
+	GraphicsTreeParent pause("Pause", true);
+	pause.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E389c, 0x6E3FA0, 64, 32)));
+	pause.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3c9c, 0x6E3FA0, 32, 32)));
+	pause.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3e9c, 0x6E3FA0, 16, 32)));
+	AppendGraphics(pause);
 
 	GraphicsTreeParent start("Start", true);
 	start.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E4008, 0x6E470C, 64, 32)));
 	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4408, 0x6E470C, 32, 32)));
 	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4608, 0x6E470C, 16, 32)));
-
 	AppendGraphics(start);
+	
+	GraphicsTreeParent calendar_stations("Calendar Stations");	
+
+	GraphicsTreeParent calendar_spring("Spring", true);
+	calendar_spring.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5258, 0x6F5D1C, 32, 16)));
+	calendar_spring.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5358, 0x6F5D1C, 16, 16)));
+
+	GraphicsTreeParent calendar_summer("Summer", true);
+	calendar_summer.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F53d8, 0x6F5D1C, 32, 16)));
+	calendar_summer.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F54d8, 0x6F5D1C, 16, 16)));
+
+	GraphicsTreeParent calendar_fall("Fall", true);
+	calendar_fall.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5558, 0x6F5D1C, 16, 16)));
+	calendar_fall.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F55d8, 0x6F5D1C, 8, 16)));
+	calendar_fall.push_back(GraphicsTreeItem("Piece 3", GraphicsInfo(0x6F5618, 0x6F5D1C, 8, 16)));
+
+	GraphicsTreeParent calendar_winter("Winter", true);
+	calendar_winter.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5658, 0x6F5D1C, 32, 16)));
+	calendar_winter.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5758, 0x6F5D1C, 16, 16)));
+
+	calendar_stations.append(calendar_spring);
+	calendar_stations.append(calendar_summer);
+	calendar_stations.append(calendar_fall);
+	calendar_stations.append(calendar_winter);
+	AppendGraphics(calendar_stations);
 
 	// AppendGraphics();
 }
@@ -65,34 +97,36 @@ void GraphicsEditorFrame::FromOriginal()
 
 void GraphicsEditorFrame::ExportImage()
 {
-	wxFileDialog dialog(nullptr, "Select output path", wxEmptyString, "image.png");
+	wxString name = m_IsPieces ? m_MountGraphics[m_MountIndex].GetName() : m_pNavigator->GetItemText(m_Index->first);
 
-	if (dialog.ShowModal() != wxID_CANCEL)
+	wxString path = wxSaveFileSelector(L"Image", L"png", name);
+
+	if (path.empty())
+		return;
+
+	const uint8_t* data = m_Graphic.GetData();
+	const Palette& palette = m_Graphic.GetPalette();
+
+	wxBitmap bitmap(wxSize(m_Graphic.GetWidth(), m_Graphic.GetHeight()), 24);
+
+	wxMemoryDC dc(bitmap);
+
+	dc.SetPen(*wxTRANSPARENT_PEN);
+
+	wxBrush brush(*wxBLACK, wxBRUSHSTYLE_SOLID);
+
+	for (size_t y = 0; y < m_Graphic.GetHeight(); ++y)
 	{
-		const uint8_t* data = m_Graphic.GetData();
-		const Palette& palette = m_Graphic.GetPalette();
-
-		wxBitmap bitmap(wxSize(m_Graphic.GetWidth(), m_Graphic.GetHeight()), 24);
-	
-		wxMemoryDC dc(bitmap);
-
-		dc.SetPen(*wxTRANSPARENT_PEN);
-
-		wxBrush brush(*wxBLACK, wxBRUSHSTYLE_SOLID);
-
-		for (size_t y = 0; y < m_Graphic.GetHeight(); ++y)
+		for (size_t x = 0; x < m_Graphic.GetWidth(); ++x)
 		{
-			for (size_t x = 0; x < m_Graphic.GetWidth(); ++x)
-			{								
-				brush.SetColour(palette[*(data + x + y * m_Graphic.GetWidth())].GetBGR());
-				dc.SetBrush(brush);
+			brush.SetColour(palette[*(data + x + y * m_Graphic.GetWidth())].GetBGR());
+			dc.SetBrush(brush);
 
-				dc.DrawRectangle(x, y, 1, 1);
-			}
+			dc.DrawRectangle(x, y, 1, 1);
 		}
-
-		bitmap.SaveFile(dialog.GetPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
 	}
+
+	bitmap.SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 }
 
 void GraphicsEditorFrame::SaveFile()
@@ -313,8 +347,43 @@ void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item)
 }
 
 void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent)
+{	
+	AppendGraphics(parent, m_Root);
+
+	//if (parent.CanMount())
+	//{
+	//	parent.m_Id = id;
+	//	m_MountGraphics.push_back(parent);
+	//}
+
+	//for (const GraphicsTreeItem& item : parent)
+	//{
+	//	AppendGraphics(item, id);
+	//}
+
+	//if (parent.child_size() > 0)
+	//{
+	//	for (GraphicsTreeParent& child_parent : parent.get_childs())
+	//	{
+	//		id = m_pNavigator->AppendItem(id, child_parent.GetName());
+
+	//		if (child_parent.CanMount())
+	//		{
+	//			child_parent.m_Id = id;
+	//			m_MountGraphics.push_back(child_parent);
+	//		}
+
+	//		for (const GraphicsTreeItem& item : child_parent)
+	//		{
+	//			AppendGraphics(item, id);
+	//		}			
+	//	}
+	//}
+}
+
+void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent, wxTreeItemId gran_parent)
 {
-	wxTreeItemId id = m_pNavigator->AppendItem(m_Root, parent.GetName());
+	wxTreeItemId id = m_pNavigator->AppendItem(gran_parent, parent.GetName());
 
 	if (parent.CanMount())
 	{
@@ -325,6 +394,14 @@ void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent)
 	for (const GraphicsTreeItem& item : parent)
 	{
 		AppendGraphics(item, id);
+	}
+
+	if (parent.child_size() > 0)
+	{
+		for (GraphicsTreeParent& item : parent.get_childs())
+		{
+			AppendGraphics(item, id);
+		}
 	}
 }
 
