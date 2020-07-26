@@ -61,9 +61,9 @@ public:
 
 	RomInfo GetRomInformation();
 
-	void Dump(bool translated);
+	void DumpAll(bool translated) override;
 	ScriptFlags InsertFile(Script& script, uint32_t number);
-	void InsertAll();
+	void InsertAll() override;
 private:
 	void InsertSmaller(Script& script, uint32_t offset, uint32_t oldSize);
 	bool InsertLarger(const Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);

@@ -473,7 +473,7 @@ void ScriptEditor::Replace(std::string& find, bool useTable, const std::string& 
 	}
 }
 
-void ScriptEditor::Dump(bool translated)
+void ScriptEditor::DumpAll(bool translated)
 {
 	uint32_t* offsets = GetOffsets(translated);
 
