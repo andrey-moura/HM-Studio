@@ -55,30 +55,67 @@ void GraphicsEditorFrame::GetGraphicsList()
 	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4608, 0x6E470C, 16, 32)));
 	AppendGraphics(start);
 	
-	GraphicsTreeParent calendar_stations("Calendar Stations");	
+	GraphicsTreeParent calendar("Calendar");
+	calendar.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4c58, 0x6F5D1C, 16, 160)));
+	calendar.push_back(GraphicsTreeItem("Year", GraphicsInfo(0x6F5158, 0x6F5D1C, 32, 16)));
 
 	GraphicsTreeParent calendar_spring("Spring", true);
 	calendar_spring.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5258, 0x6F5D1C, 32, 16)));
 	calendar_spring.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5358, 0x6F5D1C, 16, 16)));
+	calendar.append(calendar_spring);
 
 	GraphicsTreeParent calendar_summer("Summer", true);
 	calendar_summer.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F53d8, 0x6F5D1C, 32, 16)));
 	calendar_summer.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F54d8, 0x6F5D1C, 16, 16)));
+	calendar.append(calendar_summer);
 
 	GraphicsTreeParent calendar_fall("Fall", true);
 	calendar_fall.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5558, 0x6F5D1C, 16, 16)));
 	calendar_fall.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F55d8, 0x6F5D1C, 8, 16)));
 	calendar_fall.push_back(GraphicsTreeItem("Piece 3", GraphicsInfo(0x6F5618, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_fall);
 
 	GraphicsTreeParent calendar_winter("Winter", true);
 	calendar_winter.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5658, 0x6F5D1C, 32, 16)));
 	calendar_winter.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5758, 0x6F5D1C, 16, 16)));
+	calendar.append(calendar_winter);
 
-	calendar_stations.append(calendar_spring);
-	calendar_stations.append(calendar_summer);
-	calendar_stations.append(calendar_fall);
-	calendar_stations.append(calendar_winter);
-	AppendGraphics(calendar_stations);
+	GraphicsTreeParent calendar_sun("Sun", true);
+	calendar_sun.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F57d8, 0x6F5D3C, 16, 16)));
+	calendar_sun.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5858, 0x6F5D3C, 8, 16)));
+	calendar.append(calendar_sun);
+
+	GraphicsTreeParent calendar_mon("Mon", true);
+	calendar_mon.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5898, 0x6F5D1C, 16, 16)));
+	calendar_mon.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5918, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_mon);
+
+	GraphicsTreeParent calendar_tue("Tue", true);
+	calendar_tue.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5958, 0x6F5D1C, 16, 16)));
+	calendar_tue.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F59d8, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_tue);
+
+	GraphicsTreeParent calendar_wed("Wed", true);
+	calendar_wed.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5a18, 0x6F5D1C, 16, 16)));
+	calendar_wed.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5a98, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_wed);
+
+	GraphicsTreeParent calendar_thu("Thu", true);
+	calendar_thu.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5ad8, 0x6F5D1C, 16, 16)));
+	calendar_thu.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5b58, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_thu);
+
+	GraphicsTreeParent calendar_fri("Fri", true);
+	calendar_fri.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5b98, 0x6F5D1C, 16, 16)));
+	calendar_fri.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5c18, 0x6F5D1C, 8, 16)));
+	calendar.append(calendar_fri);
+
+	GraphicsTreeParent calendar_sat("Sat", true);
+	calendar_sat.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5c58, 0x6F5D5C, 16, 16)));
+	calendar_sat.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5cd8, 0x6F5D5C, 8, 16)));
+	calendar.append(calendar_sat);
+
+	AppendGraphics(calendar);
 
 	// AppendGraphics();
 }
@@ -339,7 +376,43 @@ void GraphicsEditorFrame::GetGraphicsPieces(const GraphicsTreeParent& parent, Ro
 
 void GraphicsEditorFrame::InsertImage()
 {
-	m_Graphic.InsertImage(m_RomTranslated);
+	if (!m_IsPieces)
+	{
+		m_Graphic.InsertImage(m_RomTranslated);
+	}
+	else
+	{
+		std::vector<Graphics> graphics;		
+
+		for (const GraphicsTreeItem& item : m_MountGraphics[m_MountIndex])
+		{
+			graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
+			graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);			
+		}
+
+		wxSize totalSize(m_Graphic.GetWidth(), m_Graphic.GetHeight());
+		
+		unsigned char* src = m_Graphic.GetData();	
+
+		size_t x = 0;
+
+		for (Graphics& cur_graphics : graphics)
+		{
+			unsigned char* bytes = new unsigned char[cur_graphics.GetWidth() * cur_graphics.GetHeight()];			
+			unsigned char* _bytes = bytes;
+
+			for (size_t line = 0; line < cur_graphics.GetHeight(); line++)
+			{
+				memcpy(bytes, src + (line * m_Graphic.GetWidth()) + x, cur_graphics.GetWidth());
+				bytes += cur_graphics.GetWidth();
+			}
+
+			x += cur_graphics.GetWidth();
+
+			cur_graphics.SetData(_bytes);
+			cur_graphics.InsertImage(m_RomTranslated);			
+		}
+	}
 }
 
 void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)

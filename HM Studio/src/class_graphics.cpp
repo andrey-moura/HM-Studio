@@ -108,7 +108,7 @@ void Graphics::InsertImage(RomFile& file)
 
 		if (!m_Reversed)
 			raw[i] = Moon::BitConverter::ReverseBits(raw[i]);
-	}
+	}	
 
 	file.Seek(m_ImgOffset);
 	file.Write(raw, rawSize);
