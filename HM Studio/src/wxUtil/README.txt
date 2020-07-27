@@ -1,1 +1,0 @@
-Here you can see wxWidgets controls that I created. You can use and change everything.
