@@ -2,7 +2,7 @@
 
 ScriptEditor::ScriptEditor(const id& id) : Editor(id)
 {
-	m_Info = GetRomInformation();
+	GetRomInfo();
 
 	wxFileName pathLeft;
 	pathLeft.SetPath(m_RomOriginal.m_HomeDir);
@@ -140,7 +140,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 	if (!outPut.DirExists())
 		outPut.Mkdir(511, wxPATH_MKDIR_FULL);
 
-	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+	for (size_t i = 0; i < m_Info.Count; ++i)
 	{
 		std::string path = GetPath(true);	
 		outPut.SetFullName(GetPath(i, true));
@@ -183,35 +183,31 @@ std::string ScriptEditor::GetPath(bool translated) const
 	return GetPath(m_Number, translated);
 }
 
-RomInfo ScriptEditor::GetRomInformation()
+void ScriptEditor::GetRomInfo()
 {
-	RomInfo information;
-
 	switch (m_RomOriginal.Id)
 	{
 	case id::FoMT:
-		information.StartPointers = 0xF89D8;
-		information.ScriptCount = 1328;
-		information.StartScript = 0x2AC0B0;
-		information.BlockLenght = 0x24D01C;
+		m_Info.StartPointers = 0xF89D8;
+		m_Info.Count = 1328;
+		m_Info.StartBlock = 0x2AC0B0;
+		m_Info.BlockLenght = 0x24D01C;
 		break;
 	case id::MFoMT:
-		information.StartPointers = 0x1014C0;
-		information.ScriptCount = 1415;
-		information.StartScript = 0x701694;
-		information.BlockLenght = 0x2A9980;
+		m_Info.StartPointers = 0x1014C0;
+		m_Info.Count = 1415;
+		m_Info.StartBlock = 0x701694;
+		m_Info.BlockLenght = 0x2A9980;
 		break;
 	case id::DS:
-		information.StartPointers = 0x24C2E04;
-		information.ScriptCount = 1296 - 1;//I don't know what happened, but the ROM is missing the last script...
-		information.StartScript = 0x24C4244;
-		information.BlockLenght = 0x2E9C10;
+		m_Info.StartPointers = 0x24C2E04;
+		m_Info.Count = 1296 - 1;//I don't know what happened, but the ROM is missing the last script...
+		m_Info.StartBlock = 0x24C4244;
+		m_Info.BlockLenght = 0x2E9C10;
 		break;
 	default:
 		break;
-	}
-
-	return information;
+	}	
 }
 
 uint32_t ScriptEditor::GetOffset(bool translated, size_t number)
@@ -236,21 +232,21 @@ uint32_t* ScriptEditor::GetOffsets(bool translated)
 {	
 	RomFile& rom = GetRom(translated);
 
-	uint32_t* output = new uint32_t[m_Info.ScriptCount];
+	uint32_t* output = new uint32_t[m_Info.Count];
 
 	rom.Seek(m_Info.StartPointers);
-	rom.Read(output, m_Info.ScriptCount * 4);
+	rom.Read(output, m_Info.Count * 4);
 
 	if (rom.Console == console::DS)
 	{
-		for(size_t i = 0; i < m_Info.ScriptCount; ++i)
+		for(size_t i = 0; i < m_Info.Count; ++i)
 		{
 			output += m_Info.StartPointers - 4;
 		}
 	}
 	else {		
 
-		for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+		for (size_t i = 0; i < m_Info.Count; ++i)
 		{
 			output[i] &= ROM_BUS_NOT;
 		}
@@ -277,14 +273,14 @@ void ScriptEditor::SetOffsets(uint32_t* offets)
 {
 	if (m_RomTranslated.Console == console::DS)
 	{
-		for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+		for (size_t i = 0; i < m_Info.Count; ++i)
 		{
 			offets[i] += 0x1444;
 		}
 	}
 	else {
 
-		for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+		for (size_t i = 0; i < m_Info.Count; ++i)
 		{
 			offets[i] |= ROM_BUS;
 		}
@@ -322,7 +318,7 @@ inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, uint8_t* bytes)
 
 inline bool ScriptEditor::IsInsideBlock(const uint32_t& offset)
 {
-	return MathUtil::IsInsideBlock(offset, m_Info.StartScript, m_Info.BlockLenght);
+	return MathUtil::IsInsideBlock(offset, m_Info.StartBlock, m_Info.BlockLenght);
 }
 
 inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& size)
@@ -353,7 +349,7 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 
 	size_t totalCount = 0;
 
-	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.ScriptCount);
+	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.Count);
 	dialog.Show();
 
 	const Moon::Hacking::Table& table = GetRom(translated).GetTable();
@@ -363,7 +359,7 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 		table.Output(search);
 	}
 
-	for (size_t i = 0; i < m_Info.ScriptCount; ++i)
+	for (size_t i = 0; i < m_Info.Count; ++i)
 	{
 		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;
 		dialog.Update(i, name);
@@ -482,15 +478,15 @@ void ScriptEditor::DumpAll(bool translated)
 
 	RomFile& rom = GetRom(translated);
 
-	rom.Seek(m_Info.StartScript);
+	rom.Seek(m_Info.StartBlock);
 	rom.Read(scriptBlock, m_Info.BlockLenght);	
 
-	uint32_t maxPosition = m_Info.StartScript + m_Info.BlockLenght;
+	uint32_t maxPosition = m_Info.StartBlock + m_Info.BlockLenght;
 
 	Moon::File::MakeDir(m_ScriptDir);
 	Moon::File::MakeDir(Moon::File::AppenPath(m_ScriptDir, translated ? "Translated" : "Original"));
 
-	for (uint32_t i = 0; i < m_Info.ScriptCount; ++i)
+	for (uint32_t i = 0; i < m_Info.Count; ++i)
 	{
 		size_t size = 0;
 		std::string path = GetPath(i, translated); 
@@ -508,12 +504,12 @@ void ScriptEditor::DumpAll(bool translated)
 			continue;
 		}
 
-		size = ScriptSize(offsets[i] - m_Info.StartScript, scriptBlock);
+		size = ScriptSize(offsets[i] - m_Info.StartBlock, scriptBlock);
 
 		if (size == 0xffffffff)
 			return;
 
-		Moon::File::WriteAllBytes(path, scriptBlock + (offsets[i] - m_Info.StartScript), size);
+		Moon::File::WriteAllBytes(path, scriptBlock + (offsets[i] - m_Info.StartBlock), size);
 	}
 
 	delete[] offsets;
@@ -594,13 +590,13 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 {
 	uint8_t* scriptBlock = new uint8_t[m_Info.BlockLenght];
 
-	m_RomTranslated.Seek(m_Info.StartScript);
+	m_RomTranslated.Seek(m_Info.StartBlock);
 	m_RomTranslated.Read(scriptBlock, m_Info.BlockLenght);	
 
 	if (oldSize != std::string::npos)
 	{		
 		if (IsInsideBlock(oldOffset))
-			memset(scriptBlock + (oldOffset - m_Info.StartScript), 0x00, oldSize);
+			memset(scriptBlock + (oldOffset - m_Info.StartBlock), 0x00, oldSize);
 	}		
 
 	bool trying = true;
@@ -637,16 +633,14 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 
 	if (flag)
 	{
-		InsertMove(script, oldOffset, oldSize, freeSpace + m_Info.StartScript);
+		InsertMove(script, oldOffset, oldSize, freeSpace + m_Info.StartBlock);
 	}
 
 	return flag;
 }
 
 ScriptFlags ScriptEditor::InsertFile(Script& script, uint32_t number)
-{
-	RomInfo information = GetRomInformation();
-	
+{	
 	uint32_t oldOffset = GetOffset(true);
 	uint32_t oldSize = ScriptSize(oldOffset, true);
 	uint32_t newSize = script.GetRiffLenght();	
@@ -680,7 +674,7 @@ void ScriptEditor::InsertAll()
 	script_block.reserve(m_Info.BlockLenght);
 
 	std::vector<uint32_t> scripts_pointers;
-	scripts_pointers.reserve(m_Info.ScriptCount);
+	scripts_pointers.reserve(m_Info.Count);
 
 	uint32_t oldOffset = 0;
 
@@ -689,7 +683,7 @@ void ScriptEditor::InsertAll()
 	//once, and grow if we need a larger buffer.
 	std::string ffbuffer;
 
-	for (size_t script_number = 0; script_number < m_Info.ScriptCount; ++script_number)
+	for (size_t script_number = 0; script_number < m_Info.Count; ++script_number)
 	{
 		oldOffset = GetOffset(true, script_number);
 
@@ -719,7 +713,7 @@ void ScriptEditor::InsertAll()
 			return;
 		}
 
-		scripts_pointers.push_back(script_block.size()+m_Info.StartScript);
+		scripts_pointers.push_back(script_block.size()+m_Info.StartBlock);
 		script_block.append((const char*)script.GetData(), script.GetRiffLenght());
 
 		while (script_block.size() % 4 != 0)
@@ -733,17 +727,17 @@ void ScriptEditor::InsertAll()
 	}
 
 	script_block.resize(m_Info.BlockLenght, '\0');
-	m_RomOriginal.ConvertOffsets(scripts_pointers.data(), m_Info.ScriptCount);
+	m_RomOriginal.ConvertOffsets(scripts_pointers.data(), m_Info.Count);
 
 	m_RomTranslated.Seek(m_Info.StartPointers);
 	m_RomTranslated.WriteBytes(scripts_pointers);
-	m_RomTranslated.Seek(m_Info.StartScript);
+	m_RomTranslated.Seek(m_Info.StartBlock);
 	m_RomTranslated.Write(script_block.data(), script_block.size());
 }
 
 ScriptFlags ScriptEditor::CheckAndGoScript(size_t index)
 {
- 	if (index > m_Info.ScriptCount)
+ 	if (index > m_Info.Count)
 		return ScriptFlags::ERROR_OUTOFRANGE;
 
 	return OpenScript(index);
@@ -758,7 +752,7 @@ FilesResults ScriptEditor::CheckEOL()
 	wxProgressDialog dialog("Checking end lines...", wxEmptyString, m_Info.BlockLenght);
 	dialog.Show();
 
-	for (size_t number = 0; number < m_Info.ScriptCount; ++number)
+	for (size_t number = 0; number < m_Info.Count; ++number)
 	{
 		wxString name = wxString("Script_Translated") << "_" << number << m_PathRight;
 		dialog.Update(number, name);
@@ -813,7 +807,7 @@ FilesResults ScriptEditor::CheckCode()
 	wxProgressDialog dialog("Checking code...", wxEmptyString, m_Info.BlockLenght);
 	dialog.Show();
 
-	for (size_t number = 0; number < m_Info.ScriptCount; ++number)
+	for (size_t number = 0; number < m_Info.Count; ++number)
 	{
 		wxString name = wxString("Script_Translated") << "_" << number << m_PathRight;
 		dialog.Update(number, name);
@@ -831,9 +825,6 @@ FilesResults ScriptEditor::CheckCode()
 
 	size_t count = result.GetCount();
 	std::string script;
-
-
-
 
 	result.SetSearchTitle(wxString("Code Checker (") << (count == 0 ? "none" : std::to_string(count)) << " bad script" << (count == 1 ? "" : "s") << "" << ")");
 	dialog.Close();

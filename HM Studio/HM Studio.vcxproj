@@ -102,10 +102,8 @@
     <ClInclude Include="src\frame_main.hpp" />
     <ClInclude Include="src\frame_item_editor.hpp" />
     <ClInclude Include="src\frame_text_block_editor.hpp" />
-    <ClInclude Include="src\Images\delete_icon.h" />
     <ClInclude Include="src\namespace_math.hpp" />
     <ClInclude Include="src\palctrl.hpp" />
-    <ClInclude Include="src\resource_frame_tile_editor.hpp" />
     <ClInclude Include="src\class_rom_file.hpp" />
     <ClInclude Include="src\class_script.hpp" />
     <ClInclude Include="src\class_stc.hpp" />

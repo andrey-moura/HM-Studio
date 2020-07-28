@@ -38,7 +38,7 @@ FilesResults Editor::FindInFiles(std::string& search, bool useTable, bool transl
 
 	size_t totalCount = 0;
 
-	wxProgressDialog dialog("Find in scripts in progress...", "", m_Count);
+	wxProgressDialog dialog("Find in scripts in progress...", "", m_Info.Count);
 	dialog.Show();
 
 	const Moon::Hacking::Table& table = GetRom(translated).GetTable();
@@ -48,7 +48,7 @@ FilesResults Editor::FindInFiles(std::string& search, bool useTable, bool transl
 		table.Output(search);
 	}
 
-	for (size_t cur_letter = 0; cur_letter < m_Count; ++cur_letter)
+	for (size_t cur_letter = 0; cur_letter < m_Info.Count; ++cur_letter)
 	{
 		SearchResult match;
 
@@ -89,7 +89,7 @@ FilesResults Editor::FindInFiles(std::string& search, bool useTable, bool transl
 
 bool Editor::SetIndex(size_t index)
 {
-	if (index < m_Count)
+	if (index < m_Info.Count)
 	{
 		m_Index = index;
 		return true;

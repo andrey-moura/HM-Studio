@@ -122,9 +122,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\resource_frame_tile_editor.hpp">
-      <Filter>Arquivos de Recurso</Filter>
-    </ClInclude>
     <ClInclude Include="frame_save_editor.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
@@ -153,9 +150,6 @@
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\FishEditor.hpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Images\delete_icon.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\class_stc.hpp">

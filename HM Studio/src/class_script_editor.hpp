@@ -16,15 +16,6 @@
 #include "namespace_math.hpp"
 #include "window_find_results.hpp"
 
-struct RomInfo
-{
-	uint32_t StartPointers;
-	uint32_t ScriptCount;
-
-	uint32_t StartScript;
-	uint32_t BlockLenght;
-};
-
 enum class ScriptFlags
 {
 	ERROR_OUTOFRANGE,
@@ -57,9 +48,7 @@ public:
 	void SetEvent(uint32_t index);
 	inline uint32_t ScriptSize(uint32_t* value);
 	inline uint32_t ScriptSize(const uint32_t& offset, bool translated);
-	uint32_t ScriptSize(const uint32_t& offset, uint8_t* bytes);
-
-	RomInfo GetRomInformation();
+	uint32_t ScriptSize(const uint32_t& offset, uint8_t* bytes);	
 
 	void DumpAll(bool translated) override;
 	ScriptFlags InsertFile(Script& script, uint32_t number);
@@ -76,8 +65,6 @@ private:
 	inline bool IsInsideBlock(const uint32_t& offset);
 	inline bool IsFreeSpace(const uint32_t& offset, const uint32_t& size);
 private:
-	RomInfo m_Info;
-
 	std::string m_ScriptDir;
 	std::string m_PathOrigLeft;
 	std::string m_PathTransLeft;
@@ -110,6 +97,8 @@ public:
 
 	FilesResults CheckEOL();
 	FilesResults CheckCode();
+private:
+	virtual void GetRomInfo() override;
 private:
 	Script m_ScriptOriginal;
 	Script m_ScriptTranslated;

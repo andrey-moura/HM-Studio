@@ -2,14 +2,14 @@
 
 LetterEditor::LetterEditor(const id& id) : Editor(id)
 {
-	SetupRom();
+	GetRomInfo();
 	m_Type = "Letter";
 	m_FileExt = "letter";
 }
 
 bool LetterEditor::Open(uint32_t number)
 {
-	if (number > m_Count)
+	if (number > m_Info.Count)
 		return false;
 
 	m_Original = Moon::File::ReadAllText(GetPath(number, false));
@@ -38,13 +38,13 @@ void LetterEditor::SaveFile()
 
 uint32_t* LetterEditor::GetPointers(bool translated)
 {
-	uint32_t* pointers = new uint32_t[m_Count];
+	uint32_t* pointers = new uint32_t[m_Info.Count];
 
 	RomFile& rom = GetRom(translated);
 	rom.Seek(m_StartPointers);
-	rom.Read(pointers, m_Count*4);
+	rom.Read(pointers, m_Info.Count *4);
 
-	rom.ConvertPointers(pointers, m_Count);
+	rom.ConvertPointers(pointers, m_Info.Count);
 
 	return pointers;
 }
@@ -67,7 +67,7 @@ void LetterEditor::DumpAll(bool translated)
 
 	std::string eol = rom.GetEOlString();
 
-	for (size_t letterIndex = 0; letterIndex < m_Count; ++letterIndex)
+	for (size_t letterIndex = 0; letterIndex < m_Info.Count; ++letterIndex)
 	{
 		rom.Seek(letterPointers[letterIndex]);
 
@@ -113,16 +113,16 @@ void LetterEditor::InsertAll()
 	std::vector<uint32_t> lines_pointers_all;
 	std::string letter_block;
 	letter_block.reserve(m_BlockSize);
-	letters_counts_all.reserve(m_Count);
+	letters_counts_all.reserve(m_Info.Count);
 
 	uint32_t end_line = std::string::npos;
 
 	std::vector<uint32_t> letters_pointers_all;
-	letters_pointers_all.reserve(m_Count);
+	letters_pointers_all.reserve(m_Info.Count);
 	
 	const Moon::Hacking::Table table = m_RomTranslated.GetTable();
 
-	for (size_t letterIndex = 0; letterIndex < m_Count; ++letterIndex)
+	for (size_t letterIndex = 0; letterIndex < m_Info.Count; ++letterIndex)
 	{
 		auto lines = Moon::File::ReadAllLines(GetPath(letterIndex, true), true);
 		std::vector<uint32_t> letter_pointers;		
@@ -277,7 +277,7 @@ void LetterEditor::InsertFile()
 	m_RomTranslated.WriteBytes(letter.c_str(), letter.size());	
 }
 
-void LetterEditor::SetupRom()
+void LetterEditor::GetRomInfo()
 {	
 	switch (m_RomOriginal.Id)
 	{
@@ -285,11 +285,11 @@ void LetterEditor::SetupRom()
 		break;
 	case id::FoMT:
 		break;
-	case id::MFoMT:
-		m_StartPointers = 0x1110EC;		
-		m_BlockSize = 0x107DC;
-		m_StartBlock = 0x1113E4;
-		m_Count = 190;
+	case id::MFoMT:		
+		m_Info.StartPointers = 0x1110EC;
+		m_Info.BlockLenght = 0x107DC;
+		m_Info.StartBlock = 0x1113E4;
+		m_Info.Count = 190;
 		break;
 	default:
 		break;

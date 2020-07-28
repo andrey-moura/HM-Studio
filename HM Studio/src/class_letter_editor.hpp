@@ -36,7 +36,7 @@ public:
 public:
 	virtual std::string GetPath(const size_t& number, const bool& translated) const override;
 	virtual std::string GetPath(const bool& translated) const override { return GetPath(m_Number, translated); }
-	void SetupRom();
+	virtual void GetRomInfo() override;	
 public:
 	void DumpAll(bool translated);
 	void InsertAll();
