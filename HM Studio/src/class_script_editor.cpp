@@ -498,7 +498,7 @@ void ScriptEditor::DumpAll(bool translated)
 
 			if (size != 0xffffffff)
 			{								
-				Moon::File::WriteAllBytes(path, rom.ReadBytes(offsets[i], size));
+				Moon::File::WriteAllBytes(path, rom.ReadBytes<byte>(offsets[i], size));
 			}
 
 			continue;

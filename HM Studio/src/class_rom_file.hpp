@@ -94,10 +94,19 @@ public:
 	void WriteUInt32(uint32_t number, uint32_t offset);
 
 	void ReadBytes(std::vector<uint8_t> &bytes, size_t size);
-	std::vector<uint8_t> ReadBytes(size_t offset, size_t size);
 
 	template<class T>
-	inline void WriteBytes(std::vector<T> bytes)
+	std::vector<T> ReadBytes(wxFileOffset offset, size_t size)
+	{
+		std::vector<T> vector;
+		vector.resize(size);
+		Seek(offset);
+		Read(vector.data(), (sizeof T) * size);
+		return vector;
+	}
+
+	template<class T>
+	inline void WriteBytes(const std::vector<T>& bytes)
 	{
 		WriteBytes(bytes.data(), bytes.size() * sizeof T);
 	}	
