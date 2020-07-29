@@ -7,8 +7,8 @@
 #include "class_rom_file.hpp"
 #include "class_letter.hpp"
 
-#define ToBlockPointer(x) x+m_StartBlock+0x08000000
-#define ToPointerBlockPointer(x) x+m_StartPointers
+#define ToBlockPointer(x) x+m_Info.StartBlock+0x08000000
+#define ToPointerBlockPointer(x) x+m_Info.StartPoiters
 
 class LetterEditor : public Editor
 {
@@ -19,11 +19,7 @@ private:
 	std::string m_LetterDir;
 
 	std::string m_Original;
-	std::string m_Translated;	
-
-	uint32_t m_StartPointers;	
-	uint32_t m_StartBlock;
-	uint32_t m_BlockSize;
+	std::string m_Translated;
 private:
 	uint32_t* GetPointers(bool translated);
 	void SetPointer(size_t number, uint32_t offset);

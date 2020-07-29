@@ -41,7 +41,7 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 	uint32_t* pointers = new uint32_t[m_Info.Count];
 
 	RomFile& rom = GetRom(translated);
-	rom.Seek(m_StartPointers);
+	rom.Seek(m_Info.StartPointers);
 	rom.Read(pointers, m_Info.Count *4);
 
 	rom.ConvertPointers(pointers, m_Info.Count);
@@ -51,7 +51,7 @@ uint32_t* LetterEditor::GetPointers(bool translated)
 
 void LetterEditor::SetPointer(size_t number, uint32_t offset)
 {	
-	m_RomTranslated.WriteUInt32(m_RomTranslated.ConvertOffsets(offset), (number*4)+m_StartPointers);
+	m_RomTranslated.WriteUInt32(m_RomTranslated.ConvertOffsets(offset), (number*4)+m_Info.StartPointers);
 }
 
 bool LetterEditor::SaveText(const std::string& text)
@@ -112,7 +112,7 @@ void LetterEditor::InsertAll()
 	std::vector<uint32_t> letters_counts_all;
 	std::vector<uint32_t> lines_pointers_all;
 	std::string letter_block;
-	letter_block.reserve(m_BlockSize);
+	letter_block.reserve(m_Info.BlockLenght);
 	letters_counts_all.reserve(m_Info.Count);
 
 	uint32_t end_line = std::string::npos;
@@ -189,20 +189,20 @@ void LetterEditor::InsertAll()
 		letter_block.append(4, '\0');
 	}
 
-	if (letter_block.size() > m_BlockSize)
+	if (letter_block.size() > m_Info.BlockLenght)
 	{
 		return;
 	}
 	else
 	{
-		letter_block.resize(m_BlockSize);
+		letter_block.resize(m_Info.BlockLenght);		
 	}
 
-	m_RomTranslated.Seek(m_StartPointers);
+	m_RomTranslated.Seek(m_Info.StartPointers);
 	m_RomTranslated.WriteBytes(letters_pointers_all);
 
-	m_RomTranslated.Seek(m_StartBlock);
-	m_RomTranslated.WriteBytes(letter_block.data(), m_BlockSize);
+	m_RomTranslated.Seek(m_Info.StartBlock);
+	m_RomTranslated.WriteBytes(letter_block.data(), m_Info.BlockLenght);
 }
 
 void LetterEditor::InsertFile()
