@@ -10,16 +10,17 @@ The support for HM FoMT and DS are not 100%
 
 ### For the next Release
 
-1. Insert Items from dump.
-1. Default ROM option.
-1. Open ROM with default emulator.
-1. Open Project Folder.
-1. Show also original size, line and col in status bar in script editor.
-1. Disable the spellchecker in the original script.
-1. Allow select dictionary or disable spellchecker.
-1. Move Script To.
-1. Performance update in GraphicsEditor drawing.
-1. Nicer GUI for MainFrame
+- [ ] Make ScriptEditorFrame inherit from EditorFrame
+- [ ] Insert Items from dump.
+- [ ] Default ROM option.
+- [ ] Open ROM with default emulator.
+- [ ] Open Project Folder.
+- [ ] Show also original size, line and col in status bar in script editor.
+- [ ] Disable the spellchecker in the original script.
+- [ ] Allow select dictionary or disable spellchecker.
+- [ ] Move Script To.
+- [ ] Performance update in GraphicsEditor drawing.
+- [ ] Nicer GUI for MainFrame
 
 ### For future releases
 
@@ -28,6 +29,8 @@ The support for HM FoMT and DS are not 100%
 * See the face and name of who is talking in a script (Reverse-Engineering).
 * Change the stamina/fatigue values of fridge itens (Reverse-Engineering).
 * Delete and re-write all code in GraphicsEditor, to make it load all graphics automatically (Reverse-Engineering).
+
+Things marked with (Reverse-Engineering) needs research to be implemented. If you know reverse-engineering, please, feel free to try.
 
 ## Overview
 
