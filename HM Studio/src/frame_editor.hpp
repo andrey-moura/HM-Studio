@@ -49,6 +49,8 @@ protected:
 //Override this
 	virtual void OnDumperInserter();
 //Override this
+	virtual void OnCheckIntegrity();
+//Override this
 	virtual void UpdateText() {}
 //Override this
 	virtual void OnFindText();
@@ -76,7 +78,8 @@ private:
 	void OnProxFileClick(wxCommandEvent& event);
 	void OnGoFileClick(wxCommandEvent& event);
 	void OnSaveFileClick(wxCommandEvent& event);
-	void OnDumperInserterClick(wxCommandEvent& event);	
+	void OnDumperInserterClick(wxCommandEvent& event);
+	void OnCheckIntegrityClick(wxCommandEvent& event);
 	void OnFindTextClick(wxCommandEvent& event);	
 	void OnFindNextClick(wxCommandEvent& event);
 	void OnRemoveSpacesClick(wxCommandEvent& event);

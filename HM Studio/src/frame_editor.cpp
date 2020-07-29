@@ -67,6 +67,7 @@ void EditorFrame::CreateToolsMenu()
 
 	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxNewId(), "Remove Padding Spaces", nullptr, "Removes spaces after line end")->GetId());
 	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnDumperInserterClick, this, m_pMenuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Show Dumper/Inserter Dialog")->GetId());
+	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnCheckIntegrityClick, this, m_pMenuTools->Append(wxNewId(), "Check ROM Integrity", nullptr, "Cheking Tool")->GetId());
 
 	m_pMenuBar->Append(m_pMenuTools, L"Tools");
 }
@@ -212,6 +213,18 @@ void EditorFrame::OnDumperInserter()
 	InsertDumpDialog(m_pEditor).ShowModal();
 }
 
+void EditorFrame::OnCheckIntegrity()
+{
+	//ToDo: Show result in FindResultWindow with the index of the
+	//first diference.
+	bool result = m_pEditor->CheckIntegrity();
+	wxString output_msg = wxString(L"ROM Integrity result:") << Moon::BitConverter::ToBooleanString(result);
+	wxString output_cap = result ? L"Yeah!" : L"Huh?";
+	long output_icon = result ? wxICON_EXCLAMATION : wxICON_ERROR;
+
+	wxMessageBox(output_msg, output_cap, output_icon);
+}
+
 void EditorFrame::OnInsertFile()
 {
 	OnSaveFile();
@@ -250,6 +263,12 @@ void EditorFrame::OnSaveFileClick(wxCommandEvent& event)
 void EditorFrame::OnDumperInserterClick(wxCommandEvent& event)
 {
 	OnDumperInserter();
+	event.Skip();
+}
+
+void EditorFrame::OnCheckIntegrityClick(wxCommandEvent& event)
+{
+	OnCheckIntegrity();
 	event.Skip();
 }
 

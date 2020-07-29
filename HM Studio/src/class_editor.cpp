@@ -25,6 +25,42 @@ bool Editor::PreviousFile()
 	return Open(m_Number - 1);
 }
 
+bool Editor::CheckIntegrity()
+{
+	size_t rom_length = std::min(m_RomOriginal.Length(), m_RomTranslated.Length()) / 4;
+
+	std::vector<uint32_t> original = m_RomOriginal.ReadBytes<uint32_t>(0, rom_length);
+	std::vector<uint32_t> translated = m_RomTranslated.ReadBytes<uint32_t>(0, rom_length);
+
+	uint32_t startBlock = m_Info.StartBlock / 4;
+	uint32_t startPointers = m_Info.StartPointers / 4;
+	uint32_t block_end = startBlock + (m_Info.BlockLenght / 4);
+	uint32_t pointers_end = startPointers + m_Info.Count;
+
+	for (size_t offset = 0; offset < rom_length; ++offset)
+	{
+		if (offset >= startBlock)
+		{
+			if (offset <= block_end)
+			{
+				continue;
+			}
+		}
+		if (offset >= startPointers)
+		{
+			if (offset <= pointers_end)
+			{
+				continue;
+			}
+		}
+
+		if (original[offset] != translated[offset])
+			return false;
+	}
+
+	return true;
+}
+
 FilesResults Editor::FindInFiles(std::string& search, bool useTable, bool translated)
 {
 	FilesResults results;	

@@ -39,6 +39,7 @@ public:
 	virtual void DumpAll(bool translated) { };
 	virtual void InsertFile() {};
 	virtual bool SaveText(const std::string& text) { return true; }
+	virtual bool CheckIntegrity();	
 	virtual size_t GetIndex() { return m_Index; }
 	virtual size_t GetCount() { return m_Count; }
 	virtual bool SetIndex(size_t index);	
