@@ -11,6 +11,8 @@ The support for HM FoMT and DS are not 100%
 ### For the next Release
 
 - [x] Make ScriptEditorFrame inherit from EditorFrame
+- [ ] Make ItemEditor inherit from Editor
+- [ ] Make ItemEditorFrame inherit from EditorFrame
 - [ ] Insert Items from dump.
 - [ ] Default ROM option.
 - [ ] Open ROM with default emulator.
