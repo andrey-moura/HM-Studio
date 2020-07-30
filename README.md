@@ -10,7 +10,7 @@ The support for HM FoMT and DS are not 100%
 
 ### For the next Release
 
-- [ ] Make ScriptEditorFrame inherit from EditorFrame
+- [x] Make ScriptEditorFrame inherit from EditorFrame
 - [ ] Insert Items from dump.
 - [ ] Default ROM option.
 - [ ] Open ROM with default emulator.
@@ -24,6 +24,9 @@ The support for HM FoMT and DS are not 100%
 
 ### For future releases
 
+* Use wxString instead of std::string in functions the code
+* Use wxString instead of std::string in files (change files enconding)
+* Make XML script files, instead of binnary scripts
 * Convert solution to CMake
 * Support opening random ROM with a text file configuration.
 * See the face and name of who is talking in a script (Reverse-Engineering).
