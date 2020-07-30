@@ -17,7 +17,7 @@ static uint8_t* insertScriptAlpha = new uint8_t[256]{ 0x00, 0x00, 0x00, 0x00, 0x
 
 EditorFrame::EditorFrame(const wxString& type, Editor* editor) : wxFrame(nullptr, wxID_ANY, type + L" Editor"), m_pEditor(editor), m_Type(type)
 {
-
+	SetFont(wxFontInfo(10).FaceName("Courier New"));
 }
 
 void EditorFrame::CreateMyToolBar()
@@ -44,6 +44,30 @@ void EditorFrame::CreateMyMenuBar()
 	SetMenuBar(m_pMenuBar);
 }
 
+void EditorFrame::CreateFileMenu()
+{
+	m_pMenuFile = new wxMenu();
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnGetTextFromClick, this, m_pMenuFile->Append(wxID_ANY, L"Get Text From...")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnSaveFileClick, this, m_pMenuFile->Append(wxID_ANY, L"Save\tCTRL-SHIFT-S")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnPrevFileClick, this, m_pMenuFile->Append(wxID_ANY, L"Previous\tCTRL-ALT-LEFT")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnProxFileClick, this, m_pMenuFile->Append(wxID_ANY, L"Next\tCTRL-ALT-RIGHT")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnInsertFileClick, this, m_pMenuFile->Append(wxID_ANY, L"Insert\tCTRL-SHIFT-E")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnOriginalHexEditor, this, m_pMenuFile->Append(wxID_ANY, L"Original In HexEditor")->GetId());
+	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnTranslatedHexEditor, this, m_pMenuFile->Append(wxID_ANY, L"Translated In HexEditor")->GetId());
+
+	m_pMenuBar->Append(m_pMenuFile, L"File");
+}
+
+void EditorFrame::CreateStringMenu()
+{
+	m_pMenuString = new wxMenu();
+	m_pMenuString->Bind(wxEVT_MENU, &EditorFrame::OnSaveStringClick, this, m_pMenuString->Append(wxID_ANY, L"Save\tCTRL-S")->GetId());
+	m_pMenuString->Bind(wxEVT_MENU, &EditorFrame::OnPrevStringClick, this, m_pMenuString->Append(wxID_ANY, L"Previous\tALT-Left")->GetId());
+	m_pMenuString->Bind(wxEVT_MENU, &EditorFrame::OnProxStringClick, this, m_pMenuString->Append(wxID_ANY, L"Next\tALT-Right")->GetId());
+
+	m_pMenuBar->Append(m_pMenuString, L"String");
+}
+
 void EditorFrame::CreateSearchMenu()
 {	
 	m_pMenuSearch = new wxMenu();
@@ -61,13 +85,18 @@ void EditorFrame::CreateViewMenu()
 	m_pMenuBar->Append(m_pMenuView, L"View");
 }
 
-void EditorFrame::CreateToolsMenu()
+void EditorFrame::CreateToolsMenu(bool padding, bool inserter, bool integrity, bool eol)
 {
 	m_pMenuTools = new wxMenu();
 
-	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxNewId(), "Remove Padding Spaces", nullptr, "Removes spaces after line end")->GetId());
-	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnDumperInserterClick, this, m_pMenuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Show Dumper/Inserter Dialog")->GetId());
-	m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnCheckIntegrityClick, this, m_pMenuTools->Append(wxNewId(), "Check ROM Integrity", nullptr, "Cheking Tool")->GetId());
+	if (padding)
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxNewId(), "Remove Padding Spaces", nullptr, "Removes spaces after line end")->GetId());
+	if (inserter)
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnDumperInserterClick, this, m_pMenuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Show Dumper/Inserter Dialog")->GetId());
+	if (integrity)
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnCheckIntegrityClick, this, m_pMenuTools->Append(wxNewId(), "Check ROM Integrity", nullptr, "Cheking Tool")->GetId());
+	if(eol)
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnEolCheckClick, this, m_pMenuTools->Append(wxNewId(), "EOL Checker", nullptr, "Cheking Tool")->GetId());
 
 	m_pMenuBar->Append(m_pMenuTools, L"Tools");
 }
@@ -82,6 +111,18 @@ void EditorFrame::UpdateIndex()
 	m_pStatusBar->SetStatusText(wxString(L"Index: ") << m_pEditor->GetIndex() << L"/" << m_pEditor->GetCount(), 0);
 }
 
+void EditorFrame::OnPrevString()
+{
+	m_pEditor->PreviousText();
+	UpdateText();
+}
+
+void EditorFrame::OnProxString()
+{
+	m_pEditor->NextText();
+	UpdateText();
+}
+
 void EditorFrame::OnPrevFile()
 {	
 	if (m_pEditor->PreviousFile())
@@ -92,6 +133,29 @@ void EditorFrame::OnProxFile()
 {
 	if (m_pEditor->NextFile())
 		UpdateText();
+}
+
+void EditorFrame::OnGetTextFrom()
+{
+	GetTextFromDialog dialog(m_pEditor);
+
+	if (dialog.ShowModal() == wxID_OK)
+	{
+		bool ret = false;
+
+		if (dialog.FromNumber())
+		{
+			ret = m_pEditor->GetTextFromNumber(dialog.GetNumber());
+		}
+		else
+		{
+			wxFileName filename = dialog.GetFileName();
+			ret = m_pEditor->GetTextFromPath(filename.GetFullPath().ToStdString());
+		}
+
+		if (!ret)
+			wxMessageBox(L"Failed to get text", L"Huh?", wxICON_ERROR);
+	}
 }
 
 void EditorFrame::SetIndex(size_t index)
@@ -195,12 +259,18 @@ void EditorFrame::ShowResultWindow(const FilesResults& results)
 		GetSizer()->Add(m_pFindResultsWindow, 1, wxEXPAND, 0);
 	}
 
+	m_pMenuView->FindItem(m_pMenuView->FindItem(L"Find Results"))->Check(true);	
 	m_pFindResultsWindow->SetFindResults(results);	
 	m_pFindResultsWindow->Show(true);
 
 	Layout();
 	this->Restore();
 	this->Raise();
+}
+
+void EditorFrame::OnOpenHexEditor(bool translated)
+{
+	wxExecute(wxString("MoonHex -f ") << "\"" << m_pEditor->GetPath(translated) << "\"");
 }
 
 void EditorFrame::ReplaceTxt(const wxString& search, const wxString& replace, bool useTable)
@@ -220,9 +290,14 @@ void EditorFrame::OnCheckIntegrity()
 	bool result = m_pEditor->CheckIntegrity();
 	wxString output_msg = wxString(L"ROM Integrity result:") << Moon::BitConverter::ToBooleanString(result);
 	wxString output_cap = result ? L"Yeah!" : L"Huh?";
-	long output_icon = result ? wxICON_EXCLAMATION : wxICON_ERROR;
+	long output_icon = result ? wxICON_INFORMATION : wxICON_ERROR;
 
 	wxMessageBox(output_msg, output_cap, output_icon);
+}
+
+void EditorFrame::OnEolCheckClick()
+{	
+	ShowResultWindow(m_pEditor->CheckEOL());
 }
 
 void EditorFrame::OnInsertFile()
@@ -233,7 +308,26 @@ void EditorFrame::OnInsertFile()
 
 void EditorFrame::OnShowResultWindow()
 {
-	m_pFindResultsWindow->Show(!m_pFindResultsWindow->IsShown());
+	if (m_pFindResultsWindow)
+		m_pFindResultsWindow->Show(!m_pFindResultsWindow->IsShown());
+}
+
+void EditorFrame::OnPrevStringClick(wxCommandEvent& event)
+{
+	OnPrevString();
+	event.Skip();
+}
+
+void EditorFrame::OnProxStringClick(wxCommandEvent& event)
+{
+	OnProxString();
+	event.Skip();
+}
+
+void EditorFrame::OnSaveStringClick(wxCommandEvent& event)
+{
+	OnSaveString();
+	event.Skip();
 }
 
 void EditorFrame::OnPrevFileClick(wxCommandEvent& event)
@@ -245,6 +339,24 @@ void EditorFrame::OnPrevFileClick(wxCommandEvent& event)
 void EditorFrame::OnProxFileClick(wxCommandEvent& event)
 {
 	OnProxFile();
+	event.Skip();
+}
+
+void EditorFrame::OnOriginalHexEditor(wxCommandEvent& event)
+{
+	OnOpenHexEditor(false);
+	event.Skip();
+}
+
+void EditorFrame::OnTranslatedHexEditor(wxCommandEvent& event)
+{
+	OnOpenHexEditor(true);
+	event.Skip();
+}
+
+void EditorFrame::OnGetTextFromClick(wxCommandEvent& event)
+{
+	OnGetTextFrom();
 	event.Skip();
 }
 
@@ -269,6 +381,12 @@ void EditorFrame::OnDumperInserterClick(wxCommandEvent& event)
 void EditorFrame::OnCheckIntegrityClick(wxCommandEvent& event)
 {
 	OnCheckIntegrity();
+	event.Skip();
+}
+
+void EditorFrame::OnEolCheckClick(wxCommandEvent& event)
+{
+	OnEolCheckClick();
 	event.Skip();
 }
 

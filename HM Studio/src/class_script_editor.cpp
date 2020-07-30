@@ -34,16 +34,16 @@ ScriptEditor::ScriptEditor(const id& id) : Editor(id)
 	}
 }
 
-ScriptFlags ScriptEditor::OpenScript(size_t scriptNum)
+bool ScriptEditor::Open(uint32_t number)
 {
-	std::vector<uint8_t> dataOri = File::ReadAllBytes(GetPath(scriptNum, false));
+	std::vector<uint8_t> dataOri = File::ReadAllBytes(GetPath(number, false));
 
 	Script script(dataOri);
 
 	if (!script.HaveText())	
-		return ScriptFlags::ERROR_NOTEXT;
+		return false;
 		
-	std::vector<uint8_t> data = File::ReadAllBytes(GetPath(scriptNum, true));
+	std::vector<uint8_t> data = File::ReadAllBytes(GetPath(number, true));
 
 	m_ScriptOriginal.SetData(dataOri);
 	m_ScriptTranslated.SetData(data);
@@ -58,12 +58,12 @@ ScriptFlags ScriptEditor::OpenScript(size_t scriptNum)
 	m_RomOriginal.InputTextWithVariables(m_Original);
 
 	m_Index = 0;
-	m_Number = scriptNum;
-	m_Size = m_Original.size();
+	m_Number = number;
+	m_Count = m_Original.size();
 
 	m_Opened = true;	
 
-	return ScriptFlags::SUCCESS;
+	return true;
 }
 
 std::string ScriptEditor::GetCurOriginal()
@@ -76,34 +76,10 @@ std::string ScriptEditor::GetCurTranslated()
 	return m_Translated[m_Index];
 }
 
-bool ScriptEditor::ProxText()
-{
-	if (m_Index < m_Size - 1)
-	{
-		++m_Index;
-
-		return true;
-	}
-
-	return false;
-}
-
-bool ScriptEditor::PrevText()
-{
-	if (m_Index > 0)
-	{
-		--m_Index;
-
-		return true;
-	}
-
-	return false;
-}
-
 bool ScriptEditor::SaveText(const std::string& text)
 {
 	m_Translated[m_Index] = text;
-	return ProxText();
+	return NextText();
 }
 
 void ScriptEditor::UpdateScript()
@@ -119,7 +95,7 @@ void ScriptEditor::SetText(const std::vector<std::string>& text)
 	m_RomTranslated.InputTextWithVariables(m_Translated);
 }
 
-void ScriptEditor::SaveScript()
+void ScriptEditor::SaveFile()
 {
 	std::vector<std::string> buffer = m_Translated;
 
@@ -128,6 +104,22 @@ void ScriptEditor::SaveScript()
 	m_ScriptTranslated.UpdateText(buffer);
 
 	File::WriteAllBytes(GetPath(true), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
+}
+
+bool ScriptEditor::GetTextFromPath(const std::string& path)
+{
+	Script script = Moon::File::ReadAllBytes<byte>(path);
+
+	if (script.Count() != m_ScriptTranslated.Count())
+		return false;
+
+	m_Translated = script.GetText();
+	return true;
+}
+
+bool ScriptEditor::GetTextFromNumber(size_t number)
+{
+	return GetTextFromPath(GetPath(number, true));
 }
 
 void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::string& replace)
@@ -171,16 +163,6 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 
 		File::WriteAllBytes(path, script.GetData(), script.GetRiffLenght());
 	}
-}
-
-std::string ScriptEditor::GetPath(size_t number, bool translated) const
-{			
-	return (translated ? m_PathTransLeft : m_PathOrigLeft) + std::to_string(number) + m_PathRight;
-}
-
-std::string ScriptEditor::GetPath(bool translated) const
-{
-	return GetPath(m_Number, translated);
 }
 
 void ScriptEditor::GetRomInfo()
@@ -639,33 +621,33 @@ bool ScriptEditor::InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSi
 	return flag;
 }
 
-ScriptFlags ScriptEditor::InsertFile(Script& script, uint32_t number)
+void ScriptEditor::InsertFile()
 {	
 	uint32_t oldOffset = GetOffset(true);
 	uint32_t oldSize = ScriptSize(oldOffset, true);
-	uint32_t newSize = script.GetRiffLenght();	
+	uint32_t newSize = m_ScriptTranslated.GetRiffLenght();	
 
 	if (newSize <= oldSize)
 	{
 		if (oldSize != std::string::npos)
 		{
-			InsertSmaller(script, oldOffset, oldSize);
-			return ScriptFlags::INSERT_LESS;
+			InsertSmaller(m_ScriptTranslated, oldOffset, oldSize);
+			return;// ScriptFlags::INSERT_LESS;
 		}
 
-		if (InsertVerify(script, oldOffset, newSize))
-			return ScriptFlags::INSERT_VERIFY;
+		if (InsertVerify(m_ScriptTranslated, oldOffset, newSize))
+			return;// ScriptFlags::INSERT_VERIFY;
 	}
 	else if (newSize > oldSize)
 	{
-		if (InsertLarger(script, oldOffset, oldSize, newSize))
-			return ScriptFlags::INSERT_LARGER;
+		if (InsertLarger(m_ScriptTranslated, oldOffset, oldSize, newSize))
+			return; // ScriptFlags::INSERT_LARGER;
 	}	 
 
-	if (InsertFind(script, oldOffset, oldSize, newSize))
-		return ScriptFlags::INSERT_FIND;
+	if (InsertFind(m_ScriptTranslated, oldOffset, oldSize, newSize))
+		return; // ScriptFlags::INSERT_FIND;
 
-	return ScriptFlags::INSERT_NONE;
+	//return ScriptFlags::INSERT_NONE;
 }
 
 void ScriptEditor::InsertAll()
@@ -733,14 +715,6 @@ void ScriptEditor::InsertAll()
 	m_RomTranslated.WriteBytes(scripts_pointers);
 	m_RomTranslated.Seek(m_Info.StartBlock);
 	m_RomTranslated.Write(script_block.data(), script_block.size());
-}
-
-ScriptFlags ScriptEditor::CheckAndGoScript(size_t index)
-{
- 	if (index > m_Info.Count)
-		return ScriptFlags::ERROR_OUTOFRANGE;
-
-	return OpenScript(index);
 }
 
 FilesResults ScriptEditor::CheckEOL()

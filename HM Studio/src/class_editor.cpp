@@ -25,6 +25,24 @@ bool Editor::PreviousFile()
 	return Open(m_Number - 1);
 }
 
+bool Editor::PreviousText()
+{
+	if (m_Index == 0)
+		return false;
+
+	m_Index--;
+	return true;
+}
+
+bool Editor::NextText()
+{
+	if (m_Index == m_Count -1)
+		return false;
+
+	m_Index++;
+	return true;
+}
+
 bool Editor::CheckIntegrity()
 {
 	size_t rom_length = std::min(m_RomOriginal.Length(), m_RomTranslated.Length()) / 4;
@@ -132,4 +150,14 @@ bool Editor::SetIndex(size_t index)
 	}
 
 	return false;
+}
+
+std::string Editor::GetPath(const size_t& number, const bool& translated) const
+{
+	return (translated ? m_PathTransLeft : m_PathOrigLeft) + std::to_string(number) + m_PathRight;
+}
+
+std::string Editor::GetPath(const bool& translated) const
+{
+	return GetPath(m_Number, translated);
 }

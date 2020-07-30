@@ -11,7 +11,6 @@
 
 #include "window_find_results.hpp"
 #include "frame_search_script.hpp"
-#include "dialog_script_text.hpp"
 #include "dialog_dump_insert.hpp"
 
 #include "class_rom_file.hpp"
@@ -21,8 +20,9 @@
 #include "class_util_string.hpp"
 #include "class_script_editor.hpp"
 #include "class_spell_checker.hpp"
+#include "frame_editor.hpp"
 
-class ScriptEditorFrame : public wxFrame
+class ScriptEditorFrame : public EditorFrame
 {
 public:
 	ScriptEditorFrame(id i);
@@ -32,38 +32,16 @@ public:
 //Events
 private:	
 	void tScritpTranslatedOnModified(wxStyledTextEvent& event);
-	void tScriptTranslatedOnUi(wxStyledTextEvent& event);	
-	void OnProxScriptClick(wxCommandEvent& event);
-	void GoScript();
-	void SaveText();
-	void PrevText();
-	void ProxText();
-	void HorizontalMode();
-	void GetTextFrom();	
-	void InsertScript();
-	void OnSTCLeftDown(wxMouseEvent& event);
-	void OnResultClick(wxCommandEvent& event);	
-	void SetTextRange();
-
-	bool ScriptMenuTools(int id);
-	bool StringMenuTools(int id);
-	bool OthersMenuTools(int id);
-
-	void OnMenuClick(wxCommandEvent& event);
-	void OnNavigationClick(wxCommandEvent& event);
-	void OnToolBarClick(wxCommandEvent& event);
-	void OnDumpInsertClick(wxCommandEvent& event);
+	void tScriptTranslatedOnUi(wxStyledTextEvent& event);
+	void OnResultClick(wxCommandEvent& event);
 	void OnConvertEOLClick(wxCommandEvent& event);
-	void OnCheckEOLClick(wxCommandEvent& event);
 	void OnCheckCodeClick(wxCommandEvent& event);
 	void OnSetEventClick(wxCommandEvent& event);
-//Text Editor Globals					
-	std::pair<int, int> m_IndicatorPos;	
-
-	void UpdateStatusText(wxStyledTextCtrl* stc);	
+	void SetTextRange();
+	void UpdateStatusText(wxStyledTextCtrl* stc);
+	void OnHorizontalModeClick(wxCommandEvent& event);
 //Text save
-	void ConfigureSTC(STC* stc, const RomFile& rom);
-	void ShowResultWindow(const FilesResults& results);
+	void ConfigureSTC(STC* stc, const RomFile& rom);	
 	size_t GetNumberFromResult(const SearchResult& result);
 	size_t GetIndexFromResult(const SearchResult& result, size_t clicked);
 private:
@@ -73,19 +51,17 @@ private:
 private:
 	void OpenScript(size_t index);
 	void SaveScript();		
-	void UpdateScript();
-	void CheckAllCode();
-	void CheckAndGoScript(size_t number, size_t index = 0);
+	void UpdateScript();	
 	void FindText();
 public:
 	void ScriptTextRange(size_t from, size_t to, size_t script);
-private:
-	ScriptEditor m_Editor;	
+public:
+	virtual void OnSaveString() override;
+	virtual void UpdateText() override;
 //Forms
 
 //Text manipulation
-private:
-	void UpdateText();		
+private:	
 	std::vector<size_t> m_FindPos;
 	size_t m_FindIndex;	
 	wxFileName m_ScriptDic;
@@ -95,20 +71,13 @@ private:
 	void UpdateScriptDic();
 //GUI
 private:
-	void CreateMyToolBar();
-
 	void CreateGUIControls();
 	wxToolBar* m_pToolBar = nullptr;
 	wxImage m_ImgPrevScript;
 
 	void SetEditorVertical();
-	void SetEditorHorizontal();
-	void OpenInHexEditor(int id);
+	void SetEditorHorizontal();	
 	bool m_Vertical = true;	
-
-	wxMenuItem* m_pMenuString_Restore = nullptr;
-	wxStatusBar* statusBar = nullptr;
-	wxMenuBar* m_pMenuBar = nullptr;
 
 	//Editor	
 	STC* tScriptTranslated = nullptr;
@@ -122,31 +91,6 @@ private:
 
 	wxBoxSizer* global_sizer = nullptr;	
 	FindResultsWindow* m_pFindResultsWindow = nullptr;	
-
-	enum ID_MENU {
-
-		TOOLS_TEXTRANGE = 11000
-	};
-
-	enum ID {
-		ID_SCRIPT_NAV_INPUT = 10001,
-		ID_SCRGO,
-		ID_SCRPREV,
-		ID_SCRPROX,
-		ID_SCRSAVE,
-		ID_SCRINSERT,
-		ID_SCRCODE,
-		ID_STRSAVE,
-		ID_STRPREV,
-		ID_STRPROX,
-		ID_STRRESTORE,
-		ID_FINDNEXT,
-		ID_HVMODE,
-		ID_HEXORIG,
-		ID_HEXTRANS,
-		ID_TEXTRANGE,
-		ID_SEARCHWINDOW
-	};
 };
 
 class DialogTextRange : public wxDialog

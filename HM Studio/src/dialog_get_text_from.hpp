@@ -15,32 +15,28 @@
 #include "class_rom_file.hpp"
 #include "class_file.hpp"
 
-class TextFromScriptDialog : public wxDialog
+class GetTextFromDialog : public wxDialog
 {
 public:
-	TextFromScriptDialog(ScriptEditor& editor);
+	GetTextFromDialog(Editor* editor);
 private:
-	ScriptEditor& m_Editor;
+	Editor* m_pEditor;
 	size_t m_ScriptCount;
 	size_t m_RomId;
-
-	std::vector<std::string> m_Text;
+	bool m_ChangedByDialog = false;
 public:
-	std::vector<std::string> GetText() { return m_Text; }
+	bool FromNumber() { return m_pFromNumberText->GetLineLength(0); }
+	wxFileName GetFileName() { return m_pFromFilePicker->GetFileName(); }
+	size_t GetNumber() { return std::stoi(m_pFromNumberText->GetValue().ToStdString()); }
 private:
 	void CreateGUIControls();
 	
 	wxTextCtrl* m_pFromNumberText = nullptr;
-	wxChoice*   m_pFromNumberChoice = nullptr;	
-
-	wxFilePickerCtrl* m_pFromFilePicker = nullptr;	
-
+	wxFilePickerCtrl* m_pFromFilePicker = nullptr;
 	wxButton* m_pGoButton = nullptr;
-
 	wxBoxSizer* m_pRootSizer = nullptr;
 private:
-	void GetScriptText(const std::string& path);
-private:	
-	void OnGoButton(wxCommandEvent& event);
+	void OnNumberChange(wxCommandEvent& event);
+	void OnFilePickerChange(wxCommandEvent& event);
 };
 
