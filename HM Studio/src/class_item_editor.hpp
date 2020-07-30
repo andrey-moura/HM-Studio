@@ -4,6 +4,7 @@
 #include <string>
 
 #include "class_item.hpp"
+#include "class_editor.hpp"
 #include "class_rom_file.hpp"
 #include "namespace_math.hpp"
 
@@ -24,10 +25,10 @@ struct ItemInfo
 	uint32_t m_BlockLenght;
 };
 
-class ItemEditor
+class ItemEditor : public Editor
 {	
 public:
-	ItemEditor(RomFile& original, RomFile& translated);
+	ItemEditor(const id& i);
 
 	void OpenItens(uint8_t index);
 
@@ -51,16 +52,15 @@ public:
 	size_t GetInfoIndex() { return m_InfoIndex; }
 	const ItemInfo& GetInfo() const { return m_Infos[m_InfoIndex]; }
 	const std::vector<Item>& GetCurItens(bool translated) const { return translated ? m_Translated : m_Original; }
-	void Dump() const;
-	void DumpImages() const;
+	void Dump();
+	void DumpImages();
+public:	
+	virtual bool GetTextFromPath(const std::string& path);
 private:
 	void GetItens(bool translated);
 
 	bool IsInsideBlock(uint32_t offset);
 private:
-	RomFile& m_RomOriginal;
-	RomFile& m_RomTranslated;
-
 	std::vector<ItemInfo> m_Infos;
 	uint8_t m_InfoIndex;
 
@@ -68,7 +68,5 @@ private:
 	std::vector<Item> m_Translated;
 
 	uint32_t m_Adresses[5];
-
-	uint8_t m_Index;	
 };
 

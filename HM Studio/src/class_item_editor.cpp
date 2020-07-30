@@ -6,7 +6,7 @@ ItemInfo::ItemInfo(const std::string& name, uint32_t wpi, uint8_t idIndex, uint8
 
 }
 
-ItemEditor::ItemEditor(RomFile& original, RomFile& translated) : m_RomOriginal(original), m_RomTranslated(translated)
+ItemEditor::ItemEditor(const id& i) : Editor(i)
 {
 	GetItensInfos();
 }
@@ -82,6 +82,8 @@ void ItemEditor::OpenItens(uint8_t index)
 
 	GetItens(true);
 	GetItens(false);
+
+	m_Count = m_Infos[m_InfoIndex].m_Count;
 }
 
 void ItemEditor::GetItens(bool translated)
@@ -128,7 +130,7 @@ void ItemEditor::GetItens(bool translated)
 
 			if (IsInsideBlock(nameOffset))
 			{
-				itens[i].SetName(textBlock + (nameOffset - m_Infos[m_InfoIndex].m_StartBlock));
+				itens[i].SetName(std::string_view(textBlock + (nameOffset - m_Infos[m_InfoIndex].m_StartBlock)));
 			}
 			else
 			{
@@ -152,7 +154,7 @@ void ItemEditor::GetItens(bool translated)
 
 		if (IsInsideBlock(descriptionOffset))
 		{
-			itens[i].SetDescription((textBlock + (descriptionOffset - m_Infos[m_InfoIndex].m_StartBlock)));
+			itens[i].SetDescription(std::string_view((textBlock + (descriptionOffset - m_Infos[m_InfoIndex].m_StartBlock))));
 		}
 		else
 		{
@@ -167,7 +169,7 @@ void ItemEditor::GetItens(bool translated)
 	delete[] dataBlock;
 }
 
-void ItemEditor::Dump() const
+void ItemEditor::Dump()
 {
 	uint32_t size = 0;
 
@@ -202,7 +204,7 @@ void ItemEditor::Dump() const
 	delete[] block;
 }
 
-void ItemEditor::DumpImages() const
+void ItemEditor::DumpImages()
 {
 	uint32_t size = m_Infos[m_InfoIndex].m_Count*((16*16)/2) + ((16*2)* m_Infos[m_InfoIndex].m_Count);
 
@@ -276,6 +278,26 @@ void ItemEditor::InsertItens()
 	m_RomTranslated.Write(dataBlock, bpi * m_Infos[m_InfoIndex].m_Count);
 
 	m_RomTranslated.Flush();
+}
+
+bool ItemEditor::GetTextFromPath(const std::string& path)
+{
+	std::string file = Moon::File::ReadAllText(path);
+
+	size_t offset = 0;
+
+	for (size_t i = 0; i < m_Count; ++i)
+	{
+		std::string_view name = file.c_str() + offset;
+		offset += name.size() + 1;
+		std::string_view description = file.c_str() + offset;
+		offset += description.size() + 1;
+
+		m_Translated[i].SetName(name);
+		m_Translated[i].SetDescription(description);
+	}
+
+	return false;
 }
 
 bool ItemEditor::IsInsideBlock(uint32_t offset)

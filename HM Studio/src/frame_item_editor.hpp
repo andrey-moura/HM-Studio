@@ -18,28 +18,25 @@
 #include "class_stc.hpp"
 #include "control_graphics_view.hpp"
 
+#include "frame_editor.hpp"
 #include "class_item.hpp"
 #include "class_rom_file.hpp"
 #include "class_item_editor.hpp"
 
-class ItemEditorFrame : public wxFrame
+class ItemEditorFrame : public EditorFrame
 {
 public:
 	ItemEditorFrame(id id);
 	~ItemEditorFrame();
-private:		
-	RomFile m_RomOriginal;
-	RomFile m_RomTranslated;
-
+private:
 	Graphics m_Graphics;
-
-	ItemEditor m_Editor;
-
 	bool m_IsOpen = false;
 
 	void UpdateItem();
 	GraphicsInfo GetInfo();
 	void AddToGraphicsFrame();
+private:
+	virtual void OnGetTextFrom() override;
 //Events
 private:
 	void OnFileClick(wxCommandEvent& event);

@@ -11,9 +11,9 @@ The support for HM FoMT and DS are not 100%
 ### For the next Release
 
 - [x] Make ScriptEditorFrame inherit from EditorFrame
-- [ ] Make ItemEditor inherit from Editor
-- [ ] Make ItemEditorFrame inherit from EditorFrame
-- [ ] Insert Items from dump.
+- [x] Make ItemEditor inherit from Editor
+- [x] Make ItemEditorFrame inherit from EditorFrame
+- [x] Insert Items from dump.
 - [ ] Default ROM option.
 - [ ] Open ROM with default emulator.
 - [ ] Open Project Folder.
@@ -27,12 +27,12 @@ The support for HM FoMT and DS are not 100%
 ### For future releases
 
 * Use wxString instead of std::string in functions the code
-* Use wxString instead of std::string in files (change files enconding)
-* Make XML script files, instead of binnary scripts
+* Use wxString instead of std::string in files (change files encoding)
+* Make XML script files, instead of binary scripts
 * Convert solution to CMake
 * Support opening random ROM with a text file configuration.
 * See the face and name of who is talking in a script (Reverse-Engineering).
-* Change the stamina/fatigue values of fridge itens (Reverse-Engineering).
+* Change the stamina/fatigue values of fridge tens (Reverse-Engineering).
 * Delete and re-write all code in GraphicsEditor, to make it load all graphics automatically (Reverse-Engineering).
 
 Things marked with (Reverse-Engineering) needs research to be implemented. If you know reverse-engineering, please, feel free to try.

@@ -22,6 +22,8 @@ private:
 public:
 	void SetName(const std::string& name) { m_Name = name; }
 	void SetDescription(const std::string& description) { m_Description = description; }
+	void SetName(const std::string_view& name) { m_Name = name; }
+	void SetDescription(const std::string_view& description) { m_Description = description; }
 
 	const std::string& GetName() const { return m_Name; }
 	const std::string& GetDescription() const { return m_Description; }

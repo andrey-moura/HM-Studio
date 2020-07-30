@@ -1,6 +1,6 @@
 #include "frame_item_editor.hpp"
 
-ItemEditorFrame::ItemEditorFrame(id id) : wxFrame(nullptr, wxID_ANY, "Item Editor"), m_RomOriginal(id, false), m_RomTranslated(id, true), m_Editor(m_RomOriginal, m_RomTranslated), m_Graphics(16, 16)
+ItemEditorFrame::ItemEditorFrame(id id) : EditorFrame(L"Item", new ItemEditor(id)), m_Graphics(16, 16)
 {
 	CreateGUIControls();	
 }
@@ -11,38 +11,38 @@ ItemEditorFrame::~ItemEditorFrame()
 
 void ItemEditorFrame::UpdateItem()
 {		
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
-		m_pOrigItemName->SetLabel(m_Editor.GetName(false));
+		m_pOrigItemName->SetLabel(((ItemEditor*)m_pEditor)->GetName(false));
 	}
 
-	m_pOrigItemDescription->SetLabel(m_Editor.GetDescription(false));
+	m_pOrigItemDescription->SetLabel(((ItemEditor*)m_pEditor)->GetDescription(false));
 
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
-		m_pItemName->SetValue(m_Editor.GetName(true));
+		m_pItemName->SetValue(((ItemEditor*)m_pEditor)->GetName(true));
 	}
 
-	m_pItemText->SetText(m_Editor.GetDescription(true));
+	m_pItemText->SetText(((ItemEditor*)m_pEditor)->GetDescription(true));
 
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
-		m_Graphics.SetImgOffset(m_Editor.GetImgAdress(true));
-		m_Graphics.SetPalOffset(m_Editor.GetPalAdress(true));
+		m_Graphics.SetImgOffset(((ItemEditor*)m_pEditor)->GetImgAdress(true));
+		m_Graphics.SetPalOffset(((ItemEditor*)m_pEditor)->GetPalAdress(true));
 
-		m_Graphics.LoadFromRom(m_RomTranslated);
+		m_Graphics.LoadFromRom(m_pEditor->GetRom(true));
 		m_pItemIconView->SetGraphics(&m_Graphics);
 	}	
 }
 
 GraphicsInfo ItemEditorFrame::GetInfo()
 {
-	return GraphicsInfo(m_Editor.GetImgAdress(true), m_Editor.GetPalAdress(true));
+	return GraphicsInfo(((ItemEditor*)m_pEditor)->GetImgAdress(true), ((ItemEditor*)m_pEditor)->GetPalAdress(true));
 }
 
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 {	
-	m_Editor.OpenItens(event.GetId() - 5051);
+	((ItemEditor*)m_pEditor)->OpenItens(event.GetId() - 5051);
 	UpdateItem();
 
 	if (!m_IsOpen)
@@ -57,19 +57,19 @@ void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 
 void ItemEditorFrame::OnProxClick(wxCommandEvent& event)
 {
-	m_Editor.ProxItem();
+	((ItemEditor*)m_pEditor)->ProxItem();
 	UpdateItem();
 }
 
 void ItemEditorFrame::OnPrevClick(wxCommandEvent& event)
 {
-	m_Editor.PrevItem();
+	((ItemEditor*)m_pEditor)->PrevItem();
 	UpdateItem();
 }
 
 void ItemEditorFrame::OnSaveClick(wxCommandEvent& event)
 {
-	m_Editor.Save(m_pItemName->GetValue().ToStdString(), m_pItemText->GetText().ToStdString());
+	((ItemEditor*)m_pEditor)->Save(m_pItemName->GetValue().ToStdString(), m_pItemText->GetText().ToStdString());
 	UpdateItem();
 
 	event.Skip();
@@ -77,16 +77,16 @@ void ItemEditorFrame::OnSaveClick(wxCommandEvent& event)
 
 void ItemEditorFrame::OnInsertClick(wxCommandEvent& event)
 {
-	m_Editor.InsertItens();
+	((ItemEditor*)m_pEditor)->InsertItens();
 
 	event.Skip();
 }
 
 void ItemEditorFrame::AddToGraphicsFrame()
 {
-	GraphicsTreeParent parent(m_Editor.GetInfo().m_Name);
+	GraphicsTreeParent parent(((ItemEditor*)m_pEditor)->GetInfo().m_Name);
 
-	const auto& itens = m_Editor.GetCurItens(true);
+	const auto& itens = ((ItemEditor*)m_pEditor)->GetCurItens(true);
 
 	for (const Item& item : itens)
 	{
@@ -96,11 +96,19 @@ void ItemEditorFrame::AddToGraphicsFrame()
 	m_GraphicsFrame->AppendGraphics(parent);
 }
 
+void ItemEditorFrame::OnGetTextFrom()
+{
+	wxString path = wxLoadFileSelector(L"Item", L"itens");
+
+	if (!path.empty())
+		m_pEditor->GetTextFromPath(path.ToStdString());
+}
+
 void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
 {
 	if (m_GraphicsFrame == nullptr)
 	{
-		m_GraphicsFrame = new GraphicsEditorFrame(m_RomOriginal.Id);
+		m_GraphicsFrame = new GraphicsEditorFrame(m_pEditor->GetRom(true).Id);
 		m_GraphicsFrame->SetTitle("Item Images");
 
 		AddToGraphicsFrame();
@@ -113,14 +121,14 @@ void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
 
 void ItemEditorFrame::OnDumpClick(wxCommandEvent& event)
 {
-	m_Editor.Dump();
+	((ItemEditor*)m_pEditor)->Dump();
 
 	event.Skip();
 }
 
 void ItemEditorFrame::OnDumpImgClick(wxCommandEvent& event)
 {
-	m_Editor.DumpImages();
+	((ItemEditor*)m_pEditor)->DumpImages();
 
 	event.Skip();
 }
@@ -133,8 +141,9 @@ void ItemEditorFrame::CreateGUIControls()
 
 
 	wxMenu* menuFile = new wxMenu();
+	menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnGetTextFromClick, this, menuFile->Append(wxID_ANY, L"Get Text From...")->GetId());
 
-	const std::vector<ItemInfo> infos = m_Editor.GetInfos();
+	const std::vector<ItemInfo> infos = ((ItemEditor*)m_pEditor)->GetInfos();
 
 	for (size_t i = 0; i < infos.size(); ++i)
 	{
@@ -156,7 +165,7 @@ void ItemEditorFrame::CreateGUIControls()
 
 	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
 
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pItemName = new wxTextCtrl(this, wxID_ANY);
 
 	m_pItemText = new STC(this, wxID_ANY);
@@ -184,7 +193,7 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pGUI_navigationSizer->AddSpacer(4);
 	m_pGUI_navigationSizer->Add(m_pProxText, 0, 0, 0);
 
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pOrigItemName = new wxStaticText(this, wxID_ANY, "");
 
 	m_pOrigItemDescription = new wxStaticText(this, wxID_ANY, "");
@@ -197,7 +206,7 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemIconView->Bind(wxEVT_LEFT_DCLICK, &ItemEditorFrame::OnImageDoubleClick, this);
 
 	wxBoxSizer* sizer10 = new wxBoxSizer(wxVERTICAL);
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 		sizer10->Add(m_pOrigItemName, 0, wxALL, 4);
 	sizer10->Add(m_pOrigItemDescription, 0, wxALL, 4);
 
@@ -209,7 +218,7 @@ void ItemEditorFrame::CreateGUIControls()
 
 	m_pRootSizer = new wxBoxSizer(wxVERTICAL);
 
-	if (m_RomOriginal.Console == console::GBA)
+	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pRootSizer->Add(m_pItemName, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pItemText, 1, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pGUI_navigationSizer, 0, wxALL | wxEXPAND, 4);
