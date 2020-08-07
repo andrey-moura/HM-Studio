@@ -132,7 +132,7 @@ void LetterEditorFrame::STCKeyUp(wxKeyEvent& event)
 
 void LetterEditorFrame::StcOnUi(wxStyledTextEvent& event)
 {
-	m_pEditor->SetIndex(((STC*)event.GetEventObject())->GetCurrentLine());
+	m_pEditor->SetIndex(((STC*)event.GetEventObject())->GetCurrentLine()+1);
 	m_pEditor->SetCount(((STC*)event.GetEventObject())->GetLineCount());
 
 	UpdateIndex();
