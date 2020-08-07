@@ -21,6 +21,27 @@ EditorFrame::EditorFrame(Editor* editor) : m_pEditor(editor), wxFrame(nullptr, w
 {
 	s_StartFont = GetFont();
 	SetFont(wxFontInfo(10).FaceName("Courier New"));
+
+	wxFileName fn;
+	fn.SetPath(m_pEditor->GetEditorDir());
+	fn.AppendDir(L"Backup");
+	fn.SetName(L"backup.temp");
+
+	m_BackupPath = fn.GetFullPath();
+
+	if (!fn.DirExists())
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+}
+
+void EditorFrame::CheckBackup()
+{
+	if (wxFileExists(m_BackupPath))
+	{
+		wxString backup;
+		Moon::File::ReadAllText(m_BackupPath.ToStdWstring(), const_cast<wxStdWideString&>(backup.ToStdWstring()));
+
+		this->OnResumeBackup(backup);
+	}
 }
 
 void EditorFrame::CreateMyToolBar(bool prev, bool next, bool go, bool save, bool insert)
@@ -241,7 +262,10 @@ void EditorFrame::OnGoFile()
 }
 
 void EditorFrame::OnSaveFile()
-{
+{	
+	if (wxFileExists(m_BackupPath))
+		wxRemoveFile(m_BackupPath);
+
 	m_pEditor->SaveFile();
 }
 
@@ -327,6 +351,11 @@ void EditorFrame::ShowResultWindow(const FilesResults& results)
 	Layout();
 	this->Restore();
 	this->Raise();
+}
+
+void EditorFrame::BackupText(const wxString& text)
+{
+	Moon::File::WriteAllText(m_BackupPath.ToStdWstring(), text.ToStdWstring());
 }
 
 void EditorFrame::OnOpenHexEditor(bool translated)

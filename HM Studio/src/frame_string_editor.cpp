@@ -33,9 +33,9 @@ StringEditor::StringEditor(const id& i) : Editor(i, L"String")
 			m_Files.insert(std::pair(index, offset));
 			++index;
 		}
-	}
+	}	
 
-	m_Info.Count = files.size();
+	m_Info.Count = files.size();	
 }
 
 bool StringEditor::Open(const wxString& path)
@@ -336,8 +336,7 @@ const RomString& StringEditor::GetCurrentText()
 StringEditorFrame::StringEditorFrame(const id& i) : EditorFrame(new StringEditor(i))
 {
 	CreateGUIControls();
-
-	GoFile(L"104AB0,1B9");
+	CheckBackup();	
 }
 
 void StringEditorFrame::OnGoFile()
@@ -364,7 +363,36 @@ void StringEditorFrame::OnSaveString()
 {
 	if (((StringEditor*)m_pEditor)->Save(m_pTextEditor->GetText()))
 	{
+		wxString backup;
+		backup.reserve(m_pEditor->GetEditorInfo().BlockLenght);
+		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().StartBlock, (sizeof uint32_t) / (sizeof WCHAR));		
+		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().BlockLenght, (sizeof uint32_t) / (sizeof WCHAR));
+
+		for (const RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
+		{
+			backup.append(str.string);
+			backup.append(1, '\0');
+		}
+
+		BackupText(backup);
+
 		UpdateText();
+	}
+}
+
+void StringEditorFrame::OnResumeBackup(const wxString& backup)
+{
+	const wchar_t* backup_data = backup.data();
+	EditorInfo& info = m_pEditor->GetEditorInfo();
+
+	((StringEditor*)m_pEditor)->Open(*(uint32_t*)(backup_data), ((uint32_t*)backup_data)[1]);
+
+	backup_data += (2 * sizeof uint32_t) / sizeof backup_data[0];
+
+	for (RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
+	{
+		str.string = backup_data;
+		backup_data += str.string.size() + 1;
 	}
 }
 

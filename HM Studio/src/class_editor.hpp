@@ -58,6 +58,9 @@ public:
 	virtual void GetRomInfo() {};
 	virtual const std::string& GetType() const { return m_Type; }
 	virtual const std::string& GetExt() const { return m_FileExt; }
+	const wxString& GetEditorDir() const { return m_EditorDir; }
+	const EditorInfo& GetEditorInfo() const { return m_Info; }
+	EditorInfo& GetEditorInfo() { return m_Info; }
 	virtual bool GetTextFromNumber(size_t number) { return false; }
 	virtual bool GetTextFromPath(const std::string& path) { return false; }
 

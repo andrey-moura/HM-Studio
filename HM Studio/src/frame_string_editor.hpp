@@ -46,6 +46,8 @@ private:
 	wxString m_PathFormat;	
 public:
 	const RomString& GetCurrentText();
+	const std::vector<RomString>& GetStrings() const { return m_Strings; }
+	std::vector<RomString>& GetStrings() { return m_Strings; }
 	void Open(uint32_t start, uint32_t size);
 	bool Open(const wxString& path);
 	bool Save(const wxString& str);	
@@ -64,6 +66,7 @@ private:
 	virtual void OnGoFile() override;
 	virtual void OnSaveString() override;
 	virtual void UpdateText() override;	
+	virtual void OnResumeBackup(const wxString& bakcup) override;
 private:
 	void GoFile(const wxString& offset);
 private:

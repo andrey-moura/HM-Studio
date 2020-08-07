@@ -29,6 +29,8 @@ protected:
 	void CreateButtonsSizer();
 	void UpdateIndex();	
 	void ShowResultWindow(const FilesResults& results);
+	void BackupText(const wxString& text);
+	void CheckBackup();
 protected:
 	wxToolBar* m_pToolBar = nullptr;
 	wxMenuBar* m_pMenuBar = nullptr;
@@ -45,6 +47,7 @@ protected:
 	FindResultsWindow* m_pFindResultsWindow = nullptr;	
 	std::vector<size_t> m_FindPositions;
 	size_t m_FindIndex;
+	wxString m_BackupPath;
 //Handlers
 protected:
 //Override this
@@ -93,6 +96,8 @@ protected:
 	virtual void OnOpenHexEditor(bool translated);
 //Override this
 	virtual void OnResultClick() {};
+//Override this
+	virtual void OnResumeBackup(const wxString& backup) {};
 //Events	
 protected:
 	void OnPrevStringClick(wxCommandEvent& event);
