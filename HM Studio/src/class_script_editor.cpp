@@ -1,6 +1,6 @@
 #include "class_script_editor.hpp"
 
-ScriptEditor::ScriptEditor(const id& id) : Editor(id)
+ScriptEditor::ScriptEditor(const id& id) : Editor(id, L"Script")
 {
 	GetRomInfo();
 
@@ -36,14 +36,14 @@ ScriptEditor::ScriptEditor(const id& id) : Editor(id)
 
 bool ScriptEditor::Open(uint32_t number)
 {
-	std::vector<uint8_t> dataOri = File::ReadAllBytes(GetPath(number, false));
+	std::vector<uint8_t> dataOri = Moon::File::ReadAllBytes<byte>(GetPath(number, false));
 
 	Script script(dataOri);
 
 	if (!script.HaveText())	
 		return false;
 		
-	std::vector<uint8_t> data = File::ReadAllBytes(GetPath(number, true));
+	std::vector<uint8_t> data = Moon::File::ReadAllBytes<byte>(GetPath(number, true));
 
 	m_ScriptOriginal.SetData(dataOri);
 	m_ScriptTranslated.SetData(data);
@@ -103,7 +103,7 @@ void ScriptEditor::SaveFile()
 
 	m_ScriptTranslated.UpdateText(buffer);
 
-	File::WriteAllBytes(GetPath(true), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
+	Moon::File::WriteAllBytes(GetPath(true), m_ScriptTranslated.GetData(), m_ScriptTranslated.GetRiffLenght());
 }
 
 bool ScriptEditor::GetTextFromPath(const std::string& path)
@@ -137,7 +137,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 		std::string path = GetPath(true);	
 		outPut.SetFullName(GetPath(i, true));
 
-		Script script(File::ReadAllBytes(path));
+		Script script(Moon::File::ReadAllBytes<byte>(path));
 
 		if (!script.HaveText())
 			continue;
@@ -161,7 +161,7 @@ void ScriptEditor::ReplaceInAllScripts(const std::string& find, const std::strin
 		m_RomTranslated.OutputTextWithVariables(text);
 		script.UpdateText(text);
 
-		File::WriteAllBytes(path, script.GetData(), script.GetRiffLenght());
+		Moon::File::WriteAllBytes(path, script.GetData(), script.GetRiffLenght());
 	}
 }
 
@@ -346,7 +346,7 @@ FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, boo
 		wxString name = wxString("Script_") << state << "_" << i << m_PathRight;
 		dialog.Update(i, name);
 
-		Script script = File::ReadAllBytes(GetPath(i, translated));
+		Script script = Moon::File::ReadAllBytes<byte>(GetPath(i, translated));
 
 		//No text, next
 		if (!script.HaveText())
@@ -687,7 +687,7 @@ void ScriptEditor::InsertAll()
 			}
 		}
 
-		Script script = File::ReadAllBytes(GetPath(script_number, true));
+		Script script = Moon::File::ReadAllBytes<byte>(GetPath(script_number, true));
 
 		if (!script)
 		{
@@ -732,7 +732,7 @@ FilesResults ScriptEditor::CheckEOL()
 		dialog.Update(number, name);
 
 		std::string path = GetPath(number, true);
-		Script script = File::ReadAllBytes(path);
+		Script script = Moon::File::ReadAllBytes<byte>(path);
 
 		if (script.HaveText())
 		{
@@ -786,8 +786,8 @@ FilesResults ScriptEditor::CheckCode()
 		wxString name = wxString("Script_Translated") << "_" << number << m_PathRight;
 		dialog.Update(number, name);
 		
-		Script original = File::ReadAllBytes(GetPath(number, false));
-		Script translated = File::ReadAllBytes(GetPath(number, true));
+		Script original = Moon::File::ReadAllBytes<byte>(GetPath(number, false));
+		Script translated = Moon::File::ReadAllBytes<byte>(GetPath(number, true));
 
 		if (!original.CompareCode(translated))
 		{

@@ -7,7 +7,6 @@
 
 #include "class_rom_file.hpp" 
 #include "class_graphics.hpp"
-#include "class_util_string.hpp"
 
 class Item
 {

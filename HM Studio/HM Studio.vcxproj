@@ -42,7 +42,6 @@
     <ClCompile Include="src\class_graphics.cpp" />
     <ClCompile Include="src\class_graphics_editor.cpp" />
     <ClCompile Include="src\class_item_editor.cpp" />
-    <ClCompile Include="src\class_stop_watch.cpp" />
     <ClCompile Include="src\class_var_table.cpp" />
     <ClCompile Include="src\control_graphics_view.cpp" />
     <ClCompile Include="src\class_item.cpp" />
@@ -51,11 +50,10 @@
     <ClCompile Include="src\class_script_editor.cpp" />
     <ClCompile Include="src\class_spell_checker.cpp" />
     <ClCompile Include="src\class_stc.cpp" />
-    <ClCompile Include="src\class_util_string.cpp" />
-    <ClCompile Include="src\class_file.cpp" />
     <ClCompile Include="src\dialog_dump_insert.cpp" />
     <ClCompile Include="src\frame_editor.cpp" />
     <ClCompile Include="src\frame_letter_editor.cpp" />
+    <ClCompile Include="src\frame_string_editor.cpp" />
     <ClCompile Include="src\graphicsinfoviewer.cpp" />
     <ClCompile Include="src\dialog_get_text_from.cpp" />
     <ClCompile Include="src\FishEditor.cpp" />
@@ -80,7 +78,6 @@
     <ClInclude Include="src\class_graphics.hpp" />
     <ClInclude Include="src\class_graphics_editor.hpp" />
     <ClInclude Include="src\class_item_editor.hpp" />
-    <ClInclude Include="src\class_stop_watch.hpp" />
     <ClInclude Include="src\class_var_table.hpp" />
     <ClInclude Include="src\control_graphics_view.hpp" />
     <ClInclude Include="src\class_item.hpp" />
@@ -88,12 +85,11 @@
     <ClInclude Include="src\class_letter_editor.hpp" />
     <ClInclude Include="src\class_script_editor.hpp" />
     <ClInclude Include="src\class_spell_checker.hpp" />
-    <ClInclude Include="src\class_util_string.hpp" />
-    <ClInclude Include="src\class_file.hpp" />
     <ClInclude Include="src\dialog_dump_insert.hpp" />
     <ClInclude Include="src\frame_editor.hpp" />
     <ClInclude Include="src\frame_letter_editor.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />
+    <ClInclude Include="src\frame_string_editor.hpp" />
     <ClInclude Include="src\graphicsinfoviewer.hpp" />
     <ClInclude Include="src\dialog_get_text_from.hpp" />
     <ClInclude Include="src\FishEditor.hpp" />
@@ -202,7 +198,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../../../</OutDir>
-    <TargetName>HM Studio(d)</TargetName>
+    <TargetName>HM Studio(d)1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -237,7 +233,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>../../../</OutDir>
-    <TargetName>HM Studio</TargetName>
+    <TargetName>HM Studio1</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

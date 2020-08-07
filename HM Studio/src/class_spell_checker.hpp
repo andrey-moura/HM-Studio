@@ -7,9 +7,6 @@
 
 #include <moon/file.hpp>
 
-#include "class_file.hpp"
-#include "class_util_string.hpp"
-
 #define HUNSPELL_STATIC
 
 #include <hunspell.hxx>

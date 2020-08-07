@@ -32,9 +32,6 @@ public:
 
 	void OpenItens(uint8_t index);
 
-	void PrevItem();
-	void ProxItem();
-
 	std::string GetName(bool translated) const;
 	std::string GetDescription(bool translated) const;
 	uint32_t GetImgAdress(bool translated) const;

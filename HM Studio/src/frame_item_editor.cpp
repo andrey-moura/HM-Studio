@@ -1,38 +1,12 @@
 #include "frame_item_editor.hpp"
 
-ItemEditorFrame::ItemEditorFrame(id id) : EditorFrame(L"Item", new ItemEditor(id)), m_Graphics(16, 16)
+ItemEditorFrame::ItemEditorFrame(id id) : EditorFrame(new ItemEditor(id)), m_Graphics(16, 16)
 {
 	CreateGUIControls();	
 }
 
 ItemEditorFrame::~ItemEditorFrame()
 {
-}
-
-void ItemEditorFrame::UpdateItem()
-{		
-	if (m_pEditor->GetRom(true).Console == console::GBA)
-	{
-		m_pOrigItemName->SetLabel(((ItemEditor*)m_pEditor)->GetName(false));
-	}
-
-	m_pOrigItemDescription->SetLabel(((ItemEditor*)m_pEditor)->GetDescription(false));
-
-	if (m_pEditor->GetRom(true).Console == console::GBA)
-	{
-		m_pItemName->SetValue(((ItemEditor*)m_pEditor)->GetName(true));
-	}
-
-	m_pItemText->SetText(((ItemEditor*)m_pEditor)->GetDescription(true));
-
-	if (m_pEditor->GetRom(true).Console == console::GBA)
-	{
-		m_Graphics.SetImgOffset(((ItemEditor*)m_pEditor)->GetImgAdress(true));
-		m_Graphics.SetPalOffset(((ItemEditor*)m_pEditor)->GetPalAdress(true));
-
-		m_Graphics.LoadFromRom(m_pEditor->GetRom(true));
-		m_pItemIconView->SetGraphics(&m_Graphics);
-	}	
 }
 
 GraphicsInfo ItemEditorFrame::GetInfo()
@@ -43,7 +17,7 @@ GraphicsInfo ItemEditorFrame::GetInfo()
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 {	
 	((ItemEditor*)m_pEditor)->OpenItens(event.GetId() - 5051);
-	UpdateItem();
+	UpdateText();
 
 	if (!m_IsOpen)
 	{
@@ -51,26 +25,6 @@ void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 	}
 
 	m_IsOpen = true;
-
-	event.Skip();
-}
-
-void ItemEditorFrame::OnProxClick(wxCommandEvent& event)
-{
-	((ItemEditor*)m_pEditor)->ProxItem();
-	UpdateItem();
-}
-
-void ItemEditorFrame::OnPrevClick(wxCommandEvent& event)
-{
-	((ItemEditor*)m_pEditor)->PrevItem();
-	UpdateItem();
-}
-
-void ItemEditorFrame::OnSaveClick(wxCommandEvent& event)
-{
-	((ItemEditor*)m_pEditor)->Save(m_pItemName->GetValue().ToStdString(), m_pItemText->GetText().ToStdString());
-	UpdateItem();
 
 	event.Skip();
 }
@@ -104,6 +58,32 @@ void ItemEditorFrame::OnGetTextFrom()
 		m_pEditor->GetTextFromPath(path.ToStdString());
 }
 
+void ItemEditorFrame::UpdateText()
+{
+	if (m_pEditor->GetRom(true).Console == console::GBA)
+	{
+		m_pOrigItemName->SetLabel(((ItemEditor*)m_pEditor)->GetName(false));
+	}
+
+	m_pOrigItemDescription->SetLabel(((ItemEditor*)m_pEditor)->GetDescription(false));
+
+	if (m_pEditor->GetRom(true).Console == console::GBA)
+	{
+		m_pItemName->SetValue(((ItemEditor*)m_pEditor)->GetName(true));
+	}
+
+	m_pItemText->SetText(((ItemEditor*)m_pEditor)->GetDescription(true));
+
+	if (m_pEditor->GetRom(true).Console == console::GBA)
+	{
+		m_Graphics.SetImgOffset(((ItemEditor*)m_pEditor)->GetImgAdress(true));
+		m_Graphics.SetPalOffset(((ItemEditor*)m_pEditor)->GetPalAdress(true));
+
+		m_Graphics.LoadFromRom(m_pEditor->GetRom(true));
+		m_pItemIconView->SetGraphics(&m_Graphics);
+	}
+}
+
 void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
 {
 	if (m_GraphicsFrame == nullptr)
@@ -135,11 +115,6 @@ void ItemEditorFrame::OnDumpImgClick(wxCommandEvent& event)
 
 void ItemEditorFrame::CreateGUIControls()
 {
-	//*******************************************************************************//
-	//										MENU
-	//*******************************************************************************//	
-
-
 	wxMenu* menuFile = new wxMenu();
 	menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnGetTextFromClick, this, menuFile->Append(wxID_ANY, L"Get Text From...")->GetId());
 
@@ -171,27 +146,7 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pItemText = new STC(this, wxID_ANY);
 	m_pItemText->SetMaxLineLenght(28);
 
-	m_pSaveText = new wxButton(this, wxID_ANY, "Save");
-	m_pSaveText->Bind(wxEVT_BUTTON, &ItemEditorFrame::OnSaveClick, this);
-
-	wxSize buttons_size(0, 0);
-	buttons_size.SetWidth(m_pSaveText->GetTextExtent("Save").GetWidth() * 2);
-	buttons_size.SetHeight(m_pSaveText->GetSize().GetHeight());
-
-	m_pSaveText->SetMinSize(buttons_size);
-	m_pPrevText = new wxButton(this, wxID_ANY, "<<");
-	m_pPrevText->Bind(wxEVT_BUTTON, &ItemEditorFrame::OnPrevClick, this);
-	m_pPrevText->SetMinSize(buttons_size);
-	m_pProxText = new wxButton(this, wxID_ANY, ">>");
-	m_pProxText->Bind(wxEVT_BUTTON, &ItemEditorFrame::OnProxClick, this);
-	m_pProxText->SetMinSize(buttons_size);
-
-	wxBoxSizer* m_pGUI_navigationSizer = new wxBoxSizer(wxHORIZONTAL);
-	m_pGUI_navigationSizer->Add(m_pSaveText, 0, 0, 0);
-	m_pGUI_navigationSizer->AddStretchSpacer();
-	m_pGUI_navigationSizer->Add(m_pPrevText, 0, 0, 0);
-	m_pGUI_navigationSizer->AddSpacer(4);
-	m_pGUI_navigationSizer->Add(m_pProxText, 0, 0, 0);
+	CreateButtonsSizer();
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pOrigItemName = new wxStaticText(this, wxID_ANY, "");
@@ -221,7 +176,7 @@ void ItemEditorFrame::CreateGUIControls()
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pRootSizer->Add(m_pItemName, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pItemText, 1, wxALL | wxEXPAND, 4);
-	m_pRootSizer->Add(m_pGUI_navigationSizer, 0, wxALL | wxEXPAND, 4);
+	m_pRootSizer->Add(m_pButtonsSizer, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pOrigBoxSizer, 0, wxALL | wxEXPAND, 4);
 
 	SetSizer(m_pRootSizer);

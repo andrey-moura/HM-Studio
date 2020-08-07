@@ -1,6 +1,6 @@
 #include "frame_script_editor.hpp"
 
-ScriptEditorFrame::ScriptEditorFrame(id i) : EditorFrame(L"Script", new ScriptEditor(i))
+ScriptEditorFrame::ScriptEditorFrame(id i) : EditorFrame(new ScriptEditor(i))
 {
 	CreateGUIControls();
 	SetupRom(); 
@@ -80,7 +80,7 @@ void ScriptEditorFrame::BackupText()
 	buffer.append((const char*)&number, size);
 	buffer.append((const char*)&index, size);
 
-	File::WriteAllText(m_BackupFile, buffer);
+	Moon::File::WriteAllText(m_BackupFile, buffer);
 }
 
 void ScriptEditorFrame::RestoreText()
@@ -89,7 +89,7 @@ void ScriptEditorFrame::RestoreText()
 
 	if (wxFile::Exists(m_BackupFile))
 	{		
-		std::string buffer = File::ReadAllText(m_BackupFile);
+		std::string buffer = Moon::File::ReadAllText(m_BackupFile);
 		size_t size = buffer.size();
 
 		if (size > 8)
@@ -369,34 +369,17 @@ void ScriptEditorFrame::CreateGUIControls()
 
 	CreateMyToolBar();
 
-	wxSize button_min_size = wxSize(40, 26);	
-
 	tScriptTranslated = new STC(this, wxID_ANY);
-
 	tScriptOriginal = new STC(this, wxID_ANY);
 	
 	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &ScriptEditorFrame::tScritpTranslatedOnModified, this);
 	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &ScriptEditorFrame::tScriptTranslatedOnUi, this);	
 
-	editor_save_text = new wxButton(this, wxID_ANY, "Save");
-	editor_save_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnSaveStringClick, this);
-	editor_prev_text = new wxButton(this, wxID_ANY, "<<");
-	editor_prev_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnPrevStringClick, this);
-	editor_prev_text->SetMinSize(button_min_size);
-	editor_next_text = new wxButton(this, wxID_ANY, ">>");
-	editor_next_text->Bind(wxEVT_BUTTON, &ScriptEditorFrame::OnProxStringClick, this);
-	editor_next_text->SetMinSize(button_min_size);
-
-	editor_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-	editor_buttons_sizer->Add(editor_save_text, 0, wxALL | wxEXPAND, 0);
-	editor_buttons_sizer->AddStretchSpacer(1);
-	editor_buttons_sizer->Add(editor_prev_text, 0, wxALL | wxEXPAND, 0);
-	editor_buttons_sizer->AddSpacer(4);
-	editor_buttons_sizer->Add(editor_next_text, 0, wxALL | wxEXPAND, 0);
+	CreateButtonsSizer();
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
-	editor_sizer->Add(editor_buttons_sizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
+	editor_sizer->Add(m_pButtonsSizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
 	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
 	global_sizer = new wxBoxSizer(wxVERTICAL);	

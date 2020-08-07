@@ -9,8 +9,6 @@
 #include <moon/string.hpp>
 #include <moon/bit_conv.hpp>
 
-#include "class_util_string.hpp"
-
 class FrameSearchScript : public wxDialog
 {
 public:

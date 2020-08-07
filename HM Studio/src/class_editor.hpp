@@ -16,7 +16,7 @@ struct EditorInfo
 class Editor
 {
 public:
-	Editor(const id& id);
+	Editor(const id& id, const wxString& type);
 	~Editor() = default;
 protected:
 	RomFile m_RomOriginal;
@@ -32,6 +32,8 @@ protected:
 	std::string m_PathOrigLeft;
 	std::string m_PathTransLeft;
 	std::string m_PathRight;
+
+	wxString m_EditorDir;
 public:
 	bool NextFile();
 	bool PreviousFile();

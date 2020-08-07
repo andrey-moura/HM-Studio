@@ -49,11 +49,11 @@ const std::string& SpellChecker::GetWordChars()
 
 size_t SpellChecker::AddUserDic(const std::string& path)
 {
-	std::string file = File::ReadAllText(path);
+	std::string file = Moon::File::ReadAllText(path);
 
 	if (!file.empty())
 	{
-		auto lines = StringUtil::SplitLines(file);
+		auto lines = Moon::String::ViewLines(file, false);
 
 		if (lines.empty())
 			return std::string::npos;
@@ -74,12 +74,12 @@ void SpellChecker::RemoveUserDic(size_t index)
 {
 	const std::string& path = m_UserDics[index];
 	
-	std::string text = File::ReadAllText(path);
+	std::string text = Moon::File::ReadAllText(path);
 	
 	if(text.empty())
 		return;
 	
-	auto lines = StringUtil::SplitLines(text);
+	auto lines = Moon::String::ViewLines(text);
 	
 	for(const std::string_view& sv : lines)
 	{
@@ -94,7 +94,7 @@ void SpellChecker::AddToUser(const std::string& string, size_t index)
 	if (string.empty())
 		return;
 
-	File::AppendLine(m_UserDics[index], string);
+	Moon::File::AppendLine(m_UserDics[index], string);
 
 	m_Hunspell->add(string);
 }

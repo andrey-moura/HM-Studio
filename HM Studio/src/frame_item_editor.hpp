@@ -31,18 +31,14 @@ public:
 private:
 	Graphics m_Graphics;
 	bool m_IsOpen = false;
-
-	void UpdateItem();
 	GraphicsInfo GetInfo();
 	void AddToGraphicsFrame();
 private:
 	virtual void OnGetTextFrom() override;
+	virtual void UpdateText() override;
 //Events
 private:
 	void OnFileClick(wxCommandEvent& event);
-	void OnProxClick(wxCommandEvent& event);
-	void OnPrevClick(wxCommandEvent& event);
-	void OnSaveClick(wxCommandEvent& event);
 	void OnInsertClick(wxCommandEvent& event);
 	void OnImageDoubleClick(wxMouseEvent& event);
 	void OnDumpClick(wxCommandEvent& event);

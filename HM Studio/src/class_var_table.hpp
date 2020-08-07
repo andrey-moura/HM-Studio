@@ -5,7 +5,6 @@
 #include <string_view>
 
 #include <moon/table.hpp>
-#include "class_stop_watch.hpp"
 
 struct VarPos
 {

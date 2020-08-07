@@ -1,6 +1,6 @@
 #include "frame_letter_editor.hpp"
 
-LetterEditorFrame::LetterEditorFrame(const id& id) : m_Editor(id), EditorFrame("Letter Editor", &m_Editor)
+LetterEditorFrame::LetterEditorFrame(const id& id) : EditorFrame(new LetterEditor(id))
 {
 	CreateGUIControls();	
 }
@@ -11,8 +11,8 @@ LetterEditorFrame::~LetterEditorFrame()
 
 void LetterEditorFrame::UpdateText()
 {	
-	m_TextOriginal->SetText(m_Editor.GetRom(false).ReplaceWideChars(m_Editor.GetText(false)));
-	m_TextTranslated->SetText(m_Editor.GetRom(true).ReplaceWideChars(m_Editor.GetText(true)));
+	m_TextOriginal->SetText(((LetterEditor*)m_pEditor)->GetRom(false).ReplaceWideChars(((LetterEditor*)m_pEditor)->GetText(false)));
+	m_TextTranslated->SetText(((LetterEditor*)m_pEditor)->GetRom(true).ReplaceWideChars(((LetterEditor*)m_pEditor)->GetText(true)));
 
 	UpdateIndex();
 }
@@ -20,7 +20,7 @@ void LetterEditorFrame::UpdateText()
 void LetterEditorFrame::OnSaveFile()
 {	
 	wxString text = m_TextTranslated->GetText();	
-	m_Editor.GetRom(true).ReplaceWideChars(text);	
+	((LetterEditor*)m_pEditor)->GetRom(true).ReplaceWideChars(text);	
 	m_pEditor->SaveText(text.ToStdString());
 	m_pEditor->SaveFile();
 }
@@ -147,12 +147,12 @@ void LetterEditorFrame::CreateGUIControls()
 
 	m_TextTranslated = new STC(this, wxID_ANY);
 	m_TextOriginal = new STC(this, wxID_ANY);
-	int eolMode = m_Editor.GetRom(false).GetEOL() == 0x0a ? wxSTC_EOL_LF : wxSTC_EOL_CRLF;
+	int eolMode = ((LetterEditor*)m_pEditor)->GetRom(false).GetEOL() == 0x0a ? wxSTC_EOL_LF : wxSTC_EOL_CRLF;
 
-	m_TextTranslated->SetMaxLineLenght(m_Editor.GetRom(false).GetLineMax());
+	m_TextTranslated->SetMaxLineLenght(((LetterEditor*)m_pEditor)->GetRom(false).GetLineMax());
 	m_TextTranslated->SetEOLMode(eolMode);
 
-	m_TextOriginal->SetMaxLineLenght(m_Editor.GetRom(false).GetLineMax());
+	m_TextOriginal->SetMaxLineLenght(((LetterEditor*)m_pEditor)->GetRom(false).GetLineMax());
 	m_TextOriginal->SetEOLMode(eolMode);
 
 	m_TextTranslated->Bind(wxEVT_KEY_DOWN, &LetterEditorFrame::STCKeyDown, this);

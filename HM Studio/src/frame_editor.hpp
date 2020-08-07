@@ -11,12 +11,12 @@
 class EditorFrame : public wxFrame
 {
 public:
-	EditorFrame(const wxString& type, Editor* editor);	
+	EditorFrame(Editor* editor);	
 protected:
 	Editor* m_pEditor = nullptr;
 protected:
 //	void CreateMenu();
-	void CreateMyToolBar();
+	void CreateMyToolBar(bool prev = true, bool next = true, bool go = true, bool save = true, bool insert = true);
 	void CreateMyMenuBar();
 	void CreateMyStatusBar(size_t count);
 	void CreateFileMenu();
@@ -24,6 +24,7 @@ protected:
 	void CreateSearchMenu();
 	void CreateToolsMenu(bool padding, bool inserter, bool integrity, bool eol);
 	void CreateViewMenu();
+	void CreateButtonsSizer();
 	void UpdateIndex();	
 	void ShowResultWindow(const FilesResults& results);
 protected:
@@ -35,9 +36,11 @@ protected:
 	wxMenu* m_pMenuFile = nullptr;
 	wxMenu* m_pMenuString = nullptr;
 	wxStatusBar* m_pStatusBar = nullptr;
+	wxButton* m_pPrevTextButton = nullptr;
+	wxButton* m_pNextTextButton = nullptr;
+	wxButton* m_pSaveTextButton = nullptr;
+	wxBoxSizer* m_pButtonsSizer = nullptr;
 	FindResultsWindow* m_pFindResultsWindow = nullptr;
-
-	wxString m_Type;
 
 	std::vector<size_t> m_FindPositions;
 	size_t m_FindIndex;

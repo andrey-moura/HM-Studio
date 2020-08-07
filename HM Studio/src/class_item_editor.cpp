@@ -6,28 +6,9 @@ ItemInfo::ItemInfo(const std::string& name, uint32_t wpi, uint8_t idIndex, uint8
 
 }
 
-ItemEditor::ItemEditor(const id& i) : Editor(i)
+ItemEditor::ItemEditor(const id& i) : Editor(i, L"Item")
 {
 	GetItensInfos();
-}
-
-void ItemEditor::PrevItem()
-{
-	if (m_Index == 0)
-	{
-		m_Index = m_Original.size() - 1;
-	}
-
-	else
-		m_Index--;
-}
-
-void ItemEditor::ProxItem()
-{
-	m_Index++;
-
-	if (m_Index == m_Original.size())
-		m_Index = 0;
 }
 
 std::string ItemEditor::GetName(bool translated) const
@@ -72,7 +53,7 @@ void ItemEditor::Save(const std::string& name, const std::string& description)
 {
 	SetName(name);
 	SetDescription(description);
-	ProxItem();
+	NextText();
 }
 
 void ItemEditor::OpenItens(uint8_t index)

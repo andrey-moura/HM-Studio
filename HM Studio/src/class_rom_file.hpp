@@ -6,11 +6,8 @@
 #include <wx/stdpaths.h>
 #include <wx/utils.h>
 
-#include "class_file.hpp"
-#include "class_util_string.hpp"
 #include "class_var_table.hpp"
 #include "class_script.hpp"
-#include "class_stop_watch.hpp"
 #include "namespace_math.hpp"
 
 #include <moon/table.hpp>

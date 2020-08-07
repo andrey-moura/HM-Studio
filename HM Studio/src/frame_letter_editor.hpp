@@ -14,8 +14,6 @@ public:
 	LetterEditorFrame(const id& id);
 	~LetterEditorFrame();
 private:
-	LetterEditor m_Editor;
-
 	STC* m_TextOriginal = nullptr;
 	STC* m_TextTranslated = nullptr;
 

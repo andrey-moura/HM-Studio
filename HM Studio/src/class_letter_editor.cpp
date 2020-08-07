@@ -1,6 +1,6 @@
 #include "class_letter_editor.hpp"
 
-LetterEditor::LetterEditor(const id& id) : Editor(id)
+LetterEditor::LetterEditor(const id& id) : Editor(id, L"Letter")
 {
 	GetRomInfo();
 	m_Type = "Letter";
