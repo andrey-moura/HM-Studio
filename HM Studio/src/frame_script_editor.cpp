@@ -236,18 +236,6 @@ void ScriptEditorFrame::FindText()
 	Layout();
 }
 
-void ScriptEditorFrame::tScritpTranslatedOnModified(wxStyledTextEvent& event)
-{	
-	event.Skip();
-}
-
-void ScriptEditorFrame::tScriptTranslatedOnUi(wxStyledTextEvent& event)
-{		
-	CallAfter(&ScriptEditorFrame::UpdateStatusText, tScriptTranslated);
-
-	event.Skip();	
-}
-
 void ScriptEditorFrame::OnSaveString()
 {
 	if (tScriptTranslated->GetModify())
@@ -354,16 +342,11 @@ void ScriptEditorFrame::CreateGUIControls()
 	CreateToolsMenu(false, true, true, true);
 	m_pMenuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckCodeClick, this, m_pMenuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
 	CreateViewMenu();
-	m_pMenuView->Bind(wxEVT_MENU, &ScriptEditorFrame::OnHorizontalModeClick, this, m_pMenuView->Append(wxID_ANY, L"Horizontal Mode")->GetId());
-	CreateMyStatusBar(5);
+	m_pMenuView->Bind(wxEVT_MENU, &ScriptEditorFrame::OnHorizontalModeClick, this, m_pMenuView->Append(wxID_ANY, L"Horizontal Mode")->GetId());	
 
-	int widths[5] = { -5, -1, -1, -1, -1 };
+	//int widths[5] = { -5, -1, -1, -1, -1 };
 
-	m_pStatusBar->SetStatusWidths(m_pStatusBar->GetFieldsCount(), widths);
-
-	//--------------------//
-	// Menu creation ends //
-	//--------------------//	
+	//m_pStatusBar->SetStatusWidths(m_pStatusBar->GetFieldsCount(), widths);
 
 //-----------------------------------------------------------------//
 
@@ -371,10 +354,6 @@ void ScriptEditorFrame::CreateGUIControls()
 
 	tScriptTranslated = new STC(this, wxID_ANY);
 	tScriptOriginal = new STC(this, wxID_ANY);
-	
-	tScriptTranslated->Bind(wxEVT_STC_CHANGE, &ScriptEditorFrame::tScritpTranslatedOnModified, this);
-	tScriptTranslated->Bind(wxEVT_STC_UPDATEUI, &ScriptEditorFrame::tScriptTranslatedOnUi, this);	
-
 	CreateButtonsSizer();
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
@@ -384,6 +363,10 @@ void ScriptEditorFrame::CreateGUIControls()
 
 	global_sizer = new wxBoxSizer(wxVERTICAL);	
 	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);		
+
+	CreateMyStatusBar();
+	StatusToStc(tScriptOriginal);
+	StatusToStc(tScriptTranslated);
 
 	SetSizer(global_sizer);
 	global_sizer->Fit(this);

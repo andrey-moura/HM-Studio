@@ -384,6 +384,9 @@ void StringEditorFrame::CreateGUIControls()
 
 	CreateButtonsSizer();
 
+	CreateMyStatusBar();
+	StatusToStc(m_pTextEditor);
+
 	wxBoxSizer* root_sizer = new wxBoxSizer(wxVERTICAL);
 	root_sizer->Add(m_pTextEditor, 1, wxEXPAND, 0);
 	root_sizer->Add(m_pButtonsSizer, 0, wxEXPAND, 0);

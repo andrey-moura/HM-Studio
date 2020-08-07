@@ -52,7 +52,8 @@ public:
 	virtual size_t GetIndex() { return m_Index; }
 	virtual size_t GetCount() { return m_Count; }
 	virtual size_t GetNumber() { return m_Number; }
-	virtual bool SetIndex(size_t index);	
+	virtual bool SetIndex(size_t index);
+	virtual void SetCount(size_t count) { m_Count = count; }
 	virtual bool IsOpened() { return m_Number != std::string::npos; }
 	virtual void GetRomInfo() {};
 	virtual const std::string& GetType() const { return m_Type; }

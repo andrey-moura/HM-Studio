@@ -28,9 +28,7 @@ public:
 
 	void SetupRom(); 
 //Events
-private:	
-	void tScritpTranslatedOnModified(wxStyledTextEvent& event);
-	void tScriptTranslatedOnUi(wxStyledTextEvent& event);
+private:
 	void OnResultClick(wxCommandEvent& event);
 	void OnConvertEOLClick(wxCommandEvent& event);
 	void OnCheckCodeClick(wxCommandEvent& event);

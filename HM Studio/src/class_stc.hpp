@@ -13,12 +13,21 @@
 #include <wx/stc/stc.h>
 #include <wx/timer.h>
 #include <wx/menu.h>
+#include <wx/statusbr.h>
 #include <wx/../../src/stc/scintilla/include/Scintilla.h>
 
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
 
 #include "class_spell_checker.hpp"
+
+enum class StcStatus
+{
+	SIZE,
+	LINE,
+	SELECTION,
+	COLUMN
+};
 
 class STC : public wxStyledTextCtrl
 {
@@ -29,7 +38,9 @@ public:
 	void SetMaxLineLenght(size_t lenght) { m_MaxLineLenght = lenght; }
 	void AddVar(const std::string& var) { m_Vars.push_back(var); }	
 	bool UserCanAddLine() { return m_UserCanAddLine; }
-	void SetUserCanAddLine(bool can);	
+	void SetUserCanAddLine(bool can);
+	void SetStatusBar(wxStatusBar* statusBar);
+	void SetStatusIndex(int index, StcStatus status);
 private:
 	bool m_UserCanAddLine = true;
 
@@ -86,6 +97,12 @@ private:
 
 	size_t m_ID_UPPER;
 	size_t m_ID_LOWER;
+//Status
+private:
+	int m_StatusIndex[4]{ -1, -1, -1, -1 };
+	wxStatusBar* m_pStatusBar = nullptr;
+
+	void UpdateStatusText();
 public:
 	void ShowMenu(wxPoint point);
 	void SuggestToMenu(wxPoint point);
@@ -104,6 +121,7 @@ private:
 	void OnAddToUserClick(wxCommandEvent& event);
 	void OnAddToTempClick(wxCommandEvent& event);	
 	void OnAddExtraClick(wxCommandEvent& event);
+	void OnUpdateUI(wxStyledTextEvent& event);
 private:
 	static wxBitmap m_sIconError;
 private:

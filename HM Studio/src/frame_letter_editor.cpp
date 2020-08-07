@@ -12,7 +12,7 @@ LetterEditorFrame::~LetterEditorFrame()
 void LetterEditorFrame::UpdateText()
 {	
 	m_TextOriginal->SetText(((LetterEditor*)m_pEditor)->GetRom(false).ReplaceWideChars(((LetterEditor*)m_pEditor)->GetText(false)));
-	m_TextTranslated->SetText(((LetterEditor*)m_pEditor)->GetRom(true).ReplaceWideChars(((LetterEditor*)m_pEditor)->GetText(true)));
+	m_TextTranslated->SetText(((LetterEditor*)m_pEditor)->GetRom(true).ReplaceWideChars(((LetterEditor*)m_pEditor)->GetText(true)));	
 
 	UpdateIndex();
 }
@@ -130,20 +130,24 @@ void LetterEditorFrame::STCKeyUp(wxKeyEvent& event)
 	event.Skip();
 }
 
-void LetterEditorFrame::CreateGUIControls()
-{	
-	//wxMenu* menuLetter = new wxMenu();
-	//Bind(wxEVT_MENU, &LetterEditorFrame::OnGoFileClick, this, menuLetter->Append(wxID_OPEN, "Open\tCtrl-O")->GetId());
-	//Bind(wxEVT_MENU, &LetterEditorFrame::OnPrevFileClick, this, menuLetter->Append(wxNewId(), "Previous\tCtrl-Left")->GetId());
-	//Bind(wxEVT_MENU, &LetterEditorFrame::OnProxFileClick, this, menuLetter->Append(wxNewId(), "Next\tCtrl-Right")->GetId());
-	//Bind(wxEVT_MENU, &LetterEditorFrame::OnSaveFileClick, this, menuLetter->Append(wxID_SAVE, "Save\tCtrl-S")->GetId());
+void LetterEditorFrame::StcOnUi(wxStyledTextEvent& event)
+{
+	m_pEditor->SetIndex(((STC*)event.GetEventObject())->GetCurrentLine());
+	m_pEditor->SetCount(((STC*)event.GetEventObject())->GetLineCount());
 
+	UpdateIndex();
+
+	event.Skip();
+}
+
+void LetterEditorFrame::CreateGUIControls()
+{
 	CreateMyMenuBar();
 	CreateSearchMenu();
 	CreateViewMenu();
 	CreateToolsMenu(true, true, true, true);
 	CreateMyToolBar();
-	CreateMyStatusBar(1);
+	CreateMyStatusBar();
 
 	m_TextTranslated = new STC(this, wxID_ANY);
 	m_TextOriginal = new STC(this, wxID_ANY);
@@ -157,10 +161,16 @@ void LetterEditorFrame::CreateGUIControls()
 
 	m_TextTranslated->Bind(wxEVT_KEY_DOWN, &LetterEditorFrame::STCKeyDown, this);
 	m_TextTranslated->Bind(wxEVT_KEY_UP, &LetterEditorFrame::STCKeyUp, this);
+	m_TextTranslated->Bind(wxEVT_STC_UPDATEUI, &LetterEditorFrame::StcOnUi, this);
+
+	m_TextOriginal->Bind(wxEVT_STC_UPDATEUI, &LetterEditorFrame::StcOnUi, this);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
 	rootSizer->Add(m_TextTranslated, 1, wxEXPAND, 0);
 	rootSizer->Add(m_TextOriginal, 1, wxEXPAND, 0);
+
+	StatusToStc(m_TextOriginal);
+	StatusToStc(m_TextTranslated);
 
 	SetSizer(rootSizer);
 }

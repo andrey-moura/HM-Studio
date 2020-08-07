@@ -489,38 +489,82 @@ void STC::OnUpperLowerCaseClick(wxCommandEvent& event)
 	event.Skip();	
 }
 
+void STC::SetStatusBar(wxStatusBar* statusBar)
+{
+	m_pStatusBar = statusBar;
+}
+
+void STC::SetStatusIndex(int index, StcStatus status)
+{
+	m_StatusIndex[(size_t)status] = index;
+}
+
+void STC::OnUpdateUI(wxStyledTextEvent& event)
+{	
+	if (m_pStatusBar)
+		CallAfter(&STC::UpdateStatusText);
+
+	event.Skip();
+}
+
+void STC::UpdateStatusText()
+{
+	if (m_StatusIndex[(size_t)StcStatus::SIZE] != -1)
+	{
+		m_pStatusBar->SetStatusText(wxString(L"Size: ") << GetTextLength(), m_StatusIndex[(size_t)StcStatus::SIZE]);
+	}
+	if (m_StatusIndex[(size_t)StcStatus::LINE] != -1)
+	{
+		m_pStatusBar->SetStatusText(wxString(L"Ln: ") << GetCurrentLine()+1, m_StatusIndex[(size_t)StcStatus::LINE]);
+	}
+	if (m_StatusIndex[(size_t)StcStatus::SELECTION] != -1)
+	{
+		int selSize = (GetSelectionEnd() - GetSelectionStart());
+
+		if (selSize > 0)
+			selSize = GetSelectedText().size();
+
+		m_pStatusBar->SetStatusText(wxString(L"Sel: ") << selSize, m_StatusIndex[(size_t)StcStatus::SELECTION]);		
+	}
+	if (m_StatusIndex[(size_t)StcStatus::COLUMN] != -1)
+	{
+		m_pStatusBar->SetStatusText(wxString(L"Col: ") << GetColumn(GetCurrentPos()), m_StatusIndex[(size_t)StcStatus::COLUMN]);
+	}
+}
+
 void STC::DoBinds()
 {
-	this->Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);
-	this->Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
-	this->Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
-	this->Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
+	Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);
+	Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
+	Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
+	Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
+	Bind(wxEVT_STC_UPDATEUI, &STC::OnUpdateUI, this);
 
 	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
 }
 
 void STC::CreateGUI()
 {
-	this->SetLexer(wxSTC_LEX_CONTAINER);
+	SetLexer(wxSTC_LEX_CONTAINER);
 
-	this->StyleSetFont(STC_STYLE_TEXT, GetFont());
-	this->StyleSetFont(STC_STYLE_VAR, GetFont());
-	this->StyleSetFont(STC_STYLE_SIMBOL, GetFont());
+	StyleSetFont(STC_STYLE_TEXT, GetFont());
+	StyleSetFont(STC_STYLE_VAR, GetFont());
+	StyleSetFont(STC_STYLE_SIMBOL, GetFont());
 
-	this->StyleSetForeground(STC_STYLE_VAR, wxColour(0, 0, 255));
-	this->StyleSetBold(STC_STYLE_VAR, true);
-	this->StyleSetForeground(STC_STYLE_SIMBOL, wxColour(0, 128, 0));
-	this->StyleSetBold(STC_STYLE_SIMBOL, true);
+	StyleSetForeground(STC_STYLE_VAR, wxColour(0, 0, 255));
+	StyleSetBold(STC_STYLE_VAR, true);
+	StyleSetForeground(STC_STYLE_SIMBOL, wxColour(0, 128, 0));
+	StyleSetBold(STC_STYLE_SIMBOL, true);
 
-	this->MarkerDefineBitmap(STC_MARK_ERROR, m_sIconError);
+	MarkerDefineBitmap(STC_MARK_ERROR, m_sIconError);
 
-	this->SetMarginWidth(0, 32);
-	this->SetMarginType(0, wxSTC_MARGIN_NUMBER);
+	SetMarginWidth(0, 32);
+	SetMarginType(0, wxSTC_MARGIN_NUMBER);
 
-	this->IndicatorSetStyle(STC_INDIC_FIND, wxSTC_INDIC_ROUNDBOX);
-	this->IndicatorSetForeground(STC_INDIC_FIND, wxColour(17, 61, 111));
-	this->IndicatorSetUnder(STC_INDIC_FIND, true);
-	this->IndicatorSetAlpha(STC_INDIC_FIND, 255);	
+	IndicatorSetStyle(STC_INDIC_FIND, wxSTC_INDIC_ROUNDBOX);
+	IndicatorSetForeground(STC_INDIC_FIND, wxColour(17, 61, 111));
+	IndicatorSetUnder(STC_INDIC_FIND, true);
+	IndicatorSetAlpha(STC_INDIC_FIND, 255);	
 
 	IndicatorSetStyle(STC_INDIC_SPELL, wxSTC_INDIC_SQUIGGLE);
 	IndicatorSetForeground(STC_INDIC_SPELL, wxColour(236, 55, 55));

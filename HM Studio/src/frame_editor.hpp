@@ -7,6 +7,7 @@
 #include "dialog_dump_insert.hpp"
 #include "window_find_results.hpp"
 #include "dialog_get_text_from.hpp"
+#include "class_stc.hpp"
 
 class EditorFrame : public wxFrame
 {
@@ -18,7 +19,8 @@ protected:
 //	void CreateMenu();
 	void CreateMyToolBar(bool prev = true, bool next = true, bool go = true, bool save = true, bool insert = true);
 	void CreateMyMenuBar();
-	void CreateMyStatusBar(size_t count);
+	void CreateMyStatusBar(size_t count = 5);
+	void StatusToStc(STC* stc, bool size = true, bool ln = true, bool sel = true, bool col = true);
 	void CreateFileMenu();
 	void CreateStringMenu();
 	void CreateSearchMenu();
@@ -40,8 +42,7 @@ protected:
 	wxButton* m_pNextTextButton = nullptr;
 	wxButton* m_pSaveTextButton = nullptr;
 	wxBoxSizer* m_pButtonsSizer = nullptr;
-	FindResultsWindow* m_pFindResultsWindow = nullptr;
-
+	FindResultsWindow* m_pFindResultsWindow = nullptr;	
 	std::vector<size_t> m_FindPositions;
 	size_t m_FindIndex;
 //Handlers

@@ -179,6 +179,9 @@ void ItemEditorFrame::CreateGUIControls()
 	m_pRootSizer->Add(m_pButtonsSizer, 0, wxALL | wxEXPAND, 4);
 	m_pRootSizer->Add(m_pOrigBoxSizer, 0, wxALL | wxEXPAND, 4);
 
+	CreateMyStatusBar();
+	StatusToStc(m_pItemText);
+
 	SetSizer(m_pRootSizer);
 	m_pRootSizer->Fit(this);
 	m_pRootSizer->SetSizeHints(this);

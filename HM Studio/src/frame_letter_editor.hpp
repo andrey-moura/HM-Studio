@@ -30,6 +30,7 @@ private:
 	void RemovePaddingSpaces();
 	void STCKeyDown(wxKeyEvent& event);
 	void STCKeyUp(wxKeyEvent& event);
+	void StcOnUi(wxStyledTextEvent& event);
 private:
 	void CreateGUIControls();
 };
