@@ -213,13 +213,19 @@ void StringEditor::SaveFile()
 	wxXmlNodeType mode;
 
 	uint32_t eol = Moon::String::EOLToInt(doc.GetEOL().ToStdWstring());
+	wxString empty_chars = doc.GetEOL() << L" ";
+
 
 	for (int i = m_Strings.size()-1; i >= 0; --i)
 	{
 		wxXmlNode* str_node = new wxXmlNode(root, wxXmlNodeType::wxXML_ELEMENT_NODE, "String", wxEmptyString, nullptr, nullptr, i + 2);		
 
+		wxString string = m_Strings[i].string;
+		Moon::String::ConvertLineEnds(const_cast<std::wstring&>(string.ToStdWstring()), eol);
+		string.Replace(L"\x5", L"[END]");
+
 		//The XML file don't allow white spaces only strings
-		if (m_Strings[i].string.find_first_not_of(L" ") == std::string::npos)
+		if (string.find_first_not_of(empty_chars) == std::string::npos)
 		{
 			mode = wxXmlNodeType::wxXML_CDATA_SECTION_NODE;
 		}
@@ -227,11 +233,6 @@ void StringEditor::SaveFile()
 		{
 			mode = wxXmlNodeType::wxXML_TEXT_NODE;
 		}
-
-		wxString string = m_Strings[i].string;		
-		Moon::String::ConvertLineEnds(const_cast<std::wstring&>(string.ToStdWstring()), eol);
-
-		string.Replace(L"\x5", L"[END]");
 
 		str_node->AddChild(new wxXmlNode(mode, L"", string));
 
