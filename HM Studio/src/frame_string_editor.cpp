@@ -64,7 +64,8 @@ bool StringEditor::Open(const wxString& path)
 		const std::wstring& std_attribute = attribute.ToStdWstring();
 
 		wxString string = content_node->GetContent();
-		string.Replace(L"[END]", L"\x5", true);
+		string.Replace(L"[END]", L'', true);
+		string.Replace(L"[CLEAR]", L'', true);
 		m_Strings.push_back(RomString(string));
 
 		size_t attribute_size = std_attribute.size();
@@ -222,7 +223,8 @@ void StringEditor::SaveFile()
 
 		wxString string = m_Strings[i].string;
 		Moon::String::ConvertLineEnds(const_cast<std::wstring&>(string.ToStdWstring()), eol);
-		string.Replace(L"\x5", L"[END]");
+		string.Replace(L'', L"[END]");
+		string.Replace(L'', L"[CLEAR]");
 
 		//The XML file don't allow white spaces only strings
 		if (string.find_first_not_of(empty_chars) == std::string::npos)

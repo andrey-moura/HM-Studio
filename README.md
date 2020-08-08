@@ -17,7 +17,7 @@ The support for HM FoMT and DS are not 100%
 - [ ] Default ROM option.
 - [ ] Open ROM with default emulator.
 - [ ] Open Project Folder.
-- [ ] Show also original size, line and col in status bar in script editor.
+- [x] Show also original size, line and col in status bar in script editor.
 - [ ] Disable the spellchecker in the original script.
 - [ ] Allow select dictionary or disable spellchecker.
 - [ ] Move Script To.
