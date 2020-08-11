@@ -3,6 +3,7 @@
 #include <wx/vscroll.h>
 #include <wx/dcbuffer.h>
 #include <wx/bitmap.h>
+#include <wx/rawbmp.h>
 
 #include "class_graphics.hpp"
 
@@ -22,8 +23,8 @@ private:
 	Graphics* m_Graphic = nullptr;
 	uint8_t* m_8bppData = nullptr;
 	bool m_PixelGrid = false;
-	bool m_TileGrid = false;
-	bool m_BlockGrid = false;
+	bool m_UseTileGrid = false;
+	bool m_UseBlockGrid = false;
 
 	wxSize m_BlockSize;
 
@@ -31,6 +32,10 @@ private:
 	uint8_t m_Color2 = 0;
 
 	bool m_ViewOnly = false;
+
+	wxBitmap m_Bitmap;
+	wxBitmap m_TileGrid;
+	wxBitmap m_BlockGrid;
 public:
 	void SetGraphics(Graphics* graphic);	
 	void SetScale(size_t scale);
@@ -44,8 +49,8 @@ public:
 	void SetColor2(uint8_t color) { m_Color2 = color; }
 
 	bool GetPixelGrid() const { return m_PixelGrid; }
-	bool GetTileGrid() const { return m_TileGrid; }
-	bool GetBlockGrid() const { return m_BlockGrid; }
+	bool GetTileGrid() const { return m_UseTileGrid; }
+	bool GetBlockGrid() const { return m_UseBlockGrid; }
 
 	bool TogglePixelGrid();
 	bool ToggleTileGrid();

@@ -1,5 +1,7 @@
 #include "control_graphics_view.hpp"
 
+#include <moon/diagnostics.hpp>
+
 GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_ANY), m_BlockSize(2, 2)
 {
 	Bind(wxEVT_PAINT, &GraphicsView::OnPaintEvent, this);
@@ -14,6 +16,33 @@ void GraphicsView::SetGraphics(Graphics* graphic)
 	m_Graphic = graphic;
 	m_8bppData = graphic->GetData();
 	SetRowColumnCount(m_Graphic->GetHeight(), m_Graphic->GetWidth());
+
+	m_Bitmap.Create(wxSize(graphic->GetWidth(), graphic->GetHeight()), 24);
+
+	wxNativePixelData data(m_Bitmap);
+	wxNativePixelData::Iterator it = data.GetPixels();
+
+	const Palette& pal = graphic->GetPalette();	
+
+	uint32_t graphics_index = 0;
+
+	for (size_t y = 0; y < data.m_height; ++y)
+	{
+		wxNativePixelData::Iterator rowStart = it;
+
+		for (size_t x = 0; x < data.m_width; ++x)
+		{			
+			it.Red() = pal[m_8bppData[graphics_index]].red;
+			it.Green() = pal[m_8bppData[graphics_index]].green;
+			it.Blue() = pal[m_8bppData[graphics_index]].blue;
+
+			++graphics_index;
+			++it;
+		}
+
+		it = rowStart;
+		it.OffsetY(data, 1);
+	}
 
 	Refresh();
 }
@@ -37,18 +66,21 @@ void GraphicsView::SetScale(size_t scale)
 void GraphicsView::SetPixelGrid(bool use)
 {
 	m_PixelGrid = use;
-	Refresh();
+
+	float time = Moon::Diagnostics::FunctionTimerMember(&GraphicsView::Refresh, this, false, nullptr) / 1000.f;
+
+	std::string();
 }
 
 void GraphicsView::SetTileGrid(bool use)
 {
-	m_TileGrid = use;
+	m_UseTileGrid = use;
 	Refresh();
 }
 
 void GraphicsView::SetBlockGrid(bool use)
 {
-	m_BlockGrid = use;
+	m_UseBlockGrid = use;
 	Refresh();
 }
 
@@ -61,14 +93,14 @@ bool GraphicsView::TogglePixelGrid()
 
 bool GraphicsView::ToggleTileGrid()
 {
-	SetTileGrid(!m_TileGrid);
+	SetTileGrid(!m_UseTileGrid);
 	Refresh();
 	return GetTileGrid();
 }
 
 bool GraphicsView::ToggleBlockGrid()
 {
-	SetBlockGrid(!m_BlockGrid);
+	SetBlockGrid(!m_UseBlockGrid);
 	Refresh();
 	return GetBlockGrid();
 }
@@ -113,23 +145,18 @@ void GraphicsView::OnDraw(wxDC& dc)
 
 	wxPosition posStart = GetVisibleBegin();
 	wxPosition posEnd = GetVisibleEnd();
-	
-	const Palette& pal = m_Graphic->GetPalette();
 
-	for (size_t y = posStart.GetRow(); y < posEnd.GetRow(); ++y)
-	{		
-		for (size_t x = posStart.GetCol(); x < posEnd.GetCol(); ++x)
-		{
-			brush.SetColour(pal[m_8bppData[x+y*m_Graphic->GetWidth()]].GetBGR());
-			dc.SetBrush(brush);
-			dc.DrawRectangle(wxPoint(x * m_Scale, y * m_Scale), wxSize(m_Scale, m_Scale));
-		}
-	}
+	dc.SetUserScale(m_Scale, m_Scale);
+	dc.DrawBitmap(m_Bitmap, {0,0});
 
-	if (m_TileGrid)
+	dc.SetUserScale(1, 1);
+
+	if (m_UseTileGrid)
+	{	
 		DrawTileGrid(dc);
+	}		
 
-	if (m_BlockGrid)
+	if (m_UseBlockGrid)
 		DrawBlockGrid(dc);
 }
 
@@ -249,41 +276,20 @@ void GraphicsView::OnMouseDown(wxMouseEvent& event)
 
 				if (oldColor != newColor)
 				{
-					wxClientDC dc(this);
-					PrepareDC(dc);
-
-					if (m_PixelGrid)
-					{
-						wxPen pixelPen(GRID_PIXEL_COLOR, GRID_PIXEL_SIZE, wxPENSTYLE_SOLID);
-						dc.SetPen(pixelPen);
-					}
-					else
-					{
-						dc.SetPen(*wxTRANSPARENT_PEN);
-					}
-
-					wxBrush brush(m_Graphic->GetPalette()[newColor].GetBGR(), wxBRUSHSTYLE_SOLID);
-					dc.SetBrush(brush);
-					dc.DrawRectangle(curPos.GetCol() * m_Scale, curPos.GetRow() * m_Scale, m_Scale, m_Scale);
-
 					m_8bppData[index] = newColor;
 
-					if (m_TileGrid)
-					{
-						//if (IsTouchingGrid(wxPoint(curPos.GetCol(), curPos.GetRow()), 8))
-						//{
-							//ToDo: If is touching, just redraw the pixel at x+1 and y+1 and with w-1 and h-1
-//							DrawTileGrid(dc);
-	//					}
-					}
-					if (m_BlockGrid)
-					{
-						if (IsTouchingGrid(wxPoint(curPos.GetCol(), curPos.GetRow()), 8))
-						{
-							//ToDo: If is touching, just redraw the pixel at x+1 and y+1 and with w-1 and h-1
-							DrawBlockGrid(dc);
-						}
-					}
+					const Palette& pal = m_Graphic->GetPalette();
+
+					wxNativePixelData data(m_Bitmap);
+					wxNativePixelData::Iterator it = data.GetPixels();
+
+					it.MoveTo(data, curPos.GetCol(), curPos.GetRow());
+
+					it.Red() = pal[m_8bppData[index]].red;
+					it.Green() = pal[m_8bppData[index]].green;
+					it.Blue() = pal[m_8bppData[index]].blue;
+
+					Refresh();
 				}
 			}
 		}

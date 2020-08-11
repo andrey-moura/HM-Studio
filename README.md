@@ -21,7 +21,7 @@ The support for HM FoMT and DS are not 100%
 - [ ] Disable the spellchecker in the original script.
 - [ ] Allow select dictionary or disable spellchecker.
 - [ ] Move Script To.
-- [ ] Performance update in GraphicsEditor drawing.
+- [x] Performance update in GraphicsEditor drawing.
 - [x] Nicer GUI for MainFrame
 
 ### For future releases
