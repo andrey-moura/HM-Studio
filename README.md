@@ -14,15 +14,15 @@ The support for HM FoMT and DS are not 100%
 - [x] Make ItemEditor inherit from Editor
 - [x] Make ItemEditorFrame inherit from EditorFrame
 - [x] Insert Items from dump.
-- [ ] Default ROM option.
-- [ ] Open ROM with default emulator.
-- [ ] Open Project Folder.
+- [x] Default ROM option.
+- [x] Open ROM with default emulator.
+- [x] Open Project Folder.
 - [x] Show also original size, line and col in status bar in script editor.
 - [ ] Disable the spellchecker in the original script.
 - [ ] Allow select dictionary or disable spellchecker.
 - [ ] Move Script To.
 - [ ] Performance update in GraphicsEditor drawing.
-- [ ] Nicer GUI for MainFrame
+- [x] Nicer GUI for MainFrame
 
 ### For future releases
 
