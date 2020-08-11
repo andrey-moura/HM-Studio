@@ -41,6 +41,7 @@ public:
 	void SetUserCanAddLine(bool can);
 	void SetStatusBar(wxStatusBar* statusBar);
 	void SetStatusIndex(int index, StcStatus status);
+	void SetUseSpellChecker(bool use = true);
 private:
 	bool m_UserCanAddLine = true;
 
@@ -114,6 +115,7 @@ private:
 	void OnKeyPress(wxKeyEvent& event);
 	void OnStyleNeeded(wxStyledTextEvent& event);
 	void OnModified(wxStyledTextEvent& event);	
+	void OnModifiedNoSpell(wxStyledTextEvent& event);	
 	void OnMouseRight(wxMouseEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnUpperLowerCaseClick(wxCommandEvent& event);	

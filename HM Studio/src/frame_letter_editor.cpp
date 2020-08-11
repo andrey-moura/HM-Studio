@@ -158,6 +158,7 @@ void LetterEditorFrame::CreateGUIControls()
 
 	m_TextOriginal->SetMaxLineLenght(((LetterEditor*)m_pEditor)->GetRom(false).GetLineMax());
 	m_TextOriginal->SetEOLMode(eolMode);
+	m_TextOriginal->SetUseSpellChecker(false);
 
 	m_TextTranslated->Bind(wxEVT_KEY_DOWN, &LetterEditorFrame::STCKeyDown, this);
 	m_TextTranslated->Bind(wxEVT_KEY_UP, &LetterEditorFrame::STCKeyUp, this);

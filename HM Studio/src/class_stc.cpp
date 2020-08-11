@@ -28,6 +28,23 @@ STC::STC(wxWindow* parent, wxWindowID id) : wxStyledTextCtrl(parent, id)
 	}
 }
 
+void STC::SetUseSpellChecker(bool use)
+{
+	if (use)
+	{
+		Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
+		m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);		
+	}
+	else
+	{
+		Unbind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
+		m_Timer.Unbind(wxEVT_TIMER, &STC::OnTimer, this);
+		m_Timer.Stop();		
+
+		Bind(wxEVT_STC_MODIFIED, &STC::OnModifiedNoSpell, this);
+	}
+}
+
 inline void STC::VerifyLineLenght(size_t line)
 {	
 	if (m_MaxLineLenght == UINT32_MAX)
@@ -213,6 +230,13 @@ void STC::SpellSTC(size_t start, size_t end)
 //-------------------------------------------------------------------------------------//
 //Events
 //-------------------------------------------------------------------------------------//
+
+void STC::OnModifiedNoSpell(wxStyledTextEvent& event)
+{
+	m_NeedStyle = true;
+
+	event.Skip();
+}
 
 void STC::OnModified(wxStyledTextEvent& event)
 {			
@@ -534,13 +558,12 @@ void STC::UpdateStatusText()
 
 void STC::DoBinds()
 {
-	Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);
-	Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
+	Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);	
 	Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
 	Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
 	Bind(wxEVT_STC_UPDATEUI, &STC::OnUpdateUI, this);
 
-	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
+	SetUseSpellChecker(true);
 }
 
 void STC::CreateGUI()

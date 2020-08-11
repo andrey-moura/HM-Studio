@@ -354,6 +354,7 @@ void ScriptEditorFrame::CreateGUIControls()
 
 	tScriptTranslated = new STC(this, wxID_ANY);
 	tScriptOriginal = new STC(this, wxID_ANY);
+	tScriptOriginal->SetUseSpellChecker(false);
 	CreateButtonsSizer();
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
