@@ -32,6 +32,7 @@ class GraphicsEditorFrame : public wxFrame
 {
 public:
 	GraphicsEditorFrame(id i);
+	GraphicsEditorFrame(id i, GraphicsTreeParent& graphics);
 	~GraphicsEditorFrame() = default;
 
 	void GetGraphicsList();

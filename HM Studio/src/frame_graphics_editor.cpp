@@ -10,6 +10,22 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 
 	m_RootDir = fn.GetFullPath();
 	Moon::File::MakeDir(m_RootDir.ToStdString());
+
+	GetGraphicsList();
+}
+
+GraphicsEditorFrame::GraphicsEditorFrame(id i, GraphicsTreeParent& graphics) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
+{
+	CreateGUIControls();
+
+	wxFileName fn;
+	fn.SetPath(m_RomTranslated.m_HomeDir);
+	fn.AppendDir(L"Graphics");
+
+	m_RootDir = fn.GetFullPath();
+	Moon::File::MakeDir(m_RootDir.ToStdString());
+
+	AppendGraphics(graphics);
 }
 
 void GraphicsEditorFrame::GetGraphicsList()
