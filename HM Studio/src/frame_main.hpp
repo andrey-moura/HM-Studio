@@ -8,6 +8,8 @@
 #include <wx/choice.h>
 #include <wx/checkbox.h>
 #include <wx/msgdlg.h>
+#include <wx/process.h>
+#include <wx/mimetype.h>
 
 #include "class_rom_file.hpp"
 //Frames
@@ -26,25 +28,29 @@ public:
 private:	
 	void OnEditorClick(wxCommandEvent& event);	
 	void OnTestClick(wxCommandEvent& event);
+	void OnStatusSize(wxSizeEvent& event);
+	void OnOpenRomClick(wxCommandEvent& event);
+	void OnOpenFolderClick(wxCommandEvent& event);
+	void OnSelectionChange(wxCommandEvent& event);
+	void OnOpenDefaultClick(wxCommandEvent& event);
+	void OnBackupClick(wxCommandEvent& event);
+	void OnClose(wxCloseEvent& event);
 private:
+	int m_DefaultSelection;
 	id GetCurrentId();
-//UI
+	long m_Processes[3];
+
+	template<typename T>
+	void OnEditorClick(wxCommandEvent& event)
+	{
+		T* t = new T(GetCurrentId());
+		t->Show();
+
+		event.Skip();
+	}
+//GUI
 private:
 	void CreateGUIControls();
-		
-	wxButton* m_pOpenRom = nullptr;
-	wxButton* m_pBackup = nullptr;
 	wxChoice* m_pSelection = nullptr;
-	wxCheckBox* m_pDefault = nullptr;
-
-	wxButton* m_pEditorScript = nullptr;
-	wxButton* m_pEditorItem = nullptr;
-	wxButton* m_pEditorLetter = nullptr;
-	wxButton* m_pEditorGraphics = nullptr;
-	wxButton* m_pEditorString = nullptr;
-
-#ifdef _DEBUG
-	wxButton* m_pTestButton = nullptr;
-#endif
 };
 

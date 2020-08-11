@@ -1,84 +1,121 @@
 #include "frame_main.hpp"
+#include <wx/confbase.h>
 
 MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 {
-	CreateGUIControls();	
+	wxConfigBase* pConfig = wxConfigBase::Get();
+
+	m_DefaultSelection = pConfig->Read(L"/Global/DefaultRom", (long)0);
+
+	CreateGUIControls();
+	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
+
+	m_pSelection->Bind(wxEVT_CHOICE, &MainFrame::OnSelectionChange, this);
 }
 
-void MainFrame::CreateGUIControls()
-{	
-	this->SetBackgroundColour(wxColour(240, 240, 240, 255));	
+void MainFrame::OnOpenRomClick(wxCommandEvent& event)
+{
+	id id = GetCurrentId();
+	
+	if (wxProcess::Exists(m_Processes[(int)id]))
+	{
+		wxProcess::Kill(m_Processes[(int)id]);
+		m_Processes[(int)id] = 0;
+	}
 
-	wxStaticBox* romBox = new wxStaticBox(this, wxID_ANY, "ROM");
-	wxStaticBoxSizer* romSizer = new wxStaticBoxSizer(romBox, wxVERTICAL);
+	RomFile rom(id, true);
 
-	m_pOpenRom = new wxButton(this, wxID_ANY, "Open");
-	m_pBackup = new wxButton(this, wxID_ANY, "Backup");
+	/*The below code is from wxWidgets exec sample*/
 
-	m_pSelection = new wxChoice(this, wxID_ANY);
-	m_pSelection->Insert("FoMT", 0);
-	m_pSelection->Insert("MFoMT", 1);
-	m_pSelection->Insert("DS", 2);
-	m_pSelection->SetSelection(0);	
+	wxString ext = wxFileName(rom.Path).GetExt();
+	wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(ext);
+	if (!ft)
+	{
+		wxLogError("Impossible to determine the file type for extension '%s'",
+			ext);
+		return;
+	}
 
-	m_pDefault = new wxCheckBox(this, wxID_ANY, "Default");
-
-	romSizer->AddSpacer(4);
-	romSizer->Add(m_pOpenRom, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	romSizer->AddSpacer(4);
-	romSizer->Add(m_pBackup, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	romSizer->AddSpacer(4);
-	romSizer->Add(m_pSelection, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	romSizer->AddSpacer(4);
-	romSizer->Add(m_pDefault, 0, wxRIGHT | wxLEFT, 5);
-	romSizer->AddSpacer(4);	
-
-	m_pEditorScript = new wxButton(this, wxNewId(), "Script Editor");
-	m_pEditorItem = new wxButton(this, wxNewId(), "Item Editor");
-	m_pEditorLetter = new wxButton(this, wxNewId(), "Letter Editor");
-	m_pEditorGraphics = new wxButton(this, wxNewId(), "Graphics Editor");
-	m_pEditorString = new wxButton(this, wxNewId(), "String Editor");
-
-	wxStaticBox* editorsBox = new wxStaticBox(this, wxID_ANY, "Editors");
-	wxStaticBoxSizer* editorsSizer = new wxStaticBoxSizer(editorsBox, wxVERTICAL);
-
-	m_pEditorScript->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-	m_pEditorItem->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-	m_pEditorLetter->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-	m_pEditorGraphics->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-	m_pEditorString->Bind(wxEVT_BUTTON, &MainFrame::OnEditorClick, this);
-
-	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorScript, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);	
-	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorItem, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorLetter, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorString, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-	editorsSizer->AddSpacer(4);
-	editorsSizer->Add(m_pEditorGraphics, 0, wxRIGHT | wxLEFT | wxEXPAND, 5);
-
-	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
-	rootSizer->AddSpacer(4);
-	rootSizer->Add(romSizer, 0, wxEXPAND | wxALL, 4);
-	rootSizer->AddSpacer(4);
-	rootSizer->Add(editorsSizer, 0, wxEXPAND | wxALL, 4);
-
-#ifdef _DEBUG	
-	m_pTestButton = new wxButton(this, wxID_ANY, "Test");
-	m_pTestButton->Bind(wxEVT_BUTTON, &MainFrame::OnTestClick, this);
-
-	rootSizer->Add(m_pTestButton);
+	wxString cmd;
+	bool ok = false;
+	const wxFileType::MessageParameters params(rom.Path);
+#ifdef __WXMSW__
+	// try editor, for instance Notepad if extension is .xml
+	cmd = ft->GetExpandedCommand("edit", params);
+	ok = !cmd.empty();
 #endif
+	if (!ok) // else try viewer
+		ok = ft->GetOpenCommand(&cmd, params);
+	delete ft;
+	if (!ok)
+	{
+		wxLogError("Impossible to find out how to open files of extension '%s'",
+			ext);
+		return;
+	}
 
-	SetSizerAndFit(rootSizer);
-	rootSizer->SetSizeHints(this);	
+	wxProcess* process = new wxProcess(this);
+	long pid = wxExecute(cmd, wxEXEC_ASYNC, process);
+
+	if (!pid)
+	{
+		wxLogError("Execution of '%s' failed.", cmd);
+
+		delete process;
+		return;
+	}
+
+	m_Processes[(int)id] = pid;
+
+	event.Skip();
+}
+
+void MainFrame::OnStatusSize(wxSizeEvent& event)
+{
+	wxRect rect;
+		
+	if (m_frameStatusBar->GetFieldRect(1, rect))
+	{		
+		rect.x += 4;		
+		m_pSelection->SetSize(rect.GetSize());
+		m_pSelection->SetPosition(rect.GetPosition());
+	}
+
+	event.Skip();
 }
 
 void MainFrame::OnTestClick(wxCommandEvent& event)
 {
 
+}
+
+void MainFrame::OnClose(wxCloseEvent& event)
+{
+	//Close all opened emulators
+	for (const long& pid : m_Processes)
+	{
+		if (wxProcess::Exists(pid))
+		{
+			wxProcess::Kill(pid);
+		}
+	}
+
+	wxTheApp->ExitMainLoop();
+
+	event.Skip();
+}
+
+void MainFrame::OnOpenFolderClick(wxCommandEvent& event)
+{
+	RomFile rom(GetCurrentId(), true);
+
+#ifdef __WXMSW__
+	wxExecute(wxString("explorer ") << rom.m_HomeDir, wxEXEC_ASYNC, NULL);
+#else //!__WXMSW__
+	wxLogError("This is not implement in the current platform");
+#endif //__WXMSW__
+
+	event.Skip();
 }
 
 id MainFrame::GetCurrentId()
@@ -101,36 +138,86 @@ id MainFrame::GetCurrentId()
 	}
 }
 
-void MainFrame::OnEditorClick(wxCommandEvent& event)
+void MainFrame::OnSelectionChange(wxCommandEvent& event)
 {
-	wxWindowID id = event.GetId();
+	wxMenu* fileMenu = GetMenuBar()->GetMenu(0);
 
-	if (id == m_pEditorScript->GetId())
-	{
-		ScriptEditorFrame* scriptEditor = new ScriptEditorFrame(GetCurrentId());
-		scriptEditor->Show();
-	}
-	else if (id == m_pEditorItem->GetId())
-	{
-		ItemEditorFrame* itemEditor = new ItemEditorFrame(GetCurrentId());
-		itemEditor->Show();
-	}
-	else if (id == m_pEditorLetter->GetId())
-	{
-		LetterEditorFrame* letterEditor = new LetterEditorFrame(GetCurrentId());
-		letterEditor->Show();
-	}
-	else if (id == m_pEditorGraphics->GetId())
-	{
-		GraphicsEditorFrame* graphicsEditor = new GraphicsEditorFrame(GetCurrentId());
-		graphicsEditor->GetGraphicsList();
-		graphicsEditor->Show();
-	}
-	else if (id == m_pEditorString->GetId())
-	{
-		StringEditorFrame* stringEditor = new StringEditorFrame(GetCurrentId());
-		stringEditor->Show();
-	}
+	int id = fileMenu->FindItem(L"Default");
+
+	fileMenu->Check(id, event.GetSelection() == m_DefaultSelection);	
 
 	event.Skip();
+}
+
+void MainFrame::OnOpenDefaultClick(wxCommandEvent& event)
+{
+	wxMenu* fileMenu = GetMenuBar()->GetMenu(0);
+
+	int id = fileMenu->FindItem(L"Default");
+
+	fileMenu->Check(id, true);
+
+	m_DefaultSelection = m_pSelection->GetSelection();
+	
+	wxConfigBase* pConfig = wxConfigBase::Get();
+	pConfig->Write(L"/Global/DefaultRom", m_DefaultSelection);
+	pConfig->Flush();
+
+	event.Skip();
+}
+
+void MainFrame::OnBackupClick(wxCommandEvent& event)
+{
+	wxString src = RomFile(GetCurrentId(), true).Path;
+	wxString dst = src;
+	dst.Replace(L"Rom_Translated", L"Backup", true);
+
+	wxCopyFile(src, dst, true);
+
+	event.Skip();
+}
+
+void MainFrame::CreateGUIControls()
+{
+	wxMenu* fileMenu = new wxMenu();
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenRomClick, this, fileMenu->Append(wxID_ANY, L"Start", nullptr, L"Start the ROM with the default emulator")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenFolderClick, this, fileMenu->Append(wxID_ANY, L"Open Folder", nullptr, L"Open the project folder")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", nullptr, L"Create a copy of the ROM")->GetId());
+
+	wxMenuItem* default_check = fileMenu->AppendCheckItem(wxID_ANY, L"Default", L"Always open HM Studio with this ROM");
+	default_check->Check(true);
+
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenDefaultClick, this, default_check->GetId());
+
+	wxMenu* editorsMenu = new wxMenu();
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ScriptEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Script Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ItemEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Item Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<LetterEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Letter Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<StringEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"String Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<GraphicsEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Graphics Editor")->GetId());
+
+	wxMenuBar* menuBar = new wxMenuBar();
+	menuBar->Append(fileMenu, L"File");
+	menuBar->Append(editorsMenu, L"Editors");
+	
+	SetMenuBar(menuBar);
+
+	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
+
+	CreateStatusBar(2);
+	m_frameStatusBar->SetStatusText(L"HM Studio");
+
+	m_pSelection = new wxChoice(m_frameStatusBar, wxID_ANY);
+	m_pSelection->Insert("FoMT", 0);
+	m_pSelection->Insert("MFoMT", 1);
+	m_pSelection->Insert("DS", 2);
+	m_pSelection->SetSelection(m_DefaultSelection);
+
+	int widths[2]{ -1, m_pSelection->GetSize().GetWidth() + 10 };
+	m_frameStatusBar->SetStatusWidths(2, widths);
+
+	m_frameStatusBar->Bind(wxEVT_SIZE, &MainFrame::OnStatusSize, this);		
+
+	SetMinSize(wxSize(300, 200));
+	SetSize(wxSize(300, 200));
 }
