@@ -67,3 +67,15 @@ Things marked with (Reverse-Engineering) needs research to be implemented. If yo
 1. The line where the cursor is of translated text.
 1. The size of the current selection in translated text.
 1. The cursor column in the translated text.
+
+### Letter Editor
+
+![LetterEditor](https://i.imgur.com/keyDPDA.png)
+
+### Item Editor
+
+![Item Editor](https://i.imgur.com/MNWAw5z.png)
+
+### Graphics Editor
+
+![Graphics Editor](https://i.imgur.com/R24rOVg.png)
