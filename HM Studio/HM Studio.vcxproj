@@ -51,6 +51,7 @@
     <ClCompile Include="src\class_spell_checker.cpp" />
     <ClCompile Include="src\class_stc.cpp" />
     <ClCompile Include="src\dialog_dump_insert.cpp" />
+    <ClCompile Include="src\dialog_spellchecker.cpp" />
     <ClCompile Include="src\frame_editor.cpp" />
     <ClCompile Include="src\frame_letter_editor.cpp" />
     <ClCompile Include="src\frame_string_editor.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="src\class_script_editor.hpp" />
     <ClInclude Include="src\class_spell_checker.hpp" />
     <ClInclude Include="src\dialog_dump_insert.hpp" />
+    <ClInclude Include="src\dialog_spellchecker.hpp" />
     <ClInclude Include="src\frame_editor.hpp" />
     <ClInclude Include="src\frame_letter_editor.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />

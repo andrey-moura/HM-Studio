@@ -19,6 +19,8 @@
 #include "frame_graphics_editor.hpp"
 #include "frame_string_editor.hpp"
 
+#include "dialog_spellchecker.hpp"
+
 class MainFrame : public wxFrame
 {
 public:
@@ -34,6 +36,7 @@ private:
 	void OnSelectionChange(wxCommandEvent& event);
 	void OnOpenDefaultClick(wxCommandEvent& event);
 	void OnBackupClick(wxCommandEvent& event);
+	void OnSpellCheckerClick(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 private:
 	int m_DefaultSelection;

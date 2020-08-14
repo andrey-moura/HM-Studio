@@ -1,50 +1,168 @@
 #include "class_spell_checker.hpp"
 
-std::string SpellChecker::m_Language;
+static wxString s_Dictionary;
 std::vector<std::string> SpellChecker::m_UserDics;
 bool SpellChecker::m_sInitialized = false;
 Hunspell* SpellChecker::m_Hunspell = nullptr;
+static wxString s_DictionariesPath;
+static wxArrayString s_Dictionaries;
+static bool s_HasDictionary = false;
 
 void SpellChecker::Initialize()
 {
-	m_Language = LANG;
+	s_Dictionaries.clear();
+	m_UserDics.clear();
 
-	wxFileName fileName(wxStandardPaths::Get().GetExecutablePath());
-	fileName.AppendDir("SpellChecker");
+	wxConfigBase* pConfig = wxConfigBase::Get();	
 
-	fileName.SetName(m_Language);
-	fileName.SetExt("aff");
+	s_DictionariesPath = pConfig->Read(L"/SpellChecker/DictionariesDir", L"");	
+	wxFileName fileName;
+	wxString exeDir = wxPathOnly(wxStandardPaths::Get().GetExecutablePath());
 
-	std::string affDir = fileName.GetFullPath().ToStdString();
+	//First SpellChecker Initialization.
+	//Create default path
+	if (s_DictionariesPath.empty())
+	{		
+		fileName.SetPath(exeDir);
+		fileName.AppendDir("SpellChecker");
 
-	fileName.SetExt("dic");
-	std::string dicDir = fileName.GetFullPath().ToStdString();
+		s_DictionariesPath = fileName.GetPath();
 
-	if (m_Hunspell != nullptr)
-		delete m_Hunspell;
+		pConfig->Write("/SpellChecker/DictionariesDir", s_DictionariesPath);
+	}
 
-#ifdef _DEBUG
-	m_Hunspell = new Hunspell("", "");
-#else //Release
-	m_Hunspell = new Hunspell(affDir.c_str(), dicDir.c_str());
-#endif
-	fileName.RemoveLastDir();
-	fileName.AppendDir("HM Studio");
-	fileName.AppendDir("Dics");
-	fileName.SetExt("usr");
+	wxArrayString dics;
+	wxDir::GetAllFiles(s_DictionariesPath, &dics, L"*.dic");
 
-	Moon::File::MakeDir(fileName.GetPath().ToStdString());	
+	s_Dictionaries.Add(L"None");
 
-	AddUserDic(fileName.GetFullPath().ToStdString());
-	
+	for (const wxString& dic : dics)
+	{
+		wxString fileName = wxFileNameFromPath(dic);		
+		s_Dictionaries.Add(fileName.substr(0, fileName.find_last_of(L".")));
+	}
+
+	dics.clear();
+
+	wxString dic = pConfig->Read(L"/SpellChecker/Dictionary", L"");
+
+	//First SpellChecker Initialization.
+	//Create default language
+	if (dic.empty())
+	{
+		dic = L"None";
+		pConfig->Write(L"/SpellChecker/Dictionary", dic);		
+	}
+	else
+	{
+		if (s_Dictionaries.Index(dic) == -1)
+		{
+			dic = L"None";
+		}
+	}
+
+	SetDictionary(dic);	
+
+	/*
+		For the to do list:
+
+		I have to create a nonstatic SpellChecker, so I can create a instance of the
+		Spellchecker to check in the dictionary and another for each ROM and also
+		another for checking the HM Studio dictionary.
+
+		This would envolve multiple instances of Hunspell, but a better source code.
+	*/
+
+	if (s_Dictionary != L"None")
+	{
+		//ToDo: Remove this
+		fileName.SetPath(exeDir);
+		fileName.AppendDir("HM Studio");
+		fileName.AppendDir("Dics");
+		fileName.SetExt("usr");
+
+		Moon::File::MakeDir(fileName.GetPath().ToStdString());
+
+		AddUserDic(fileName.GetFullPath().ToStdString());		
+	}
+
 	AddToTemp("PlayerName");
 
 	m_sInitialized = true;
 }
 
+void SpellChecker::SetDictionary(const wxString& dictionary)
+{	
+	delete m_Hunspell;
+
+	s_Dictionary = dictionary;
+
+	if (s_Dictionary == wxEmptyString)
+		s_Dictionary = L"None";
+
+	if (s_Dictionary == L"None")
+	{
+		m_Hunspell = new Hunspell("", "");
+		s_HasDictionary = false;
+	}
+	else
+	{
+		wxFileName fn;
+		fn.SetPath(s_DictionariesPath);
+		fn.SetName(s_Dictionary);
+		fn.SetExt(L"dic");
+
+		if (!fn.FileExists())
+		{
+			m_Hunspell = new Hunspell("", "");
+			s_HasDictionary = false;
+			s_Dictionary = L"None";			
+		}
+		else
+		{
+			wxString dic = fn.GetFullPath();
+
+			fn.SetExt(L"aff");
+
+			if (!fn.FileExists())
+			{
+				m_Hunspell = new Hunspell("", "");
+				s_HasDictionary = false;
+				s_Dictionary = L"None";
+			}
+			else
+			{
+				wxString aff = fn.GetFullPath();
+
+				m_Hunspell = new Hunspell(aff.ToStdString().c_str(), dic.ToStdString().c_str());
+				s_HasDictionary = true;
+			}
+		}		
+	}
+
+	wxConfigBase* pConfig = wxConfigBase::Get();
+	pConfig->Write("/SpellChecker/Dictionary", s_Dictionary);
+	pConfig->Flush();
+}
+
+const wxString& SpellChecker::GetDictionary()
+{
+	return s_Dictionary;
+}
+
+const wxArrayString& SpellChecker::GetDictionaries()
+{
+	return s_Dictionaries;
+}
+
 const std::string& SpellChecker::GetWordChars()
 {	
 	return m_Hunspell->get_wordchars_cpp();
+}
+
+const wxString& SpellChecker::GetDictionariesPath()
+{
+	return s_DictionariesPath;
 }
 
 size_t SpellChecker::AddUserDic(const std::string& path)
@@ -106,11 +224,7 @@ void SpellChecker::AddToTemp(const std::string& string)
 
 bool SpellChecker::Spell(const std::string& string)
 {
-#ifdef _DEBUG 
-	return true;
-#else
-	return m_Hunspell->spell(string);
-#endif
+	return m_Hunspell->spell(string) || !s_HasDictionary;
 }
 
 std::vector<std::string> SpellChecker::Suggest(const std::string& string)

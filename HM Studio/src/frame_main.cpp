@@ -177,12 +177,19 @@ void MainFrame::OnBackupClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void MainFrame::OnSpellCheckerClick(wxCommandEvent& event)
+{
+	SpellCheckerDialog().ShowModal();	
+
+	event.Skip();
+}
+
 void MainFrame::CreateGUIControls()
 {
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenRomClick, this, fileMenu->Append(wxID_ANY, L"Start", nullptr, L"Start the ROM with the default emulator")->GetId());
 	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenFolderClick, this, fileMenu->Append(wxID_ANY, L"Open Folder", nullptr, L"Open the project folder")->GetId());
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", nullptr, L"Create a copy of the ROM")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", nullptr, L"Create a copy of the ROM")->GetId());	
 
 	wxMenuItem* default_check = fileMenu->AppendCheckItem(wxID_ANY, L"Default", L"Always open HM Studio with this ROM");
 	default_check->Check(true);
@@ -196,9 +203,13 @@ void MainFrame::CreateGUIControls()
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<StringEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"String Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<GraphicsEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Graphics Editor")->GetId());
 
+	wxMenu* toolsMenu = new wxMenu();
+	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", nullptr, L"Spell Checker Settings")->GetId());
+
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(fileMenu, L"File");
 	menuBar->Append(editorsMenu, L"Editors");
+	menuBar->Append(toolsMenu, L"Tools");
 	
 	SetMenuBar(menuBar);
 
