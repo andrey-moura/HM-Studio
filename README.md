@@ -19,7 +19,7 @@ The support for HM FoMT and DS are not 100%
 - [x] Open Project Folder.
 - [x] Show also original size, line and col in status bar in script editor.
 - [x] Disable the spellchecker in the original script.
-- [ ] Allow select dictionary or disable spellchecker.
+- [x] Allow select dictionary or disable spellchecker.
 - [ ] Move Script To.
 - [x] Performance update in GraphicsEditor drawing.
 - [x] Nicer GUI for MainFrame
