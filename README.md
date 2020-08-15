@@ -8,27 +8,13 @@ The support for HM FoMT and DS are not 100%
 
 ## To Do List
 
-### For the next Release
-
-- [x] Make ScriptEditorFrame inherit from EditorFrame
-- [x] Make ItemEditor inherit from Editor
-- [x] Make ItemEditorFrame inherit from EditorFrame
-- [x] Insert Items from dump.
-- [x] Default ROM option.
-- [x] Open ROM with default emulator.
-- [x] Open Project Folder.
-- [x] Show also original size, line and col in status bar in script editor.
-- [x] Disable the spellchecker in the original script.
-- [x] Allow select dictionary or disable spellchecker.
-- [x] Performance update in GraphicsEditor drawing.
-- [x] Nicer GUI for MainFrame
+- [ ] Make a Python or other script to update the Linux make file
+- [ ] Use wxString instead of std::string in the code
+- [ ] Use wxString instead of std::string in files (change files encoding)
+- [ ] Make XML script files, instead of binary scripts
 
 ### For future releases
 
-* Use wxString instead of std::string in functions the code
-* Use wxString instead of std::string in files (change files encoding)
-* Make XML script files, instead of binary scripts
-* Convert solution to CMake
 * Support opening random ROM with a text file configuration.
 * See the face and name of who is talking in a script (Reverse-Engineering).
 * Change the stamina/fatigue values of fridge tens (Reverse-Engineering).
@@ -40,13 +26,7 @@ Things marked with (Reverse-Engineering) needs research to be implemented. If yo
 
 ### MainScreen
 
-![MainFrame](https://i.imgur.com/BlAWLmd.png)
-
-1. Open the ROM with the default emulator (Unimplemented)
-1. Create a backup copy of the ROM (Unimplemented)
-1. Select current working ROM
-1. Always open HM Studio with the current ROM selection (Unimplemented)
-1. Open one of the editors with the current ROM selection
+![MainFrame](https://i.imgur.com/eDt199e.png)
 
 ### Script Editor
 
@@ -78,3 +58,7 @@ Things marked with (Reverse-Engineering) needs research to be implemented. If yo
 ### Graphics Editor
 
 ![Graphics Editor](https://i.imgur.com/R24rOVg.png)
+
+### String Editor
+
+![String Editor](https://i.imgur.com/4xeOuF8.png)
