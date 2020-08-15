@@ -44,7 +44,11 @@ void SpellChecker::Initialize()
 
 	dics.clear();
 
+#ifdef _DEBUG
+	wxString dic = wxEmptyString;
+#else
 	wxString dic = pConfig->Read(L"/SpellChecker/Dictionary", L"");
+#endif
 
 	//First SpellChecker Initialization.
 	//Create default language
