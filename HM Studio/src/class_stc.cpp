@@ -29,8 +29,6 @@ STC::STC(wxWindow* parent, wxWindowID id) : wxStyledTextCtrl(parent, id)
 		
 	SendMsg(SCI_SETREPRESENTATION, (long long)"\x05", (long long)"END");
 	SendMsg(SCI_SETREPRESENTATION, (long long)"\x0c", (long long)"...");
-
-	std::string();
 }
 
 void STC::SetUseSpellChecker(bool use)
