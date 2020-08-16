@@ -26,6 +26,11 @@ STC::STC(wxWindow* parent, wxWindowID id) : wxStyledTextCtrl(parent, id)
 		chars.append(1, '-');
 		SetWordChars(chars);
 	}
+		
+	SendMsg(SCI_SETREPRESENTATION, (long long)"\x05", (long long)"END");
+	SendMsg(SCI_SETREPRESENTATION, (long long)"\x0c", (long long)"...");
+
+	std::string();
 }
 
 void STC::SetUseSpellChecker(bool use)
@@ -535,7 +540,7 @@ void STC::UpdateStatusText()
 {
 	if (m_StatusIndex[(size_t)StcStatus::SIZE] != -1)
 	{
-		m_pStatusBar->SetStatusText(wxString(L"Size: ") << GetTextLength(), m_StatusIndex[(size_t)StcStatus::SIZE]);
+		m_pStatusBar->SetStatusText(wxString(L"Size: ") << GetTextLength(), m_StatusIndex[(size_t)StcStatus::SIZE]);	
 	}
 	if (m_StatusIndex[(size_t)StcStatus::LINE] != -1)
 	{
