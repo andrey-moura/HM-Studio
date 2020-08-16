@@ -10,7 +10,7 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 	CreateGUIControls();
 	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
-	m_pSelection->Bind(wxEVT_CHOICE, &MainFrame::OnSelectionChange, this);
+	m_pSelection->Bind(wxEVT_CHOICE, &MainFrame::OnSelectionChange, this);	
 }
 
 void MainFrame::OnOpenRomClick(wxCommandEvent& event)

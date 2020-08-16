@@ -94,7 +94,7 @@ bool StringEditor::Open(const wxString& path)
 	m_Count = m_Strings.size();
 	m_Index = 0;
 	m_Info.StartBlock = std::stoi(root_node->GetAttribute(L"start", L"0").ToStdWstring(), nullptr, 16);
-	m_Info.BlockLenght = std::stoi(root_node->GetAttribute(L"size", L"0").ToStdWstring(), nullptr, 16);
+	m_Info.BlockLenght = std::stoi(root_node->GetAttribute(L"size", L"0").ToStdWstring(), nullptr, 16);	
 
 	return true;
 }
@@ -208,7 +208,7 @@ void StringEditor::SaveFile()
 	wxXmlNode* root = new wxXmlNode(nullptr, wxXmlNodeType::wxXML_ELEMENT_NODE, L"ROM-String");
 	doc.SetRoot(root);
 	root->AddAttribute(L"start", Moon::BitConverter::TToHexString(m_Info.StartBlock));
-	root->AddAttribute(L"size", Moon::BitConverter::TToHexString(m_Info.BlockLenght));
+	root->AddAttribute(L"size", Moon::BitConverter::TToHexString(m_Info.BlockLenght));	
 
 	size_t i = 0;
 	wxString string_format = L"String %i";
@@ -266,8 +266,8 @@ void StringEditor::InsertFile()
 	const Moon::Hacking::Table& table = m_RomTranslated.GetTable();
 
 	for (RomString& str : m_Strings)
-	{		
-		pointers.push_back(m_Info.StartBlock + new_block.size());
+	{
+		pointers.push_back(new_block.size());
 		std::string table_str = str.string.ToStdString();
 		table.Output(table_str);
 		Moon::String::ConvertLineEnds(table_str, m_RomTranslated.GetEOL());
@@ -275,17 +275,43 @@ void StringEditor::InsertFile()
 		new_block.push_back('\0');
 	}
 
+	bool moved = false;
+
 	if (new_block.size() > m_Info.BlockLenght)
 	{
-		wxMessageBox(L"There is no enough space in the block.", L"Huh?", wxICON_ERROR);
-		return;
+		uint32_t free_space = m_RomTranslated.FindFreeSpace(new_block.size());
+
+		if (free_space == std::string::npos)
+		{
+			wxLogError(L"Could not find %i bytes of free space to insert the file.", new_block.size());
+			return;			
+		}
+
+		m_Info.StartBlock = free_space;
+		m_Info.BlockLenght = new_block.size();
+		moved = true;
 	}
 
-	new_block.resize(m_Info.BlockLenght);
+	if (!moved)
+		new_block.resize(m_Info.BlockLenght);
+
+	for (uint32_t& pointer : pointers)
+	{
+		pointer += m_Info.StartBlock;
+	}
 
 	m_RomTranslated.ConvertOffsets(pointers.data(), pointers.size());
 
 	std::vector<uint32_t> rom = m_RomTranslated.ReadBytes<uint32_t>(0, m_RomTranslated.Length() / 4);
+
+	if (moved)
+	{
+		for (const RomString& str : m_Strings)
+		{
+			char* old_str = (char*)rom.data() + m_RomTranslated.ConvertPointers(rom[str.references[0] / 4]);
+			memset(old_str, 0, strlen(old_str));
+		}
+	}
 
 	for (size_t i = 0; i < m_Strings.size(); ++i)
 	{
@@ -298,6 +324,9 @@ void StringEditor::InsertFile()
 	memcpy(((byte*)rom.data()) + m_Info.StartBlock, new_block.c_str(), new_block.size());
 	m_RomTranslated.Seek(0);
 	m_RomTranslated.WriteBytes(rom);
+
+	if (moved)
+		wxMessageBox(wxString(L"The string block was moved to adress 0x") << Moon::BitConverter::TToHexString(m_Info.StartBlock), L"Warning", wxICON_WARNING);
 }
 
 bool StringEditor::GetTextFromPath(const std::string& file)

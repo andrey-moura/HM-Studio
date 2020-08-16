@@ -42,7 +42,7 @@ public:
 	StringEditor(const id& i);
 private:
 	std::vector<RomString> m_Strings;
-	std::map<size_t, uint32_t> m_Files;
+	std::map<size_t, uint32_t> m_Files;	
 	wxString m_PathFormat;	
 public:
 	const RomString& GetCurrentText();

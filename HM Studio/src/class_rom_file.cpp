@@ -358,22 +358,10 @@ uint32_t RomFile::FindFreeSpace(uint32_t size)
 	std::string buffer;
 	buffer.resize(size+8, 0xff);
 
-	size_t pos = block.find(buffer);	
-
-//I don't know why, but my ROM got filled with 0x00 in the end instead of 0xff
-//ToDo::Remove this section
-	if(pos == std::string::npos)
-	{
-		memset(buffer.data(), 0, size+8);		
-		pos = block.find(buffer);		
-	}
+	size_t pos = block.find(buffer);
 
 	if (pos == std::string::npos)
-		return pos;
+		return std::string::npos;	
 
-	if (pos % 4 == 0) pos += 4;	 else while (pos % 4 != 0) ++pos;
-
-	pos += 4;
-
-	return pos + m_End;
+	return pos + m_End + 4;
 }
