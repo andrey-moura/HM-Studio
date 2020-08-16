@@ -34,7 +34,6 @@ private:
 	void OnCheckCodeClick(wxCommandEvent& event);
 	void OnSetEventClick(wxCommandEvent& event);
 	void SetTextRange();
-	void UpdateStatusText(wxStyledTextCtrl* stc);
 	void OnHorizontalModeClick(wxCommandEvent& event);
 //Text save
 	void ConfigureSTC(STC* stc, const RomFile& rom);	

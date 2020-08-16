@@ -300,22 +300,6 @@ void ScriptEditorFrame::SetTextRange()
 	dialog.ShowModal();	
 }
 
-void ScriptEditorFrame::UpdateStatusText(wxStyledTextCtrl* stc)
-{
-	m_pStatusBar->SetStatusText(wxString("Size: ") << std::to_string(stc->GetTextLength()), 1);
-
-	m_pStatusBar->SetStatusText(wxString("Ln: ") << stc->GetCurrentLine() + 1, 2);
-
-	int selSize = (stc->GetSelectionEnd() - stc->GetSelectionStart());
-
-	if (selSize > 0)
-		selSize = stc->GetSelectedText().size();
-
-	m_pStatusBar->SetStatusText(wxString("Sel: ") << selSize, 3);
-
-	m_pStatusBar->SetStatusText(wxString("Col: ") << tScriptTranslated->GetColumn(tScriptTranslated->GetCurrentPos()), 4);
-}
-
 void ScriptEditorFrame::UpdateText()
 {	
 	tScriptOriginal->SetText(((ScriptEditor*)m_pEditor)->GetCurOriginal());
