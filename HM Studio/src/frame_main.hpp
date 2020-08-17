@@ -37,6 +37,7 @@ private:
 	void OnOpenDefaultClick(wxCommandEvent& event);
 	void OnBackupClick(wxCommandEvent& event);
 	void OnSpellCheckerClick(wxCommandEvent& event);
+	void OnAlwaysOnTopClick(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 private:
 	int m_DefaultSelection;
@@ -55,5 +56,6 @@ private:
 private:
 	void CreateGUIControls();
 	wxChoice* m_pSelection = nullptr;
+	wxMenuItem* m_pAlwaysOnTop = nullptr;
 };
 

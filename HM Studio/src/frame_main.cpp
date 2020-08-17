@@ -7,6 +7,11 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 
 	m_DefaultSelection = pConfig->Read(L"/Global/DefaultRom", (long)0);
 
+	if (pConfig->ReadBool(L"/MainFrame/Top", false))
+	{
+		ToggleWindowStyle(wxSTAY_ON_TOP);		
+	}
+
 	CreateGUIControls();
 	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
@@ -184,6 +189,18 @@ void MainFrame::OnSpellCheckerClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void MainFrame::OnAlwaysOnTopClick(wxCommandEvent& event)
+{
+	wxConfigBase* pConfig = wxConfigBase::Get();
+
+	pConfig->Write(L"/MainFrame/Top", m_pAlwaysOnTop->IsChecked());
+	pConfig->Flush();
+
+	ToggleWindowStyle(wxSTAY_ON_TOP);
+
+	event.Skip();
+}
+
 void MainFrame::CreateGUIControls()
 {
 	wxMenu* fileMenu = new wxMenu();
@@ -206,10 +223,17 @@ void MainFrame::CreateGUIControls()
 	wxMenu* toolsMenu = new wxMenu();
 	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", nullptr, L"Spell Checker Settings")->GetId());
 
+	wxMenu* viewMenu = new wxMenu();
+	m_pAlwaysOnTop = viewMenu->AppendCheckItem(wxID_ANY, L"Always on Top", L"Show window always on top");
+	m_pAlwaysOnTop->Check(GetWindowStyle() & wxSTAY_ON_TOP);
+
+	viewMenu->Bind(wxEVT_MENU, &MainFrame::OnAlwaysOnTopClick, this, m_pAlwaysOnTop->GetId());
+
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(fileMenu, L"File");
 	menuBar->Append(editorsMenu, L"Editors");
 	menuBar->Append(toolsMenu, L"Tools");
+	menuBar->Append(viewMenu, L"View");
 	
 	SetMenuBar(menuBar);
 
