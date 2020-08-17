@@ -31,6 +31,8 @@ EditorFrame::EditorFrame(Editor* editor) : m_pEditor(editor), wxFrame(nullptr, w
 
 	if (!fn.DirExists())
 		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+
+	SetBackgroundColour(wxColour(240, 240, 240));
 }
 
 void EditorFrame::CheckBackup()

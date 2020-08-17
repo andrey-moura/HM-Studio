@@ -105,7 +105,7 @@ void MainFrame::OnClose(wxCloseEvent& event)
 		}
 	}
 
-	wxTheApp->ExitMainLoop();
+	wxTheApp->ExitMainLoop();	
 
 	event.Skip();
 }

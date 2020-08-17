@@ -96,6 +96,8 @@ bool StringEditor::Open(const wxString& path)
 	m_Info.StartBlock = std::stoi(root_node->GetAttribute(L"start", L"0").ToStdWstring(), nullptr, 16);
 	m_Info.BlockLenght = std::stoi(root_node->GetAttribute(L"size", L"0").ToStdWstring(), nullptr, 16);	
 
+	OpenOriginal();
+
 	return true;
 }
 
@@ -115,6 +117,8 @@ void FindReferences(const std::vector<char>& rom, const size_t& pointer, std::ve
 
 void StringEditor::Open(uint32_t start, uint32_t size)
 {
+	m_Index = 0;
+
 	wxString path = wxString::Format(m_PathFormat, Moon::BitConverter::TToHexString(start));
 
 	for (auto& file : m_Files)
@@ -175,6 +179,23 @@ void StringEditor::Open(uint32_t start, uint32_t size)
 	m_Files.insert(std::pair(m_Number, m_Info.StartBlock));
 
 	m_Count = m_Strings.size();
+
+	OpenOriginal();
+}
+
+void StringEditor::OpenOriginal()
+{
+	m_Original.clear();
+	m_Original.reserve(m_Strings.size());
+
+	for (size_t i = 0; i < m_Strings.size(); ++i)
+	{
+		uint32_t ref = m_Strings[i].references[0];
+		uint32_t addr = m_RomOriginal.ReadPointer32(ref);
+
+		m_RomOriginal.Seek(addr);
+		m_Original.push_back(RomString(m_RomOriginal.ReadString()));
+	}
 }
 
 bool StringEditor::Save(const wxString& str)
@@ -365,6 +386,11 @@ const RomString& StringEditor::GetCurrentText()
 	return m_Strings[m_Index];
 }
 
+const RomString& StringEditor::GetCurrentOriginal()
+{
+	return m_Original[m_Index];
+}
+
 StringEditorFrame::StringEditorFrame(const id& i) : EditorFrame(new StringEditor(i))
 {
 	CreateGUIControls();
@@ -426,11 +452,15 @@ void StringEditorFrame::OnResumeBackup(const wxString& backup)
 		str.string = backup_data;
 		backup_data += str.string.size() + 1;
 	}
+
+	((StringEditor*)m_pEditor)->OpenOriginal();
+	UpdateText();
 }
 
 void StringEditorFrame::UpdateText()
 {
 	m_pTextEditor->SetText(((StringEditor*)m_pEditor)->GetCurrentText().string);
+	m_pTextOriginal->SetText(((StringEditor*)m_pEditor)->GetCurrentOriginal().string);
 }
 
 void StringEditorFrame::CreateGUIControls()
@@ -441,8 +471,10 @@ void StringEditorFrame::CreateGUIControls()
 	CreateMyToolBar(true, true, true, true, true);
 	
 	m_pTextEditor = new STC(this, wxID_ANY);
+	m_pTextOriginal = new STC(this, wxID_ANY);
+	m_pTextOriginal->SetUseSpellChecker(false);
 
-	CreateButtonsSizer();
+	CreateButtonsSizer();	
 
 	CreateMyStatusBar();
 	StatusToStc(m_pTextEditor);
@@ -450,5 +482,6 @@ void StringEditorFrame::CreateGUIControls()
 	wxBoxSizer* root_sizer = new wxBoxSizer(wxVERTICAL);
 	root_sizer->Add(m_pTextEditor, 1, wxEXPAND, 0);
 	root_sizer->Add(m_pButtonsSizer, 0, wxEXPAND, 0);
+	root_sizer->Add(m_pTextOriginal, 1, wxEXPAND, 0);
 	SetSizerAndFit(root_sizer);
 }

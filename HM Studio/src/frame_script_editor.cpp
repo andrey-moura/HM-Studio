@@ -312,8 +312,6 @@ void ScriptEditorFrame::UpdateText()
 
 void ScriptEditorFrame::CreateGUIControls()
 {
-	this->SetBackgroundColour(wxColour(240, 240, 240));
-
 	wxMenu* menuEdit = new wxMenu();
 	menuEdit->Append(wxID_ANY, "Move To");
 	menuEdit->Bind(wxEVT_MENU, &ScriptEditorFrame::OnConvertEOLClick, this, menuEdit->Append(wxNewId(), "Convert EOL")->GetId());

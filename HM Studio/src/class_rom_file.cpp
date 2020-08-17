@@ -257,7 +257,7 @@ uint64_t RomFile::ReadUint64(uint32_t off)
 uint32_t RomFile::ReadPointer32(uint32_t offset)
 {
 	Seek(offset);
-	return ReadUInt32() & ROM_BUS_NOT;
+	return ConvertPointers(ReadUInt32());
 }
 
 std::string RomFile::ReadString()

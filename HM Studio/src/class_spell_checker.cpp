@@ -51,13 +51,8 @@ void SpellChecker::Initialize()
 #endif
 
 	//First SpellChecker Initialization.
-	//Create default language
-	if (dic.empty())
-	{
-		dic = L"None";
-		pConfig->Write(L"/SpellChecker/Dictionary", dic);		
-	}
-	else
+	//Create default language	
+	if (!dic.empty())
 	{
 		if (s_Dictionaries.Index(dic) == -1)
 		{

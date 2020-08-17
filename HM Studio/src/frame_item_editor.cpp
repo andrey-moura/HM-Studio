@@ -135,9 +135,7 @@ void ItemEditorFrame::CreateGUIControls()
 	menuBar->Append(menuFile, "File");
 	menuBar->Append(menuTools, "Tools");
 
-	SetMenuBar(menuBar);
-
-	this->SetBackgroundColour(wxColour(240, 240, 240, 255));
+	SetMenuBar(menuBar);	
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pItemName = new wxTextCtrl(this, wxID_ANY);
