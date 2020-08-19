@@ -34,6 +34,8 @@ protected:
 	std::string m_PathRight;
 
 	wxString m_EditorDir;
+	wxString m_OriginalFormat;
+	wxString m_TranslatedFormat;
 public:
 	bool NextFile();
 	bool PreviousFile();
@@ -58,6 +60,7 @@ public:
 	virtual void GetRomInfo() {};
 	virtual const std::string& GetType() const { return m_Type; }
 	virtual const std::string& GetExt() const { return m_FileExt; }
+	//virtual wxString GetPath(uint32_t index, bool translated);
 	const wxString& GetEditorDir() const { return m_EditorDir; }
 	const EditorInfo& GetEditorInfo() const { return m_Info; }
 	EditorInfo& GetEditorInfo() { return m_Info; }

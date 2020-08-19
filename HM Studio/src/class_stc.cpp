@@ -35,17 +35,14 @@ void STC::SetUseSpellChecker(bool use)
 {
 	if (use)
 	{
-		Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
-		m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);		
+		m_Timer.Start();
 	}
 	else
-	{
-		Unbind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
-		m_Timer.Unbind(wxEVT_TIMER, &STC::OnTimer, this);
+	{		
 		m_Timer.Stop();		
-
-		Bind(wxEVT_STC_MODIFIED, &STC::OnModifiedNoSpell, this);
 	}
+
+	m_UseSpellChecker = use;
 }
 
 inline void STC::VerifyLineLenght(size_t line)
@@ -234,13 +231,6 @@ void STC::SpellSTC(size_t start, size_t end)
 //Events
 //-------------------------------------------------------------------------------------//
 
-void STC::OnModifiedNoSpell(wxStyledTextEvent& event)
-{
-	m_NeedStyle = true;
-
-	event.Skip();
-}
-
 void STC::OnModified(wxStyledTextEvent& event)
 {			
 	size_t textLenght = event.m_length;
@@ -267,7 +257,8 @@ void STC::OnModified(wxStyledTextEvent& event)
 		{
 			m_TypingStart = textPos;
 			m_TypingEnd = textPos + textLenght;
-			m_NeedToSpell = true;			
+			
+			m_NeedToSpell = m_UseSpellChecker;
 		}
 		else
 		{
@@ -315,7 +306,9 @@ void STC::InsertOnCtrlKey(const std::string& s, char key)
 
 void STC::OnTimer(wxTimerEvent& event)
 {
-	SpellSTC(m_TypingStart, m_TypingEnd);
+	if(m_UseSpellChecker)
+		SpellSTC(m_TypingStart, m_TypingEnd);
+	
 	m_Typing = false;
 }
 
@@ -561,12 +554,12 @@ void STC::UpdateStatusText()
 
 void STC::DoBinds()
 {
+	Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
+	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
 	Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);	
 	Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
 	Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
-	Bind(wxEVT_STC_UPDATEUI, &STC::OnUpdateUI, this);
-
-	SetUseSpellChecker(true);
+	Bind(wxEVT_STC_UPDATEUI, &STC::OnUpdateUI, this);	
 }
 
 void STC::CreateGUI()

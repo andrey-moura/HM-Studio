@@ -463,21 +463,40 @@ void StringEditorFrame::UpdateText()
 	m_pTextOriginal->SetText(((StringEditor*)m_pEditor)->GetCurrentOriginal().string);
 }
 
+void StringEditorFrame::OnUpdateFilesClick(wxCommandEvent& event)
+{
+	for (size_t i = 0; i < m_pEditor->GetCount(); ++i)
+	{
+
+	}
+
+	event.Skip();
+}
+
 void StringEditorFrame::CreateGUIControls()
 {
 	CreateMyMenuBar();
 	CreateFileMenu();
 	CreateStringMenu();
+	CreateToolsMenu(false, false, false, false);
+
+#ifdef _DEBUG
+	m_pMenuTools->Append(wxID_ANY, L"Update All Files", nullptr);
+#endif
+
 	CreateMyToolBar(true, true, true, true, true);
 	
-	m_pTextEditor = new STC(this, wxID_ANY);
+	m_pTextEditor = new STC(this, wxID_ANY);	
+	m_pTextEditor->SetMaxLineLenght(m_pEditor->GetRom(true).GetLineMax());
 	m_pTextOriginal = new STC(this, wxID_ANY);
+	m_pTextOriginal->SetMaxLineLenght(m_pEditor->GetRom(false).GetLineMax());
 	m_pTextOriginal->SetUseSpellChecker(false);
 
 	CreateButtonsSizer();	
 
 	CreateMyStatusBar();
 	StatusToStc(m_pTextEditor);
+	StatusToStc(m_pTextOriginal);
 
 	wxBoxSizer* root_sizer = new wxBoxSizer(wxVERTICAL);
 	root_sizer->Add(m_pTextEditor, 1, wxEXPAND, 0);

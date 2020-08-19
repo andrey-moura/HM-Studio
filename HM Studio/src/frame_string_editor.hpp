@@ -58,7 +58,7 @@ public:
 public:
 	virtual bool Open(uint32_t number) override;
 	virtual void SaveFile() override;
-	virtual void InsertFile() override;
+	virtual void InsertFile() override;	
 	virtual bool GetTextFromPath(const std::string& file) override;	
 };
 
@@ -73,6 +73,8 @@ private:
 	virtual void OnResumeBackup(const wxString& bakcup) override;
 private:
 	void GoFile(const wxString& offset);
+private:
+	void OnUpdateFilesClick(wxCommandEvent& event);
 private:
 	STC* m_pTextEditor = nullptr;
 	STC* m_pTextOriginal = nullptr;

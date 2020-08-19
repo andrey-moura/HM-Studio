@@ -44,6 +44,7 @@ public:
 	void SetUseSpellChecker(bool use = true);
 private:
 	bool m_UserCanAddLine = true;
+	bool m_UseSpellChecker = true;
 
 	size_t m_MaxLineLenght = UINT32_MAX;
 
@@ -115,7 +116,6 @@ private:
 	void OnKeyPress(wxKeyEvent& event);
 	void OnStyleNeeded(wxStyledTextEvent& event);
 	void OnModified(wxStyledTextEvent& event);	
-	void OnModifiedNoSpell(wxStyledTextEvent& event);	
 	void OnMouseRight(wxMouseEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnUpperLowerCaseClick(wxCommandEvent& event);	
