@@ -108,6 +108,12 @@ public:
 		WriteBytes(bytes.data(), bytes.size() * sizeof T);
 	}	
 
+	template<typename T>
+	inline void WriteT(const T& t)
+	{
+		Write(&t, sizeof(T));
+	}
+
 	void WriteBytes(const void* bytes, const size_t size);
 
 	void ConvertPointers(uint32_t* pointers, uint32_t count);

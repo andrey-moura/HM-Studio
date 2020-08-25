@@ -75,6 +75,8 @@ protected:
 //Override this
 	virtual void UpdateText() {}
 //Override this
+	virtual void UpdateFile() {}
+//Override this
 	virtual void OnFindText();
 //Override this
 	virtual void OnFindNext() {}

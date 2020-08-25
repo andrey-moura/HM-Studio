@@ -55,6 +55,7 @@
     <ClCompile Include="src\frame_editor.cpp" />
     <ClCompile Include="src\frame_letter_editor.cpp" />
     <ClCompile Include="src\frame_string_editor.cpp" />
+    <ClCompile Include="src\frame_value_editor.cpp" />
     <ClCompile Include="src\graphicsinfoviewer.cpp" />
     <ClCompile Include="src\dialog_get_text_from.cpp" />
     <ClCompile Include="src\FishEditor.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="src\frame_letter_editor.hpp" />
     <ClInclude Include="src\frame_script_editor.hpp" />
     <ClInclude Include="src\frame_string_editor.hpp" />
+    <ClInclude Include="src\frame_value_editor.hpp" />
     <ClInclude Include="src\graphicsinfoviewer.hpp" />
     <ClInclude Include="src\dialog_get_text_from.hpp" />
     <ClInclude Include="src\FishEditor.hpp" />

@@ -2,7 +2,11 @@
 
 Editor::Editor(const id& id, const wxString& type) : m_RomOriginal(id, false), m_RomTranslated(id, true), m_Type(type)
 {
-	
+	wxFileName fn;
+	fn.SetPath(m_RomOriginal.m_HomeDir);
+	fn.AppendDir(type);
+
+	m_EditorDir = fn.GetPath();
 }
 
 RomFile& Editor::GetRom(const bool& translated)
@@ -143,7 +147,7 @@ FilesResults Editor::FindInFiles(std::string& search, bool useTable, bool transl
 
 bool Editor::SetIndex(size_t index)
 {
-	if (index < m_Info.Count)
+	if (index < m_Count)
 	{
 		m_Index = index;
 		return true;

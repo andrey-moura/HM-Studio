@@ -18,6 +18,7 @@
 #include "frame_letter_editor.hpp"
 #include "frame_graphics_editor.hpp"
 #include "frame_string_editor.hpp"
+#include "frame_value_editor.hpp"
 
 #include "dialog_spellchecker.hpp"
 
@@ -36,6 +37,7 @@ private:
 	void OnSelectionChange(wxCommandEvent& event);
 	void OnOpenDefaultClick(wxCommandEvent& event);
 	void OnBackupClick(wxCommandEvent& event);
+	void OnCopyFromOriginal(wxCommandEvent& event);
 	void OnSpellCheckerClick(wxCommandEvent& event);
 	void OnAlwaysOnTopClick(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);

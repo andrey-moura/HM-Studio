@@ -16,6 +16,15 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
 	m_pSelection->Bind(wxEVT_CHOICE, &MainFrame::OnSelectionChange, this);	
+
+#ifdef _DEBUG
+#ifdef EDITING_EDITOR_FRAME
+	EDITING_EDITOR_FRAME* frame = new EDITING_EDITOR_FRAME(GetCurrentId());
+	frame->Show();
+
+	Iconize();
+#endif //_EDITING_EDITOR_FRAME
+#endif //_DEBUG
 }
 
 void MainFrame::OnOpenRomClick(wxCommandEvent& event)
@@ -182,6 +191,16 @@ void MainFrame::OnBackupClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void MainFrame::OnCopyFromOriginal(wxCommandEvent& event)
+{
+	wxString src = RomFile(GetCurrentId(), false).Path;
+	wxString dst = src;
+	dst.Replace(L"Rom_Original", L"Rom_Translated", true);
+	wxCopyFile(src, dst, true);
+
+	event.Skip();
+}
+
 void MainFrame::OnSpellCheckerClick(wxCommandEvent& event)
 {
 	SpellCheckerDialog().ShowModal();	
@@ -207,6 +226,7 @@ void MainFrame::CreateGUIControls()
 	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenRomClick, this, fileMenu->Append(wxID_ANY, L"Start", nullptr, L"Start the ROM with the default emulator")->GetId());
 	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenFolderClick, this, fileMenu->Append(wxID_ANY, L"Open Folder", nullptr, L"Open the project folder")->GetId());
 	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", nullptr, L"Create a copy of the ROM")->GetId());	
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnCopyFromOriginal, this, fileMenu->Append(wxID_ANY, L"Copy From Original", nullptr, L"Copy the original ROM")->GetId());
 
 	wxMenuItem* default_check = fileMenu->AppendCheckItem(wxID_ANY, L"Default", L"Always open HM Studio with this ROM");
 	default_check->Check(true);
@@ -219,6 +239,7 @@ void MainFrame::CreateGUIControls()
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<LetterEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Letter Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<StringEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"String Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<GraphicsEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Graphics Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ValueEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Value Editor")->GetId());
 
 	wxMenu* toolsMenu = new wxMenu();
 	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", nullptr, L"Spell Checker Settings")->GetId());

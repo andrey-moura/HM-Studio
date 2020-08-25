@@ -210,13 +210,17 @@ void EditorFrame::OnProxString()
 void EditorFrame::OnPrevFile()
 {	
 	if (m_pEditor->PreviousFile())
-		UpdateText();
+		UpdateText(); //ToDo: Remove this
+
+	UpdateFile();
 }
 
 void EditorFrame::OnProxFile()
 {
 	if (m_pEditor->NextFile())
 		UpdateText();
+
+	UpdateFile();
 }
 
 void EditorFrame::OnGetTextFrom()
@@ -229,15 +233,20 @@ void EditorFrame::OnGetTextFrom()
 
 		if (dialog.FromNumber())
 		{
-			ret = m_pEditor->GetTextFromNumber(dialog.GetNumber());
+			ret = m_pEditor->GetTextFromNumber(dialog.GetNumber());			
 		}
 		else
 		{
 			wxFileName filename = dialog.GetFileName();
-			ret = m_pEditor->GetTextFromPath(filename.GetFullPath().ToStdString());
+			ret = m_pEditor->GetTextFromPath(filename.GetFullPath().ToStdString());			
 		}
 
-		if (!ret)
+		if (ret)
+		{
+			UpdateFile();
+			UpdateText(); //ToDo: Remove this
+		}
+		else
 			wxMessageBox(L"Failed to get text", L"Huh?", wxICON_ERROR);
 	}
 }
@@ -258,7 +267,8 @@ void EditorFrame::OnGoFile()
 		uint32_t number = std::stoi(dialog.GetValue().ToStdString());
 		if (m_pEditor->Open(number))
 		{
-			UpdateText();
+			UpdateFile();
+			UpdateText(); //ToDo: Remove this
 		}
 	}
 }
