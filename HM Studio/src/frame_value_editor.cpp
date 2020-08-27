@@ -726,7 +726,7 @@ void ValueEditorFrame::CreateGUIControls()
 {
 	m_pMenuFile = new wxMenu();
 	Bind(wxEVT_MENU, &ValueEditorFrame::OnNewFileClick, this, m_pMenuFile->Append(wxID_NEW, L"New")->GetId());
-	m_pMenuFile->Append(wxID_SAVE, L"Save");	
+	m_pMenuFile->Append(wxID_SAVE, L"Save");
 
 	wxMenu* menuValue = new wxMenu();
 	Bind(wxEVT_MENU, &ValueEditorFrame::OnNewValueClick, this, menuValue->Append(wxID_ANY, L"Add Value")->GetId());
@@ -734,8 +734,9 @@ void ValueEditorFrame::CreateGUIControls()
 	Bind(wxEVT_MENU, &ValueEditorFrame::OnDeleteValue, this, menuValue->Append(wxID_ANY, L"Delete Current")->GetId());
 
 	CreateMyMenuBar();
-	m_pMenuBar->Append(m_pMenuFile, L"File");
-	m_pMenuBar->Append(menuValue, L"Value");
+	m_frameMenuBar->Append(m_pMenuFile, L"File");
+	m_frameMenuBar->Append(menuValue, L"Value");
+	CreateViewMenu();
 
 	CreateMyToolBar();
 
@@ -747,8 +748,8 @@ void ValueEditorFrame::CreateGUIControls()
 	m_pValueList2->SetColLabelValue(1, L"Type");
 	m_pValueList2->SetColLabelValue(2, L"Adress");
 	m_pValueList2->SetColLabelValue(3, L"Value");
-	m_pValueList2->UseNativeColHeader();	
-	m_pValueList2->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);	
+	m_pValueList2->UseNativeColHeader();
+	m_pValueList2->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
 
 	m_pValueList2->Bind(wxEVT_GRID_SELECT_CELL, &ValueEditorFrame::OnCellSelected, this);
 	m_pValueList2->Bind(wxEVT_GRID_EDITOR_CREATED, &ValueEditorFrame::OnCellChangeStart, this);
@@ -764,5 +765,14 @@ void ValueEditorFrame::CreateGUIControls()
 
 	CreateMyStatusBar();
 
-	SetSizer(root_sizer);
+	if (m_RestoredSize)
+	{
+		SetSizer(root_sizer);
+		SetMinSize(root_sizer->GetMinSize());
+	}
+	else
+	{
+		SetSizerAndFit(root_sizer);
+		root_sizer->SetSizeHints(this);
+	}
 }

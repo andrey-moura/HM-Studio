@@ -173,5 +173,14 @@ void LetterEditorFrame::CreateGUIControls()
 	StatusToStc(m_TextOriginal);
 	StatusToStc(m_TextTranslated);
 
-	SetSizer(rootSizer);
+	if (m_RestoredSize)
+	{
+		SetSizer(rootSizer);
+		SetMinSize(rootSizer->GetMinSize());
+	}
+	else
+	{
+		SetSizerAndFit(rootSizer);
+		rootSizer->SetSizeHints(this);
+	}
 }

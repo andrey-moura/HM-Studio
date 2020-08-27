@@ -131,11 +131,13 @@ void ItemEditorFrame::CreateGUIControls()
 	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dumper", nullptr, "Export the itens")->GetId());
 	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpImgClick, this, menuTools->Append(wxNewId(), "Dump images", nullptr, "Export images")->GetId());
 
-	wxMenuBar* menuBar = new wxMenuBar();
-	menuBar->Append(menuFile, "File");
-	menuBar->Append(menuTools, "Tools");
+	CreateMyMenuBar();
+	m_frameMenuBar->Append(menuFile, "File");
+	m_frameMenuBar->Append(menuTools, "Tools");
 
-	SetMenuBar(menuBar);	
+	CreateViewMenu();
+
+	SetMenuBar(m_frameMenuBar);
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 		m_pItemName = new wxTextCtrl(this, wxID_ANY);
@@ -179,7 +181,14 @@ void ItemEditorFrame::CreateGUIControls()
 	CreateMyStatusBar();
 	StatusToStc(m_pItemText);
 
-	SetSizer(m_pRootSizer);
-	m_pRootSizer->Fit(this);
-	m_pRootSizer->SetSizeHints(this);
+	if (m_RestoredSize)
+	{
+		SetSizer(m_pRootSizer);
+		SetMinSize(m_pRootSizer->GetMinSize());
+	}
+	else
+	{
+		SetSizerAndFit(m_pRootSizer);
+		m_pRootSizer->SetSizeHints(this);
+	}
 }

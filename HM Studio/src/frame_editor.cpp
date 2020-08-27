@@ -17,8 +17,34 @@ static uint8_t* insertScriptAlpha = new uint8_t[256]{ 0x00, 0x00, 0x00, 0x00, 0x
 
 static wxFont s_StartFont;
 
-EditorFrame::EditorFrame(Editor* editor) : m_pEditor(editor), wxFrame(nullptr, wxID_ANY, editor->GetType() + L" Editor")
+EditorFrame::EditorFrame(Editor* editor) : m_pEditor(editor), wxFrame(nullptr, wxID_ANY, editor->GetType() + L" Editor"), m_FrameName(editor->GetType() + L"EditorFrame")
 {
+	wxConfigBase* pConfig = wxConfigBase::Get();
+	bool stay = false;
+	pConfig->Read(FormatFrameOption("StayOnTop"), &stay, false);
+
+	if (stay)
+	{
+		ToggleWindowStyle(wxSTAY_ON_TOP);
+	}
+
+	int posX = pConfig->ReadLong(FormatFrameOption(L"PositionX"), -1);
+	int posY = pConfig->ReadLong(FormatFrameOption(L"PositionY"), -1);
+
+	if (posX != -1 && posY != -1)
+	{
+		SetPosition(wxPoint(posX, posY));
+	}
+
+	int width = pConfig->ReadLong(FormatFrameOption(L"Width"), -1);
+	int heigth = pConfig->ReadLong(FormatFrameOption(L"Heigth"), -1);	
+
+	if (width != -1 && heigth != -1)
+	{
+		SetSize(width, heigth);
+		m_RestoredSize = true;
+	}
+
 	s_StartFont = GetFont();
 	SetFont(wxFontInfo(10).FaceName("Courier New"));
 
@@ -33,6 +59,9 @@ EditorFrame::EditorFrame(Editor* editor) : m_pEditor(editor), wxFrame(nullptr, w
 		fn.Mkdir(511, wxPATH_MKDIR_FULL);
 
 	SetBackgroundColour(wxColour(240, 240, 240));
+
+	Bind(wxEVT_MOVE_END, &EditorFrame::OnMoveEndEvent, this);
+	Bind(wxEVT_SIZE, &EditorFrame::OnSizeEvent, this);
 }
 
 void EditorFrame::CheckBackup()
@@ -68,11 +97,10 @@ void EditorFrame::CreateMyToolBar(bool prev, bool next, bool go, bool save, bool
 
 void EditorFrame::CreateMyMenuBar()
 {
-	if (m_pMenuBar)
+	if (m_frameMenuBar)
 		return;
-
-	m_pMenuBar = new wxMenuBar();
-	SetMenuBar(m_pMenuBar);
+	
+	SetMenuBar(new wxMenuBar());
 }
 
 void EditorFrame::CreateFileMenu()
@@ -86,7 +114,7 @@ void EditorFrame::CreateFileMenu()
 	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnOriginalHexEditor, this, m_pMenuFile->Append(wxID_ANY, L"Original In HexEditor")->GetId());
 	m_pMenuFile->Bind(wxEVT_MENU, &EditorFrame::OnTranslatedHexEditor, this, m_pMenuFile->Append(wxID_ANY, L"Translated In HexEditor")->GetId());
 
-	m_pMenuBar->Append(m_pMenuFile, L"File");
+	m_frameMenuBar->Append(m_pMenuFile, L"File");
 }
 
 void EditorFrame::CreateStringMenu()
@@ -96,7 +124,7 @@ void EditorFrame::CreateStringMenu()
 	m_pMenuString->Bind(wxEVT_MENU, &EditorFrame::OnPrevStringClick, this, m_pMenuString->Append(wxID_ANY, L"Previous\tALT-Left")->GetId());
 	m_pMenuString->Bind(wxEVT_MENU, &EditorFrame::OnProxStringClick, this, m_pMenuString->Append(wxID_ANY, L"Next\tALT-Right")->GetId());
 
-	m_pMenuBar->Append(m_pMenuString, L"String");
+	m_frameMenuBar->Append(m_pMenuString, L"String");
 }
 
 void EditorFrame::CreateSearchMenu()
@@ -105,15 +133,19 @@ void EditorFrame::CreateSearchMenu()
 	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindTextClick, this, m_pMenuSearch->Append(wxID_FIND, L"Find Text\tCtrl-F")->GetId());
 	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindNextClick, this, m_pMenuSearch->Append(wxNewId(), L"Find Next\tF3")->GetId());
 
-	m_pMenuBar->Append(m_pMenuSearch, L"Find");
+	m_frameMenuBar->Append(m_pMenuSearch, L"Find");
 }
 
 void EditorFrame::CreateViewMenu()
 {
-	m_pMenuView = new wxMenu();	
+	m_pMenuView = new wxMenu();
 	Bind(wxEVT_MENU, &EditorFrame::OnAlwaysOnTopClick, this, m_pMenuView->AppendCheckItem(wxID_TOP, L"Always on Top")->GetId());
 	Bind(wxEVT_MENU, &EditorFrame::OnShowFindResultClick, this, m_pMenuView->AppendCheckItem(wxNewId(), L"Find Results")->GetId());
-	m_pMenuBar->Append(m_pMenuView, L"View");
+
+	if (GetWindowStyle() & wxSTAY_ON_TOP)
+		m_pMenuView->Check(wxID_TOP, true);
+
+	m_frameMenuBar->Append(m_pMenuView, L"View");
 }
 
 void EditorFrame::CreateButtonsSizer()
@@ -153,7 +185,7 @@ void EditorFrame::CreateToolsMenu(bool padding, bool inserter, bool integrity, b
 	if(eol)
 		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnEolCheckClick, this, m_pMenuTools->Append(wxNewId(), "EOL Checker", nullptr, "Cheking Tool")->GetId());
 
-	m_pMenuBar->Append(m_pMenuTools, L"Tools");
+	m_frameMenuBar->Append(m_pMenuTools, L"Tools");
 }
 
 void EditorFrame::CreateMyStatusBar(size_t count)
@@ -188,6 +220,21 @@ void EditorFrame::StatusToStc(STC* stc, bool size, bool ln, bool sel, bool col)
 		stc->SetStatusIndex(cur_index, StcStatus::COLUMN);
 		++cur_index;
 	}
+}
+
+wxString EditorFrame::FormatFrameOption(const wxString& config)
+{
+	return wxString(m_FrameName) << L"/" << config;
+}
+
+template<typename T>
+inline void EditorFrame::WriteFrameConfig(const wxString& config, const T& t, bool flush)
+{
+	wxConfigBase* pConfig = wxConfigBase::Get();
+	pConfig->Write(FormatFrameOption(config), t);
+
+	if (flush)
+		pConfig->Flush();
 }
 
 void EditorFrame::UpdateIndex()
@@ -408,6 +455,33 @@ void EditorFrame::OnInsertFile()
 	m_pEditor->InsertFile();
 }
 
+void EditorFrame::OnAlwaysOnTop()
+{
+	ToggleWindowStyle(wxSTAY_ON_TOP);
+
+	bool stay = GetWindowStyle() & wxSTAY_ON_TOP;
+
+	wxConfigBase* pConfig = wxConfigBase::Get();
+
+	pConfig->Write(FormatFrameOption(L"StayOnTop"), stay);
+	pConfig->Flush();
+}
+
+void EditorFrame::OnMoveEnd()
+{
+	wxPoint point = GetPosition();	
+	WriteFrameConfig(L"PositionX", point.x);
+	WriteFrameConfig(L"PositionY", point.y);
+
+}
+
+void EditorFrame::OnSize()
+{
+	wxSize size = GetSize();
+	WriteFrameConfig("Width", size.GetWidth(), false);
+	WriteFrameConfig("Heigth", size.GetHeight(), false);
+}
+
 void EditorFrame::OnShowResultWindow()
 {
 	if (m_pFindResultsWindow)
@@ -519,6 +593,18 @@ void EditorFrame::OnInsertFileClick(wxCommandEvent& event)
 void EditorFrame::OnAlwaysOnTopClick(wxCommandEvent& event)
 {
 	OnAlwaysOnTop();
+	event.Skip();
+}
+
+void EditorFrame::OnSizeEvent(wxSizeEvent& event)
+{
+	OnSize();
+	event.Skip();
+}
+
+void EditorFrame::OnMoveEndEvent(wxMoveEvent& event)
+{
+	OnMoveEnd();
 	event.Skip();
 }
 

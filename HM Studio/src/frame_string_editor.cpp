@@ -531,6 +531,7 @@ void StringEditorFrame::CreateGUIControls()
 	CreateMyMenuBar();
 	CreateFileMenu();
 	CreateStringMenu();
+	CreateViewMenu();
 	CreateToolsMenu(false, true, false, false);
 
 #ifdef _DEBUG
@@ -555,5 +556,15 @@ void StringEditorFrame::CreateGUIControls()
 	root_sizer->Add(m_pTextEditor, 1, wxEXPAND, 0);
 	root_sizer->Add(m_pButtonsSizer, 0, wxEXPAND, 0);
 	root_sizer->Add(m_pTextOriginal, 1, wxEXPAND, 0);
-	SetSizerAndFit(root_sizer);
+	
+	if (m_RestoredSize)
+	{
+		SetSizer(root_sizer);
+		SetMinSize(root_sizer->GetMinSize());
+	}
+	else
+	{
+		SetSizerAndFit(root_sizer);
+		root_sizer->SetSizeHints(this);
+	}
 }

@@ -33,7 +33,6 @@ protected:
 	void CheckBackup();
 protected:
 	wxToolBar* m_pToolBar = nullptr;
-	wxMenuBar* m_pMenuBar = nullptr;
 	wxMenu* m_pMenuSearch = nullptr;
 	wxMenu* m_pMenuTools = nullptr;
 	wxMenu* m_pMenuView = nullptr;
@@ -48,8 +47,13 @@ protected:
 	std::vector<size_t> m_FindPositions;
 	size_t m_FindIndex;
 	wxString m_BackupPath;
+	wxString m_FrameName;
+	bool m_RestoredSize = false;
 //Handlers
 protected:
+	wxString FormatFrameOption(const wxString& config);
+	template<typename T>
+	void WriteFrameConfig(const wxString& config, const T& t, bool flush = true);
 //Override this
 	virtual void OnPrevString();
 //Override this
@@ -91,7 +95,11 @@ protected:
 //Override this
 	virtual void OnInsertFile();
 //Override this
-	virtual void OnAlwaysOnTop() { ToggleWindowStyle(wxSTAY_ON_TOP); }
+	virtual void OnAlwaysOnTop();
+//Override this
+	virtual void OnMoveEnd();
+//Override this
+	virtual void OnSize();
 //Override this
 	virtual void OnShowResultWindow();
 //Override this
@@ -120,6 +128,8 @@ protected:
 	void OnRemoveSpacesClick(wxCommandEvent& event);
 	void OnInsertFileClick(wxCommandEvent& event);
 	void OnAlwaysOnTopClick(wxCommandEvent& event);
+	void OnSizeEvent(wxSizeEvent& event);
+	void OnMoveEndEvent(wxMoveEvent& event);
 	void OnResultClick(wxCommandEvent& event);
 	void OnShowFindResultClick(wxCommandEvent& event);
 };

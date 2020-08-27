@@ -319,7 +319,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	CreateMyMenuBar();
 	CreateFileMenu();
 	CreateStringMenu();
-	m_pMenuBar->Append(menuEdit, L"Edit");
+	m_frameMenuBar->Append(menuEdit, L"Edit");
 	CreateSearchMenu();
 	CreateToolsMenu(false, true, true, true);
 	m_pMenuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckCodeClick, this, m_pMenuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
@@ -351,9 +351,16 @@ void ScriptEditorFrame::CreateGUIControls()
 	StatusToStc(tScriptOriginal);
 	StatusToStc(tScriptTranslated);
 
-	SetSizer(global_sizer);
-	global_sizer->Fit(this);
-	global_sizer->SetSizeHints(this);
+	if (m_RestoredSize)
+	{
+		SetSizer(global_sizer);
+		SetMinSize(global_sizer->GetMinSize());
+	}	
+	else
+	{
+		SetSizerAndFit(global_sizer);
+		global_sizer->SetSizeHints(this);
+	}
 }
 
 void ScriptEditorFrame::OnConvertEOLClick(wxCommandEvent& event)
