@@ -192,7 +192,7 @@ void EditorFrame::StatusToStc(STC* stc, bool size, bool ln, bool sel, bool col)
 
 void EditorFrame::UpdateIndex()
 {
-	m_pStatusBar->SetStatusText(wxString(L"Index: ") << m_pEditor->GetIndex() << L"/" << m_pEditor->GetCount(), 0);
+	m_pStatusBar->SetStatusText(wxString(L"Index: ") << m_pEditor->GetIndex()+1 << L"/" << m_pEditor->GetCount(), 0);
 }
 
 void EditorFrame::OnPrevString()

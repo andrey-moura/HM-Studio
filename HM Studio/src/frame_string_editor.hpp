@@ -52,13 +52,16 @@ public:
 	const std::vector<RomString>& GetOriginal() const { return m_Original; }
 	std::vector<RomString>& GetStrings() { return m_Strings; }
 	void Open(uint32_t start, uint32_t size);
+	bool LoadFile(const wxString& path, std::vector<RomString>& strings, uint32_t& blocklength, uint32_t& blockstart);
 	bool Open(const wxString& path);
-	bool Save(const wxString& str);	
+	bool Save(const wxString& str);
+	bool InsertFile(size_t index, uint32_t* outsize = nullptr, uint32_t* outstart = nullptr);	
 	void OpenOriginal();
 public:
 	virtual bool Open(uint32_t number) override;
 	virtual void SaveFile() override;
 	virtual void InsertFile() override;	
+	virtual void InsertAll() override;
 	virtual bool GetTextFromPath(const std::string& file) override;	
 };
 

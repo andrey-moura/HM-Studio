@@ -17,6 +17,7 @@ enum class ValueType
 	WordValue,	
 	HalfValue,
 	ByteValue,
+	CharValue,
 	BoolValue
 };
 
@@ -32,7 +33,7 @@ public:
 	uint32_t offset;
 	uint32_t value;
 	bool showOffsetAsHex = true;
-	bool showValueAsHex = true;
+	bool showValueAsHex = true;	
 public:
 	uint32_t GetValueSize() const;
 	const wxString& GetValueName() const;
@@ -40,6 +41,12 @@ public:
 	void ValueFromString(const wxString& value);
 	wxString ValueToString() const;
 	wxString OffsetToString() const;
+
+	bool operator<(const Value& value)
+	{
+		return offset < value.offset;
+	}
+
 };
 
 class ValueEditor : public Editor
@@ -58,7 +65,9 @@ public:
 	const wxString& GetName() { return m_File; }
 	void AddFile(const wxString& filename);
 	wxString GetPath(const wxString& name);	
-	void AddValue(const Value& value) { m_Values.push_back(value); ++m_Count; }
+	void AddValue();
+	void AddValue(const Value& value, size_t count = 1);
+	void Delete(size_t index);
 	const Value& GetValue(size_t index) const { return m_Values[index]; }
 	Value& GetValue(size_t index) { return m_Values[index]; }
 };
@@ -73,6 +82,8 @@ private:
 private:
 	void OnNewFileClick(wxCommandEvent& event);
 	void OnNewValueClick(wxCommandEvent& event);
+	void OnNewValue2Click(wxCommandEvent& event);
+	void OnDeleteValue(wxCommandEvent& event);
 	void OnCellSelected(wxGridEvent& event);
 	void OnCellChangeStart(wxGridEditorCreatedEvent& event);
 	void OnCellChanging(wxGridEvent& event);
