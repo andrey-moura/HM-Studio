@@ -152,9 +152,6 @@
     <ClInclude Include="src\class_stc.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="src\class_spell_checker.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>

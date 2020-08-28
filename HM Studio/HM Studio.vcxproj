@@ -73,7 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="frame_save_editor.hpp" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="src\class_app.hpp" />
     <ClInclude Include="src\class_editor.hpp" />
     <ClInclude Include="src\class_finder.hpp" />
