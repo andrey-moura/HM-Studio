@@ -166,6 +166,8 @@ void StringEditor::Open(uint32_t start, uint32_t size)
 		}
 
 		std::string str = rom.data() + offset;
+		size_t str_size = str.size();
+		m_RomTranslated.InputTextWithVariables(str);
 		wxString wxStr = m_RomTranslated.ReplaceWideChars(str);
 
 		m_Strings.push_back(RomString(wxStr));
@@ -175,12 +177,27 @@ void StringEditor::Open(uint32_t start, uint32_t size)
 		FindReferences(rom, pointer, m_Strings.back().references);
 
 		if (m_Strings.back().references.empty())
-		{
-			wxMessageBox(wxString(L"Failed to load strings. No reference found for string at address") << Moon::BitConverter::TToHexString(offset));
+		{			
+			if (m_Strings.size() == 1)
+			{
+				wxString message = wxString::Format(L"Failed to load strings. No reference found for the first string \"%s\"", wxStr);
+				wxMessageBox(message, L"Huh?", wxICON_ERROR);
+				m_Count = 0;
+				return;
+			}
+
+			wxString message = wxString::Format(L"No reference found for string \"%s\" at address 0x%s."
+				"loaded block was reduced.", m_Strings.back().string, Moon::BitConverter::TToHexString(offset));
+
+			wxMessageBox(message, L"Huh?", wxICON_WARNING);
+
+			m_Info.BlockLenght = offset - start;
+			m_Strings.erase(m_Strings.end() - 1);
+			break;
 		}
 
-		offset += str.size() + 1;
-	}
+		offset += str_size + 1;
+	}	
 
 	m_Number = m_Info.Count;
     m_Info.Count++;
@@ -307,8 +324,8 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 		wxString wxStr = str.string;
 		m_RomTranslated.ReplaceWideChars(wxStr);
 		std::string table_str = wxStr.ToStdString();
-		table.Output(table_str);
 		Moon::String::ConvertLineEnds(table_str, m_RomTranslated.GetEOL());
+		m_RomTranslated.OutputTextWithVariables(table_str);		
 		new_block.append(table_str);
 		new_block.push_back('\0');
 	}
@@ -349,14 +366,31 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 
 	m_RomTranslated.ConvertOffsets(pointers.data(), pointers.size());
 
-	std::vector<uint32_t> rom = m_RomTranslated.ReadBytes<uint32_t>(0, m_RomTranslated.Length() / 4);
-
 	if (moved)
-	{
+	{		
+		std::string buffer;
+
 		for (const RomString& str : strings)
 		{
-			char* old_str = (char*)rom.data() + m_RomTranslated.ConvertPointers(rom[str.references[0] / 4]);
-			memset(old_str, 0, strlen(old_str));
+			char cur_char = 1;			
+			uint32_t str_size = 0;
+
+			m_RomTranslated.Seek(str.references[0]);		
+			uint32_t pointer = m_RomTranslated.ConvertPointers(m_RomTranslated.ReadUInt32());
+			m_RomTranslated.Seek(pointer);
+
+			while (cur_char)
+			{
+				cur_char = m_RomTranslated.ReadInt8();
+				++str_size;
+			}
+			
+			m_RomTranslated.Seek(pointer);
+
+			if (str_size > buffer.size())
+				buffer.resize(0x00, str_size);
+
+			m_RomTranslated.Write(buffer.data(), str_size);
 		}
 	}
 
@@ -364,13 +398,14 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 	{
 		for (const uint32_t& reference : strings[i].references)
 		{
-			rom[reference / 4] = pointers[i];
+			m_RomTranslated.Seek(reference);
+			m_RomTranslated.WriteUInt32(pointers[i]);
 		}
 	}
 
-	memcpy(((byte*)rom.data()) + start, new_block.c_str(), new_block.size());
-	m_RomTranslated.Seek(0);
-	m_RomTranslated.WriteBytes(rom);
+	m_RomTranslated.Seek(start);
+	m_RomTranslated.Write(new_block.data() , new_block.size());
+	m_RomTranslated.Flush();
 }
 
 void StringEditor::InsertFile()
@@ -462,7 +497,7 @@ void StringEditorFrame::OnGoFile()
 
 void StringEditorFrame::GoFile(const wxString& offset)
 {
-	std::string std_text = offset.ToStdString();
+	std::string std_text = offset.Upper().ToStdString();
 	size_t start = std::stoi(std_text, 0, 16);
 	size_t size = std::stoi(std_text.substr(std_text.find(',') + 1), 0, 16);
 
@@ -512,6 +547,9 @@ void StringEditorFrame::OnResumeBackup(const wxString& backup)
 
 void StringEditorFrame::UpdateText()
 {
+	if (!m_pEditor->IsOpened())
+		return;
+
 	m_pTextEditor->SetText(((StringEditor*)m_pEditor)->GetCurrentText().string);
 	m_pTextOriginal->SetText(((StringEditor*)m_pEditor)->GetCurrentOriginal().string);
 }

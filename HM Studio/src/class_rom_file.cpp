@@ -98,6 +98,12 @@ void RomFile::SetupVars()
 	}
 }
 
+void RomFile::InputTextWithVariables(std::string& text)
+{
+	m_VarTable.Input(text, m_Table);
+	Moon::String::Replace(text, "\x05\x0c", "\x05\x0c" + m_EolString);
+}
+
 void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 {
 	m_VarTable.Input(text, m_Table);
@@ -106,6 +112,12 @@ void RomFile::InputTextWithVariables(std::vector<std::string>& text)
 	{		
 		Moon::String::Replace(text[i], "\x05\x0c", "\x05\x0c" + m_EolString);
 	}	
+}
+
+void RomFile::OutputTextWithVariables(std::string& text)
+{
+	m_VarTable.Output(text, m_Table);
+	Moon::String::Replace(text, "\x05\x0c" + m_EolString, "\x05\x0c");
 }
 
 void RomFile::OutputTextWithVariables(std::vector<std::string>& text)

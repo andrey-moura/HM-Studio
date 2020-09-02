@@ -54,7 +54,9 @@ public:
 	std::string GetTablePath();
 	inline const Moon::Hacking::Table& GetTable() const { return m_Table; }
 	inline const VarTable& GetVarTable() const { return m_VarTable; }
+	void InputTextWithVariables(std::string& text);
 	void InputTextWithVariables(std::vector<std::string>& text);
+	void OutputTextWithVariables(std::string& text);
 	void OutputTextWithVariables(std::vector<std::string>& text);
 	void BackupRom(const std::string& inform);
 	uint32_t GetEOL() const { return m_EOL; };

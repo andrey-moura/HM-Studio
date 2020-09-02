@@ -1,12 +1,15 @@
 #include "frame_value_editor.hpp"
 
-static uint32_t s_ValueSize[5]{ 4, 2, 1, 1, 1 };
-const wchar_t* s_ValueTypeName[5]{ L"Word", L"Half", L"Byte", L"Char", L"Bool" };
-wxArrayString s_ValueTypeArray(5, s_ValueTypeName);
+static int s_ValueSize[6]{ 4, 2, 1, -1, 1, 1 };
+const wchar_t* s_ValueTypeName[6]{ L"Word", L"Half", L"Byte", L"String", L"Char", L"Bool" };
+wxArrayString s_ValueTypeArray(6, s_ValueTypeName);
 static size_t s_LastTypeSelection = 0;
 
 uint32_t Value::GetValueSize() const
 {
+	if (type == ValueType::StringValue)
+		return ((wxString*)value)->size();
+
 	return s_ValueSize[(int)type];
 }
 
@@ -29,6 +32,10 @@ ValueType Value::GetValueFromName(const wxString& name)
 	{
 		return ValueType::ByteValue;
 	}
+	else if (name == L"String")
+	{
+		return ValueType::StringValue;
+	}
 	else if (name == L"Char")
 	{
 		return ValueType::CharValue;
@@ -44,6 +51,12 @@ void Value::ValueFromString(const wxString& value)
 	if (type == ValueType::WordValue || type == ValueType::HalfValue || type == ValueType::ByteValue)
 	{
 		this->value = std::stoi(value.ToStdWstring(), nullptr, showValueAsHex ? 16 : 10);
+	}
+	else if (type == ValueType::StringValue)
+	{
+		wxString* str = new wxString();
+		*str = value;
+		this->value = uint32_t(str);
 	}
 	else if (type == ValueType::CharValue)
 	{
@@ -100,6 +113,10 @@ wxString Value::ValueToString() const
 			return L"0x" + Moon::BitConverter::TToHexString(v);
 		else
 			return std::to_wstring(v);
+	}
+	else if (type == ValueType::StringValue)
+	{
+		return *(wxString*)value;
 	}
 	else if (type == ValueType::CharValue)
 	{	
@@ -268,12 +285,6 @@ void ValueEditor::SaveFile()
 
 void ValueEditor::InsertFile()
 {
-	//What is slower, doing several seeks on the disk or loading the ROM in
-	//RAM and then writing everything back?
-
-	//If more than 10 values, read the ROM, otherwise, seek. I guess this is valid
-
-
 	for (const Value& value : m_Values)
 	{
 		m_RomTranslated.Seek(value.offset);
@@ -286,6 +297,12 @@ void ValueEditor::InsertFile()
 		case ValueType::HalfValue:
 			m_RomTranslated.WriteT((uint16_t)value.value);
 			break;
+		case ValueType::StringValue:
+		{
+			std::string str = ((wxString*)value.value)->ToStdString();
+			m_RomTranslated.WriteBytes(str.c_str(), str.size()+1);
+			break;
+		}
 		case ValueType::BoolValue: case ValueType::ByteValue: case ValueType::CharValue:
 			m_RomTranslated.WriteT((uint8_t)value.value);
 			break;
@@ -353,6 +370,11 @@ void ValueEditor::AddValue()
 	{
 		const Value& back = m_Values.back();
 		offset = back.offset + back.GetValueSize();
+
+		if (back.type == ValueType::StringValue)
+		{
+			++offset;
+		}
 	}
 
 	m_Values.push_back(Value(L"Value", ValueType::WordValue, offset));	
@@ -383,6 +405,13 @@ void ValueEditor::AddValue(const Value& value, size_t count)
 		case ValueType::ByteValue: case ValueType::CharValue: case ValueType::BoolValue:
 			v.value = m_RomTranslated.ReadUInt8();
 			break;
+		case ValueType::StringValue:
+		{
+			wxString* value_string = new wxString();
+			*value_string = m_RomTranslated.ReadString();
+			v.value = (uint32_t)value_string;
+			break;
+		}
 		default:
 			break;
 		}
@@ -421,21 +450,22 @@ void ValueEditorFrame::UpdateValue(size_t index)
 {
 	const Value& value = m_pValueEditor->GetValue(index);
 	
-	m_pValueList2->SetCellValue(index, 0, value.name);
-	m_pValueList2->SetCellValue(index, 1, value.GetValueName());
-	m_pValueList2->SetCellValue(index, 2, value.OffsetToString());
-	m_pValueList2->SetCellValue(index, 3, value.ValueToString());
+	m_pValueList2->SetCellValue(index, COL_NAME, value.name);
+	m_pValueList2->SetCellValue(index, COL_TYPE, value.GetValueName());
+	m_pValueList2->SetCellValue(index, COL_ADRESS, value.OffsetToString());
+	m_pValueList2->SetCellValue(index, COL_SIZE, std::to_wstring(value.GetValueSize()));
+	m_pValueList2->SetCellValue(index, COL_VALUE, value.ValueToString());
 
-	m_pValueList2->SetCellEditor(index, 1, new wxGridCellChoiceEditor(s_ValueTypeArray));
-	m_pValueList2->SetCellEditor(index, 2, value.showOffsetAsHex ? new wxGridCellTextEditor() : new wxGridCellNumberEditor());
-	m_pValueList2->SetCellEditor(index, 3, value.showValueAsHex ? new wxGridCellTextEditor() : new wxGridCellNumberEditor());
+	m_pValueList2->SetCellEditor(index, COL_TYPE, new wxGridCellChoiceEditor(s_ValueTypeArray));
+	m_pValueList2->SetCellEditor(index, COL_ADRESS, value.showOffsetAsHex ? new wxGridCellTextEditor() : new wxGridCellNumberEditor());
+	m_pValueList2->SetCellEditor(index, COL_VALUE, value.showValueAsHex ? new wxGridCellTextEditor() : new wxGridCellNumberEditor());
 
-	m_pValueList2->SetCellAlignment(index, 1, wxALIGN_CENTER, wxALIGN_CENTER);
+	m_pValueList2->SetCellAlignment(index, COL_TYPE, wxALIGN_CENTER, wxALIGN_CENTER);
 
 	if (m_FirstAutoSize)
 	{
-		m_pValueList2->AutoSizeColumn(2);
-		m_pValueList2->SetColSize(3, m_pValueList2->GetColSize(2));
+		m_pValueList2->AutoSizeColumn(COL_ADRESS);
+		m_pValueList2->SetColSize(COL_VALUE, m_pValueList2->GetColSize(COL_ADRESS));
 
 		m_FirstAutoSize = false;
 	}
@@ -546,20 +576,20 @@ void ValueEditorFrame::OnCellChangeStart(wxGridEditorCreatedEvent& event)
 {
 	const Value& value = m_pValueEditor->GetValue(m_pEditor->GetIndex());
 
-	if (event.GetCol() == 2)
+	if (event.GetCol() == COL_ADRESS)
 	{
 		if (value.showOffsetAsHex)
 		{
-			m_pValueList2->SetCellValue(event.GetRow(), 2, Moon::BitConverter::TToHexString(value.offset));
+			m_pValueList2->SetCellValue(event.GetRow(), COL_ADRESS, Moon::BitConverter::TToHexString(value.offset));
 		}
 	}
-	else if (event.GetCol() == 3)
+	else if (event.GetCol() == COL_VALUE)
 	{
-		if (value.type != ValueType::CharValue)
+		if (value.type != ValueType::CharValue && value.type != ValueType::StringValue)
 		{
 			if (value.showValueAsHex)
 			{
-				m_pValueList2->SetCellValue(event.GetRow(), 3, Moon::BitConverter::TToHexString(value.value));
+				m_pValueList2->SetCellValue(event.GetRow(), COL_VALUE, Moon::BitConverter::TToHexString(value.value));
 			}
 		}
 	}
@@ -573,14 +603,20 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 
 	Value& value = m_pValueEditor->GetValue(event.GetRow());
 	
-	if (event.GetCol() == 0)
+	if (event.GetCol() == COL_NAME)
 	{
 		value.name = event.GetString();
 		UpdateValue(event.GetRow());
 	}
-	else if (event.GetCol() == 1)
+	else if (event.GetCol() == COL_TYPE)
 	{
 		ValueType type = Value::GetValueFromName(event.GetString());
+
+		if (value.type == ValueType::StringValue)
+		{
+			delete (wxString*)value.value;
+			value.value = 0;
+		}
 
 		if (type == ValueType::CharValue)
 		{
@@ -589,12 +625,18 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 				value.value = ' ';
 			}
 		}
+		else if (type == ValueType::StringValue)
+		{
+			wxString* str = new wxString();
+			*str = L" ";
+			value.value = uint32_t(str);
+		}
 
 		value.type = type;
 
 		UpdateValue(event.GetRow());
 	}
-	else if (m_ColIndex == 2)
+	else if (m_ColIndex == COL_ADRESS)
 	{
 		if (!value.showOffsetAsHex)
 			return;
@@ -610,7 +652,7 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 		if (!Moon::BitConverter::IsHexString(str.Upper().ToStdString()))
 			event.Veto();
 	}
-	else if (m_ColIndex == 3)
+	else if (m_ColIndex == COL_VALUE)
 	{
 		if (value.type == ValueType::CharValue)
 		{
@@ -634,12 +676,11 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 
 			return;
 		}
-
-		if (!value.showValueAsHex)
-			return;
-
-		if (!Moon::BitConverter::IsHexString(event.GetString().Upper().ToStdString()))
-			event.Veto();
+		else if (value.type == ValueType::StringValue)
+		{
+			*((wxString*)value.value) = event.GetString();
+			UpdateValue(event.GetRow());
+		}
 	}	
 }
 
@@ -654,12 +695,15 @@ void ValueEditorFrame::OnCellChanged(wxGridEvent& event)
 
 	wxString string = m_pValueList2->GetCellValue(event.GetRow(), event.GetCol());
 
-	if (event.GetCol() == 2)
+	if (event.GetCol() == COL_ADRESS)
 	{
 		value.offset = std::stoi(string.ToStdWstring(), nullptr, value.showOffsetAsHex ? 16 : 10);
 	}
-	else if (event.GetCol() == 3)
+	else if (event.GetCol() == COL_VALUE)
 	{
+		if (value.type == ValueType::StringValue)
+			return;
+
 		value.ValueFromString(string.Upper());
 	}
 
@@ -676,11 +720,11 @@ void ValueEditorFrame::OnCellRightClick(wxGridEvent& event)
 
 	const Value& value = m_pValueEditor->GetValue(event.GetRow());	
 
-	if (m_ColIndex == 2)
+	if (m_ColIndex == COL_ADRESS)
 	{
 		show = value.showOffsetAsHex;
 	}
-	else if (m_ColIndex == 3)
+	else if (m_ColIndex == COL_VALUE)
 	{
 		if (value.type == ValueType::CharValue)
 		{
@@ -705,11 +749,11 @@ void ValueEditorFrame::OnToggleHexMenuClick(wxCommandEvent& event)
 	Value& value = m_pValueEditor->GetValue(m_pValueEditor->GetIndex());
 	bool show = m_pToggleHexMenu->FindItemByPosition(0)->IsChecked();
 	
-	if (m_ColIndex == 2)
+	if (m_ColIndex == COL_ADRESS)
 	{
 		value.showOffsetAsHex = show;
 	}
-	else if (m_ColIndex == 3)
+	else if (m_ColIndex == COL_VALUE)
 	{
 		value.showValueAsHex = show;
 	}
@@ -742,12 +786,13 @@ void ValueEditorFrame::CreateGUIControls()
 
 	m_pValueList2 = new wxGrid(this, wxID_ANY);
 
-	m_pValueList2->CreateGrid(0, 4);
+	m_pValueList2->CreateGrid(0, 5);
 	m_pValueList2->HideRowLabels();
-	m_pValueList2->SetColLabelValue(0, L"Name");
-	m_pValueList2->SetColLabelValue(1, L"Type");
-	m_pValueList2->SetColLabelValue(2, L"Adress");
-	m_pValueList2->SetColLabelValue(3, L"Value");
+	m_pValueList2->SetColLabelValue(COL_NAME, L"Name");
+	m_pValueList2->SetColLabelValue(COL_TYPE, L"Type");
+	m_pValueList2->SetColLabelValue(COL_ADRESS, L"Adress");
+	m_pValueList2->SetColLabelValue(COL_SIZE, L"Size");
+	m_pValueList2->SetColLabelValue(COL_VALUE, L"Value");
 	m_pValueList2->UseNativeColHeader();
 	m_pValueList2->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
 

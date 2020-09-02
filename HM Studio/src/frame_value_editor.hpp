@@ -17,8 +17,18 @@ enum class ValueType
 	WordValue,	
 	HalfValue,
 	ByteValue,
+	StringValue,
 	CharValue,
 	BoolValue
+};
+
+enum GridCol
+{
+	COL_NAME,
+	COL_TYPE,
+	COL_ADRESS,
+	COL_SIZE,
+	COL_VALUE
 };
 
 class Value
