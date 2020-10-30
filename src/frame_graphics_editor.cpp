@@ -198,13 +198,13 @@ void GraphicsEditorFrame::SaveImage()
 	header->bpp = m_Index->second.m_Bpp;
 
 	m_RomTranslated.Seek(m_Index->second.m_ImageAdress);
-	m_RomTranslated.Read(bytes.data() + sizeof GRAPHICS_HEADER, header->size);
+	m_RomTranslated.Read(bytes.data() + sizeof(GRAPHICS_HEADER), header->size);
 	Moon::File::WriteAllBytes(fn.GetFullPath().ToStdString(), bytes);
 }
 
 void GraphicsEditorFrame::ImportImage()
 {
-	wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, OFN_FILEMUSTEXIST);
+	wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
 
 	wxBitmap bitmap(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 

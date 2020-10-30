@@ -1,20 +1,3 @@
-HM Studio/log.txt
-HM Studio/teste.bin
-HM Studio/teste.bmp
-HM Studio/teste.png
-.vs/
-Debug/
-Release/
-Debug DLL/
-Release DLL/
-smith/
-Tests/
-SpellingSTC/
-MinimalSpellSTC/
-/FastersMethods
-HM Studio/resource.h
-*.aps
-*.rc
-/HM Studio/8bpp.bin
-/HM Studio/img.png
-/HM Studio/image.png
+
+build/
+.vscode

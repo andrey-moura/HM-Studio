@@ -322,7 +322,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	m_frameMenuBar->Append(menuEdit, L"Edit");
 	CreateSearchMenu();
 	CreateToolsMenu(false, true, true, true);
-	m_pMenuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckCodeClick, this, m_pMenuTools->Append(wxNewId(), "Code Checker", nullptr, "Checking Tool")->GetId());
+	m_pMenuTools->Bind(wxEVT_MENU, &ScriptEditorFrame::OnCheckCodeClick, this, m_pMenuTools->Append(wxNewId(), "Code Checker", "Checking Tool")->GetId());
 	CreateViewMenu();
 	m_pMenuView->Bind(wxEVT_MENU, &ScriptEditorFrame::OnHorizontalModeClick, this, m_pMenuView->Append(wxID_ANY, L"Horizontal Mode")->GetId());	
 

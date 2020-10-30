@@ -21,9 +21,9 @@ public:
 	void Reserve(size_t size);
 	void Append(const char& var, const std::string& name);
 public:
-	__forceinline void Input(std::string& str, const Moon::Hacking::Table& tbl)
+	inline void Input(std::string& str, const Moon::Hacking::Table& tbl)
 	{
-		size_t varPos = str.find('ÿ');		
+		size_t varPos = str.find('ï¿½');		
 
 		std::vector<VarPos> poss;
 
@@ -38,7 +38,7 @@ public:
 				poss.push_back(VarPos(varIndex, varPos + (poss.size() * (m_VarSize - 2))));				
 			}
 
-			varPos = str.find('ÿ', varPos + 1);
+			varPos = str.find('ï¿½', varPos + 1);
 		}
 
 		tbl.Input(str);
@@ -58,7 +58,7 @@ public:
 			str.insert(pos.m_VarPos, name.data(), m_VarSize - 2);
 		}		
 	}
-	__forceinline void Output(std::string& str, const Moon::Hacking::Table& tbl)
+	inline void Output(std::string& str, const Moon::Hacking::Table& tbl)
 	{
 		std::vector<VarPos> poss;
 
@@ -85,7 +85,7 @@ public:
 
 			//Do not make copies of the string
 			str[pos.m_VarPos + 1] = var;
-			str[pos.m_VarPos] = 'ÿ';
+			str[pos.m_VarPos] = 'ï¿½';
 
 			str.erase(pos.m_VarPos + 2, m_VarSize - 2);
 		}

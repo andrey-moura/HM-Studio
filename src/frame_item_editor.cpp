@@ -128,8 +128,8 @@ void ItemEditorFrame::CreateGUIControls()
 	menuFile->Bind(wxEVT_MENU, &ItemEditorFrame::OnInsertClick, this, menuFile->Append(wxNewId(), "Insert", "Insert the itens")->GetId());
 
 	wxMenu* menuTools = new wxMenu();
-	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dumper", nullptr, "Export the itens")->GetId());
-	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpImgClick, this, menuTools->Append(wxNewId(), "Dump images", nullptr, "Export images")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpClick, this, menuTools->Append(wxNewId(), "Dumper", "Export the itens")->GetId());
+	menuTools->Bind(wxEVT_MENU, &ItemEditorFrame::OnDumpImgClick, this, menuTools->Append(wxNewId(), "Dump images", "Export images")->GetId());
 
 	CreateMyMenuBar();
 	m_frameMenuBar->Append(menuFile, "File");

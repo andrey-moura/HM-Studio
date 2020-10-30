@@ -1,5 +1,4 @@
 #include "frame_string_editor.hpp"
-#include <moon/diagnostics.hpp>
 #include <wx/dir.h>
 
 StringEditor::StringEditor(const id& i) : Editor(i, L"String")
@@ -126,7 +125,7 @@ void StringEditor::Open(uint32_t start, uint32_t size)
 {
 	m_Index = 0;
 
-	wxString path = wxString::Format(m_PathFormat, Moon::BitConverter::TToHexString(start));
+	wxString path = wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(start));
 
 	for (auto& file : m_Files)
 	{
@@ -187,7 +186,7 @@ void StringEditor::Open(uint32_t start, uint32_t size)
 			}
 
 			wxString message = wxString::Format(L"No reference found for string \"%s\" at address 0x%s."
-				"loaded block was reduced.", m_Strings.back().string, Moon::BitConverter::TToHexString(offset));
+				"loaded block was reduced.", m_Strings.back().string, Moon::BitConverter::ToHexString(offset));
 
 			wxMessageBox(message, L"Huh?", wxICON_WARNING);
 
@@ -238,7 +237,7 @@ bool StringEditor::Open(uint32_t number)
 	}
 
 	m_Number = number;
-	bool opened = Open(wxString::Format(m_PathFormat, Moon::BitConverter::TToHexString(m_Files[number])));
+	bool opened = Open(wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(m_Files[number])));
 
 	if (!opened)
 	{
@@ -254,8 +253,8 @@ void StringEditor::SaveFile()
 	doc.SetFileEncoding(L"UTF-16");
 	wxXmlNode* root = new wxXmlNode(nullptr, wxXmlNodeType::wxXML_ELEMENT_NODE, L"ROM-String");
 	doc.SetRoot(root);
-	root->AddAttribute(L"start", Moon::BitConverter::TToHexString(m_Info.StartBlock));
-	root->AddAttribute(L"size", Moon::BitConverter::TToHexString(m_Info.BlockLenght));	
+	root->AddAttribute(L"start", Moon::BitConverter::ToHexString(m_Info.StartBlock));
+	root->AddAttribute(L"size", Moon::BitConverter::ToHexString(m_Info.BlockLenght));	
 
 	size_t i = 0;
 	wxString string_format = L"String %i";
@@ -290,7 +289,7 @@ void StringEditor::SaveFile()
 
 		for (size_t reference_index = 0; reference_index < m_Strings[i].references.size(); ++reference_index)
 		{
-			references.append(Moon::BitConverter::TToHexString(m_Strings[i].references[reference_index]));
+			references.append(Moon::BitConverter::ToHexString(m_Strings[i].references[reference_index]));
 			references.append(",");
 		}
 
@@ -299,7 +298,7 @@ void StringEditor::SaveFile()
 		str_node->AddAttribute(L"references", references);
 	}
 	
-	doc.Save(wxString::Format(m_PathFormat, Moon::BitConverter::TToHexString(m_Info.StartBlock)));
+	doc.Save(wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(m_Info.StartBlock)));
 }
 
 bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstart)
@@ -308,7 +307,7 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 	uint32_t size = 0;
 	std::vector<RomString> strings;
 
-	LoadFile(wxString::Format(m_PathFormat, Moon::BitConverter::TToHexString(m_Files.at(index))), strings, size, start);
+	LoadFile(wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(m_Files.at(index))), strings, size, start);
 
 	std::string new_block;
 
@@ -410,8 +409,8 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 
 void StringEditor::InsertFile()
 {
-	size_t size = 0;
-	size_t start = 0;
+	uint32_t size = 0;
+	uint32_t start = 0;
 	bool success = InsertFile(m_Number, &size, &start);
 
 	if (success)
@@ -420,7 +419,7 @@ void StringEditor::InsertFile()
 		{
 			m_Info.StartBlock = start;
 			m_Info.BlockLenght = size;
-			wxMessageBox(wxString(L"The string block was moved to adress 0x") << Moon::BitConverter::TToHexString(start), L"Warning", wxICON_WARNING);
+			wxMessageBox(wxString(L"The string block was moved to adress 0x") << Moon::BitConverter::ToHexString(start), L"Warning", wxICON_WARNING);
 		}
 	}
 	else
@@ -511,8 +510,8 @@ void StringEditorFrame::OnSaveString()
 	{
 		wxString backup;
 		backup.reserve(m_pEditor->GetEditorInfo().BlockLenght);
-		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().StartBlock, (sizeof uint32_t) / (sizeof WCHAR));		
-		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().BlockLenght, (sizeof uint32_t) / (sizeof WCHAR));
+		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().StartBlock, sizeof(uint32_t) / sizeof(wchar_t));
+		backup.append((const wchar_t*)&m_pEditor->GetEditorInfo().BlockLenght, sizeof(uint32_t) / sizeof(wchar_t));
 
 		for (const RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
 		{
@@ -533,7 +532,7 @@ void StringEditorFrame::OnResumeBackup(const wxString& backup)
 
 	((StringEditor*)m_pEditor)->Open(*(uint32_t*)(backup_data), ((uint32_t*)backup_data)[1]);
 
-	backup_data += (2 * sizeof uint32_t) / sizeof backup_data[0];
+	backup_data += (2 * sizeof(uint32_t)) / sizeof(wchar_t);
 
 	for (RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
 	{

@@ -10,7 +10,7 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 	if (pConfig->ReadBool(L"/MainFrame/Top", false))
 	{
 		ToggleWindowStyle(wxSTAY_ON_TOP);		
-	}
+	}	
 
 	CreateGUIControls();
 	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
@@ -123,11 +123,22 @@ void MainFrame::OnOpenFolderClick(wxCommandEvent& event)
 {
 	RomFile rom(GetCurrentId(), true);
 
+	if(!wxDirExists(rom.m_HomeDir))
+	{
+		wxLogError("The project folder does not exists.");
+		return;
+	}
+
+	wxString path;
+	path << "\"" << rom.m_HomeDir << "\"";
+
 #ifdef __WXMSW__
-	wxExecute(wxString("explorer ") << rom.m_HomeDir, wxEXEC_ASYNC, NULL);
-#else //!__WXMSW__
-	wxLogError("This is not implement in the current platform");
-#endif //__WXMSW__
+	wxExecute(wxString("explorer ") << path, wxEXEC_ASYNC, NULL);
+#elif defined(__WXGTK__)
+	wxExecute(wxString("xdg-open  ") << path, wxEXEC_ASYNC, NULL);
+#else //Not supported platforms
+	wxLogError("This is not implemented in the current platform.");
+#endif
 
 	event.Skip();
 }
@@ -223,10 +234,10 @@ void MainFrame::OnAlwaysOnTopClick(wxCommandEvent& event)
 void MainFrame::CreateGUIControls()
 {
 	wxMenu* fileMenu = new wxMenu();
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenRomClick, this, fileMenu->Append(wxID_ANY, L"Start", nullptr, L"Start the ROM with the default emulator")->GetId());
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenFolderClick, this, fileMenu->Append(wxID_ANY, L"Open Folder", nullptr, L"Open the project folder")->GetId());
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", nullptr, L"Create a copy of the ROM")->GetId());	
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnCopyFromOriginal, this, fileMenu->Append(wxID_ANY, L"Copy From Original", nullptr, L"Copy the original ROM")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenRomClick, this, fileMenu->Append(wxID_ANY, L"Start", L"Start the ROM with the default emulator")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenFolderClick, this, fileMenu->Append(wxID_ANY, L"Open Folder", L"Open the project folder")->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnBackupClick, this, fileMenu->Append(wxID_ANY, L"Backup", L"Create a copy of the ROM")->GetId());	
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnCopyFromOriginal, this, fileMenu->Append(wxID_ANY, L"Copy From Original", L"Copy the original ROM")->GetId());
 
 	wxMenuItem* default_check = fileMenu->AppendCheckItem(wxID_ANY, L"Default", L"Always open HM Studio with this ROM");
 	default_check->Check(true);
@@ -242,7 +253,7 @@ void MainFrame::CreateGUIControls()
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ValueEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Value Editor")->GetId());
 
 	wxMenu* toolsMenu = new wxMenu();
-	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", nullptr, L"Spell Checker Settings")->GetId());
+	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", L"Spell Checker Settings")->GetId());
 
 	wxMenu* viewMenu = new wxMenu();
 	m_pAlwaysOnTop = viewMenu->AppendCheckItem(wxID_ANY, L"Always on Top", L"Show window always on top");

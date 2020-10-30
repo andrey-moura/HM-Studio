@@ -1,7 +1,5 @@
 #include "control_graphics_view.hpp"
 
-#include <moon/diagnostics.hpp>
-
 GraphicsView::GraphicsView(wxWindow* parent) : wxHVScrolledWindow(parent, wxID_ANY), m_BlockSize(2, 2)
 {
 	Bind(wxEVT_PAINT, &GraphicsView::OnPaintEvent, this);
@@ -66,10 +64,7 @@ void GraphicsView::SetScale(size_t scale)
 void GraphicsView::SetPixelGrid(bool use)
 {
 	m_PixelGrid = use;
-
-	float time = Moon::Diagnostics::FunctionTimerMember(&GraphicsView::Refresh, this, false, nullptr) / 1000.f;
-
-	std::string();
+	Refresh();	
 }
 
 void GraphicsView::SetTileGrid(bool use)

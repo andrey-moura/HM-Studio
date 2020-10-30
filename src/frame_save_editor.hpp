@@ -4,7 +4,7 @@
 
 class SaveEditorFrame : public wxFrame
 {
-	SaveEditorFrame();
-	~SaveEditorFrame();
+	SaveEditorFrame() = default;
+	~SaveEditorFrame() = default;
 };
 

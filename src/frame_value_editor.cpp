@@ -8,7 +8,7 @@ static size_t s_LastTypeSelection = 0;
 uint32_t Value::GetValueSize() const
 {
 	if (type == ValueType::StringValue)
-		return ((wxString*)value)->size();
+		return str_value.size();
 
 	return s_ValueSize[(int)type];
 }
@@ -53,10 +53,8 @@ void Value::ValueFromString(const wxString& value)
 		this->value = std::stoi(value.ToStdWstring(), nullptr, showValueAsHex ? 16 : 10);
 	}
 	else if (type == ValueType::StringValue)
-	{
-		wxString* str = new wxString();
-		*str = value;
-		this->value = uint32_t(str);
+	{		
+		this->str_value = value;
 	}
 	else if (type == ValueType::CharValue)
 	{
@@ -92,7 +90,7 @@ wxString Value::ValueToString() const
 	if (type == ValueType::WordValue)
 	{
 		if (showValueAsHex)
-			return L"0x" + Moon::BitConverter::TToHexString(value);
+			return L"0x" + Moon::BitConverter::ToHexString(value);
 		else
 			return std::to_wstring(value);
 	}
@@ -101,7 +99,7 @@ wxString Value::ValueToString() const
 		uint16_t v = value;
 
 		if (showValueAsHex)
-			return L"0x" + Moon::BitConverter::TToHexString(v);
+			return L"0x" + Moon::BitConverter::ToHexString(v);
 		else
 			return std::to_wstring(v);
 	}
@@ -110,17 +108,17 @@ wxString Value::ValueToString() const
 		uint8_t v = value;
 
 		if (showValueAsHex)
-			return L"0x" + Moon::BitConverter::TToHexString(v);
+			return L"0x" + Moon::BitConverter::ToHexString(v);
 		else
 			return std::to_wstring(v);
 	}
 	else if (type == ValueType::StringValue)
 	{
-		return *(wxString*)value;
+		return str_value;
 	}
 	else if (type == ValueType::CharValue)
 	{	
-		return wxString() << (char)value;
+		return (char)value;
 	}
 	else if (type == ValueType::BoolValue)
 	{
@@ -131,7 +129,7 @@ wxString Value::ValueToString() const
 wxString Value::OffsetToString() const
 {
 	if (showOffsetAsHex)
-		return L"0x" + Moon::BitConverter::TToHexString(offset);
+		return L"0x" + Moon::BitConverter::ToHexString(offset);
 
 	return std::to_wstring(offset);
 }
@@ -221,7 +219,7 @@ private:
 
 			m_pOffsetInput->Clear();
 			m_pOffsetInput->SetValidator(wxTextValidator(wxTextValidatorStyle::wxFILTER_XDIGITS));
-			m_pOffsetInput->SetValue(Moon::BitConverter::TToHexString(offset));
+			m_pOffsetInput->SetValue(Moon::BitConverter::ToHexString(offset));
 		}
 
 		m_OffsetHex = !m_OffsetHex;
@@ -260,7 +258,7 @@ void ValueEditor::SaveFile()
 	{
 		wxXmlNode* node = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, L"Value");
 		node->AddAttribute(L"name", m_Values[i].name);
-		node->AddAttribute(L"offset", "0x" + Moon::BitConverter::TToHexString(m_Values[i].offset));
+		node->AddAttribute(L"offset", "0x" + Moon::BitConverter::ToHexString(m_Values[i].offset));
 		node->AddAttribute(L"type", m_Values[i].GetValueName());
 
 		wxString str = m_Values[i].ValueToString();
@@ -271,7 +269,7 @@ void ValueEditor::SaveFile()
 		{
 			if (str == L" " || !iswprint(str[0]))			
 			{
-				str = L"0x" + Moon::BitConverter::TToHexString<char>(str[0]);				
+				str = L"0x" + Moon::BitConverter::ToHexString<char>(str[0]);				
 			}
 		}
 		
@@ -299,7 +297,7 @@ void ValueEditor::InsertFile()
 			break;
 		case ValueType::StringValue:
 		{
-			std::string str = ((wxString*)value.value)->ToStdString();
+			std::string str = value.str_value.ToStdString();
 			m_RomTranslated.WriteBytes(str.c_str(), str.size()+1);
 			break;
 		}
@@ -312,7 +310,7 @@ void ValueEditor::InsertFile()
 	m_RomTranslated.Flush();
 }
 
-bool ValueEditor::Open(size_t index)
+bool ValueEditor::Open(uint32_t index)
 {
 	if (index >= m_Info.Count)
 		return false;
@@ -406,10 +404,8 @@ void ValueEditor::AddValue(const Value& value, size_t count)
 			v.value = m_RomTranslated.ReadUInt8();
 			break;
 		case ValueType::StringValue:
-		{
-			wxString* value_string = new wxString();
-			*value_string = m_RomTranslated.ReadString();
-			v.value = (uint32_t)value_string;
+		{						
+			v.str_value = m_RomTranslated.ReadString();
 			break;
 		}
 		default:
@@ -580,7 +576,7 @@ void ValueEditorFrame::OnCellChangeStart(wxGridEditorCreatedEvent& event)
 	{
 		if (value.showOffsetAsHex)
 		{
-			m_pValueList2->SetCellValue(event.GetRow(), COL_ADRESS, Moon::BitConverter::TToHexString(value.offset));
+			m_pValueList2->SetCellValue(event.GetRow(), COL_ADRESS, Moon::BitConverter::ToHexString(value.offset));
 		}
 	}
 	else if (event.GetCol() == COL_VALUE)
@@ -589,7 +585,7 @@ void ValueEditorFrame::OnCellChangeStart(wxGridEditorCreatedEvent& event)
 		{
 			if (value.showValueAsHex)
 			{
-				m_pValueList2->SetCellValue(event.GetRow(), COL_VALUE, Moon::BitConverter::TToHexString(value.value));
+				m_pValueList2->SetCellValue(event.GetRow(), COL_VALUE, Moon::BitConverter::ToHexString(value.value));
 			}
 		}
 	}
@@ -614,8 +610,7 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 
 		if (value.type == ValueType::StringValue)
 		{
-			delete (wxString*)value.value;
-			value.value = 0;
+			value.str_value.clear();
 		}
 
 		if (type == ValueType::CharValue)
@@ -626,10 +621,8 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 			}
 		}
 		else if (type == ValueType::StringValue)
-		{
-			wxString* str = new wxString();
-			*str = L" ";
-			value.value = uint32_t(str);
+		{			
+			value.str_value = " ";
 		}
 
 		value.type = type;
@@ -649,7 +642,7 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 			return;
 		}
 
-		if (!Moon::BitConverter::IsHexString(str.Upper().ToStdString()))
+		if (!Moon::BitConverter::IsHexString(str.ToStdString()))
 			event.Veto();
 	}
 	else if (m_ColIndex == COL_VALUE)
@@ -678,7 +671,7 @@ void ValueEditorFrame::OnCellChanging(wxGridEvent& event)
 		}
 		else if (value.type == ValueType::StringValue)
 		{
-			*((wxString*)value.value) = event.GetString();
+			value.str_value = event.GetString();
 			UpdateValue(event.GetRow());
 		}
 	}	

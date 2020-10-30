@@ -14,12 +14,14 @@
 #include <wx/timer.h>
 #include <wx/menu.h>
 #include <wx/statusbr.h>
-#include <wx/../../src/stc/scintilla/include/Scintilla.h>
 
 #include "class_finder.hpp"
 #include "namespace_math.hpp"
 
 #include "class_spell_checker.hpp"
+
+#define SCI_LINELENGTH 2350
+#define SCI_SETREPRESENTATION 2665
 
 enum class StcStatus
 {

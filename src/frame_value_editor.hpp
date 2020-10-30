@@ -42,6 +42,7 @@ public:
 	ValueType type;
 	uint32_t offset;
 	uint32_t value;
+	wxString str_value;
 	bool showOffsetAsHex = true;
 	bool showValueAsHex = true;	
 public:
@@ -50,7 +51,7 @@ public:
 	static ValueType GetValueFromName(const wxString& name);
 	void ValueFromString(const wxString& value);
 	wxString ValueToString() const;
-	wxString OffsetToString() const;
+	wxString OffsetToString() const;	
 
 	bool operator<(const Value& value)
 	{
@@ -70,7 +71,7 @@ private:
 public:
 	virtual void SaveFile() override;
 	virtual void InsertFile() override;
-	virtual bool Open(size_t index) override;
+	virtual bool Open(uint32_t index) override;
 	bool Open(const wxString& name);
 	const wxString& GetName() { return m_File; }
 	void AddFile(const wxString& filename);

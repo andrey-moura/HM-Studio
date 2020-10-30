@@ -11,7 +11,23 @@
 
 #define HUNSPELL_STATIC
 
+#ifdef ENABLE_SPELL
 #include <hunspell.hxx>
+#else
+//ToDo: change this class to a wrapper to allow disabled, Hunspell or Aspell
+class Hunspell
+{
+private:
+	std::string word_chars;
+public:
+	Hunspell(const char* aff, const char* dic) {}
+	std::string& get_wordchars_cpp() { return word_chars; } 
+	void add(const std::string& word) {}
+	void remove(const std::string& word) {}
+	bool spell(const std::string& word) { return true; }
+	std::vector<std::string> suggest(const std::string& word) { return std::vector<std::string>(); }
+};
+#endif
 
 #define USER_DIR 0
 

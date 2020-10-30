@@ -100,14 +100,14 @@ public:
 		std::vector<T> vector;
 		vector.resize(size);
 		Seek(offset);
-		Read(vector.data(), (sizeof T) * size);
+		Read(vector.data(), sizeof(T) * size);
 		return vector;
 	}
 
 	template<class T>
 	inline void WriteBytes(const std::vector<T>& bytes)
 	{
-		WriteBytes(bytes.data(), bytes.size() * sizeof T);
+		WriteBytes(bytes.data(), bytes.size() * sizeof(T));
 	}	
 
 	template<typename T>

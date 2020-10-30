@@ -10,8 +10,8 @@ void GraphicsInfoViewer::SetInfo(const GraphicsInfo& info)
 {
 	m_Texts[0]->SetLabel(std::to_string(info.m_Width));
 	m_Texts[1]->SetLabel(std::to_string(info.m_Height));
-	m_Texts[2]->SetLabel("0x" + Moon::BitConverter::TToHexString(info.m_ImageAdress));
-	m_Texts[3]->SetLabel("0x" + Moon::BitConverter::TToHexString(info.m_PaletteAdress));
+	m_Texts[2]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_ImageAdress));
+	m_Texts[3]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_PaletteAdress));
 	m_Texts[4]->SetLabel(Moon::BitConverter::ToBooleanString(info.m_Function == nullptr));
 	m_Texts[5]->SetLabel(std::to_string((int)info.m_Bpp) + "bpp");
 	m_Texts[6]->SetLabel(info.m_Reversed ? "Reversed" : "No-reversed");

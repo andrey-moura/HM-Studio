@@ -1,0 +1,34 @@
+#Require a minimum version
+cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+set (CMAKE_CXX_STANDARD 17)
+
+#Set project name
+project(HMStudio)
+
+#wxWidgets
+find_package(wxWidgets REQUIRED COMPONENTS net core base xml stc)
+find_package(libhunspell)
+
+include(${wxWidgets_USE_FILE})
+
+if(DEFINED HUNSPELL_FOUND)
+	include(${HUNSPELL_INCLUDE_DIR})
+	add_definitions(-DENABLE_SPELL)
+endif(DEFINED HUNSPELL_FOUND)
+
+include_directories(include)
+
+SET(SRC
+	#SRC HERE
+)
+
+SET(HDR
+	#HDR HERE
+)
+
+#Add the executable
+add_executable(HMStudio ${SRC} ${HDR})
+
+target_link_libraries(HMStudio ${wxWidgets_LIBRARIES})

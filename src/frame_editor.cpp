@@ -82,15 +82,15 @@ void EditorFrame::CreateMyToolBar(bool prev, bool next, bool go, bool save, bool
 	m_pToolBar->SetMargins(2, 2);	
 	
 	if (prev)
-		Bind(wxEVT_TOOL, &EditorFrame::OnPrevFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Previous File", wxImage(16, 16, prevScriptRgb, prevScriptAlpha, true), "Previous File")->GetId());
+		Bind(wxEVT_TOOL, &EditorFrame::OnPrevFileClick, this, m_pToolBar->AddTool(wxID_ANY, L"Previous File", wxImage(16, 16, prevScriptRgb, prevScriptAlpha, true), "Previous File")->GetId());
 	if (next)
-		Bind(wxEVT_TOOL, &EditorFrame::OnProxFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Following File", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, true), "Following File")->GetId());
+		Bind(wxEVT_TOOL, &EditorFrame::OnProxFileClick, this, m_pToolBar->AddTool(wxID_ANY, L"Following File", wxImage(16, 16, proxScriptRgb, proxScriptAlpha, true), "Following File")->GetId());
 	if (go)
-		Bind(wxEVT_TOOL, &EditorFrame::OnGoFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Got to File", wxImage(16, 16, goScriptRgb, goScriptAlpha, true), "Go to File")->GetId());
+		Bind(wxEVT_TOOL, &EditorFrame::OnGoFileClick, this, m_pToolBar->AddTool(wxID_ANY, L"Got to File", wxImage(16, 16, goScriptRgb, goScriptAlpha, true), "Go to File")->GetId());
 	if (save)
-		Bind(wxEVT_TOOL, &EditorFrame::OnSaveFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Save the File", wxImage(16, 16, saveScriptRgb, saveScriptAlpha, true), "Save the File")->GetId());
+		Bind(wxEVT_TOOL, &EditorFrame::OnSaveFileClick, this, m_pToolBar->AddTool(wxID_ANY, L"Save the File", wxImage(16, 16, saveScriptRgb, saveScriptAlpha, true), "Save the File")->GetId());
 	if (insert)
-		Bind(wxEVT_TOOL, &EditorFrame::OnInsertFileClick, this, m_pToolBar->AddTool(wxNewId(), L"Insert File", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, true), "Insert the File")->GetId());
+		Bind(wxEVT_TOOL, &EditorFrame::OnInsertFileClick, this, m_pToolBar->AddTool(wxID_ANY, L"Insert File", wxImage(16, 16, insertScriptRgb, insertScriptAlpha, true), "Insert the File")->GetId());
 
 	m_pToolBar->Realize();	
 }
@@ -131,7 +131,7 @@ void EditorFrame::CreateSearchMenu()
 {	
 	m_pMenuSearch = new wxMenu();
 	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindTextClick, this, m_pMenuSearch->Append(wxID_FIND, L"Find Text\tCtrl-F")->GetId());
-	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindNextClick, this, m_pMenuSearch->Append(wxNewId(), L"Find Next\tF3")->GetId());
+	m_pMenuSearch->Bind(wxEVT_MENU, &EditorFrame::OnFindNextClick, this, m_pMenuSearch->Append(wxID_ANY, L"Find Next\tF3")->GetId());
 
 	m_frameMenuBar->Append(m_pMenuSearch, L"Find");
 }
@@ -140,7 +140,7 @@ void EditorFrame::CreateViewMenu()
 {
 	m_pMenuView = new wxMenu();
 	Bind(wxEVT_MENU, &EditorFrame::OnAlwaysOnTopClick, this, m_pMenuView->AppendCheckItem(wxID_TOP, L"Always on Top")->GetId());
-	Bind(wxEVT_MENU, &EditorFrame::OnShowFindResultClick, this, m_pMenuView->AppendCheckItem(wxNewId(), L"Find Results")->GetId());
+	Bind(wxEVT_MENU, &EditorFrame::OnShowFindResultClick, this, m_pMenuView->AppendCheckItem(wxID_ANY, L"Find Results")->GetId());
 
 	if (GetWindowStyle() & wxSTAY_ON_TOP)
 		m_pMenuView->Check(wxID_TOP, true);
@@ -177,13 +177,13 @@ void EditorFrame::CreateToolsMenu(bool padding, bool inserter, bool integrity, b
 	m_pMenuTools = new wxMenu();
 
 	if (padding)
-		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxNewId(), "Remove Padding Spaces", nullptr, "Removes spaces after line end")->GetId());
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnRemoveSpacesClick, this, m_pMenuTools->Append(wxID_ANY, L"Remove Padding Spaces", L"Removes spaces after line end")->GetId());
 	if (inserter)
-		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnDumperInserterClick, this, m_pMenuTools->Append(wxNewId(), "Dumper/Inserter", nullptr, "Show Dumper/Inserter Dialog")->GetId());
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnDumperInserterClick, this, m_pMenuTools->Append(wxID_ANY, L"Dumper/Inserter", L"Show Dumper/Inserter Dialog")->GetId());
 	if (integrity)
-		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnCheckIntegrityClick, this, m_pMenuTools->Append(wxNewId(), "Check ROM Integrity", nullptr, "Cheking Tool")->GetId());
-	if(eol)
-		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnEolCheckClick, this, m_pMenuTools->Append(wxNewId(), "EOL Checker", nullptr, "Cheking Tool")->GetId());
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnCheckIntegrityClick, this, m_pMenuTools->Append(wxID_ANY, L"Check ROM Integrity", L"Cheking Tool")->GetId());
+	if (eol)
+		m_pMenuTools->Bind(wxEVT_MENU, &EditorFrame::OnEolCheckClick, this, m_pMenuTools->Append(wxID_ANY, L"EOL Checker", L"Cheking Tool")->GetId());
 
 	m_frameMenuBar->Append(m_pMenuTools, L"Tools");
 }
