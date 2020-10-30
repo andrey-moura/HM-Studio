@@ -1,0 +1,3 @@
+[submodule "include/moon"]
+	path = include/moon
+	url = https://www.github.com/moonslate/moon.git
