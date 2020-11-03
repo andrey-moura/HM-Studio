@@ -22,6 +22,14 @@ The support for HM FoMT and DS are not 100%
 
 Things marked with (Reverse-Engineering) needs research to be implemented. If you know reverse-engineering, please, feel free to try.
 
+## Building
+
+```shell
+git clone --recurse-submodules https://github.com/Moonslate/HM-Studio.git
+cmake CMakeLists.txt
+make
+```
+
 ## Overview
 
 ### MainScreen
