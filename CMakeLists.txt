@@ -1,5 +1,5 @@
 #Require a minimum version
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set (CMAKE_CXX_STANDARD 17)
@@ -22,6 +22,9 @@ include_directories(include)
 
 SET(SRC
 	src/FishEditor.cpp
+	src/animation.cpp
+	src/animation_frame.cpp
+	src/animator.cpp
 	src/class_app.cpp
 	src/class_editor.cpp
 	src/class_finder.cpp
@@ -60,6 +63,9 @@ SET(SRC
 
 SET(HDR
 	src/FishEditor.hpp
+	src/animation.hpp
+	src/animation_frame.hpp
+	src/animator.hpp
 	src/class_app.hpp
 	src/class_editor.hpp
 	src/class_finder.hpp

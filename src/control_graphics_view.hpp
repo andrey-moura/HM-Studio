@@ -20,7 +20,8 @@ public:
 	GraphicsView(wxWindow* parent);
 private:	
 	size_t m_Scale = 1;
-	Graphics* m_Graphic = nullptr;
+	Graphics* m_Graphics = nullptr;
+	Palette* m_pPalette = nullptr;
 	uint8_t* m_8bppData = nullptr;
 	bool m_PixelGrid = false;
 	bool m_UseTileGrid = false;
@@ -33,11 +34,17 @@ private:
 
 	bool m_ViewOnly = false;
 
+	void FlushBitmap();
+
 	wxBitmap m_Bitmap;
 	wxBitmap m_TileGrid;
 	wxBitmap m_BlockGrid;
 public:
 	void SetGraphics(Graphics* graphic);	
+	void SetPalette(Palette* palette);
+
+	const wxBitmap& GetBitmap() { return m_Bitmap; }
+
 	void SetScale(size_t scale);
 	size_t GetScale() const { return m_Scale; }
 
@@ -63,6 +70,7 @@ public:
 	bool IsViewOnly() { return m_ViewOnly; }
 //static helpers
 	static bool IsTouchingGrid(wxPoint pixel, size_t grid);
+	static wxBitmap ConvertToBitmap(const Graphics& graphics, const Palette& palette);
 //override
 private:
 	virtual wxCoord OnGetRowHeight(size_t row) const;

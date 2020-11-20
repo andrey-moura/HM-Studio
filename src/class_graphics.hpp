@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <wx/msgdlg.h>
 
 #include "class_rom_file.hpp"
@@ -45,6 +47,11 @@ struct Palette {
 	uint8_t m_Count = 0;
 
 	Palette(uint16_t* colors, uint8_t bpp);
+	Palette(const Palette& palette)
+	{
+		SetCount(palette.m_Count);
+		memcpy(m_Colors, palette.m_Colors, m_Count*sizeof(Color));
+	}
 	Palette() = default;
 
 	~Palette() { delete[] m_Colors; }
@@ -61,7 +68,8 @@ struct Palette {
 		return m_Colors[index];
 	}
 
-	size_t FindRGB(uint32_t rgb) const;	
+	//size_t FindRGB(uint32_t rgb) const;
+	size_t FindColor(const Color& c) const;
 
 	uint8_t GetCount() const { return m_Count; }
 
@@ -71,63 +79,80 @@ struct Palette {
 class Graphics
 {
 public:
-	Graphics(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false, uint32_t tilewidth = 8, uint32_t tileheight = 8);
+	Graphics(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false);	
+	Graphics(const Graphics& graphics);
 	Graphics() = default;
 	~Graphics();
-private:
-	uint32_t m_Width;
-	uint32_t m_Height;
-	Palette m_Pal;	
-	uint32_t m_ImgOffset;
-	uint32_t m_PalOffset;
-	uint32_t m_TileWidth;
-	uint32_t m_TileHeight;
-	Palette m_Palette;
-	uint8_t* m_8bppData = nullptr;
+private:		
+	uint8_t* m_pRawData = nullptr;
+	uint8_t m_PixelsPerByte;
+	uint8_t m_Mask;
 	uint8_t m_Bpp;
 	bool m_Reversed = false;
-	bool m_Planar = false;
-	bool m_New = true;
-/*
-	Bitmaps should load very fast, so we're going to not allocate new data
-	if not needed. See below.
-*/
-private:
-	bool GetAllocation() { return m_New; }
-	void SetAllocation() { m_New = true; }
-	void ClearAllocation() { m_New = false; }
-
-	template <class T>
-	inline void VerifyAndSet(const T& verify, T& set);
+	bool m_Planar = false;		
+	uint32_t m_Width;
+	uint32_t m_Height;
 public:
 	size_t GetWidth() const { return m_Width; }
 	size_t GetHeight() const { return m_Height; }
-	uint32_t GetImgOffset() const { return m_ImgOffset; }
-	uint32_t GetPalOffset() const { return m_PalOffset; }
+	size_t GetLenght() const { return (m_Width*m_Height)/m_PixelsPerByte; }
 	uint8_t GetBpp() const { return m_Bpp; }
-	const Palette& GetPalette() const { return m_Palette; }
-	Palette& GetPalette() { return m_Palette; }
-	uint8_t* GetData() { return m_8bppData; }
-	const uint8_t* GetData() const { return m_8bppData; }
 	bool IsPlanar() const { return m_Planar; }
 	bool IsReversed() const { return m_Reversed; }
-	uint32_t GetTileWidth() const { return m_TileWidth; }
-	uint32_t GetTileHeight() const { return m_TileHeight; }
+	uint8_t GetPixel(size_t n) const;
+	uint8_t GetPixel(size_t x, size_t y) const;
+	const uint8_t* GetData() const { return m_pRawData; }
+	uint8_t* GetData() { return m_pRawData; }
+
+	void SetPixel(size_t n, uint8_t p);
+	void SetPixel(size_t x, size_t y, uint8_t p);
 
 	void SetWidth(uint32_t width);
-	void SetHeight(uint32_t height);
-	void SetImgOffset(uint32_t offset);
-	void SetPalOffset(uint32_t offset);
+	void SetHeight(uint32_t height);	
 	void SetBpp(uint8_t bpp);
 	void SetPlanar(bool planar);
-	void SetReversed(bool reversed);
-	void SetTileWidth(uint32_t width);
-	void SetTileHeight(uint32_t height);
-	void SetData(unsigned char* bytes) { m_8bppData = bytes; }
+	void SetReversed(bool reversed);		
+	void SetData(uint8_t* data) { m_pRawData = data; }	
+	void Create(uint32_t width, uint32_t height, uint8_t bpp = 4, bool reversed = true, bool planar = false);	
 
-	void OrderTiles(uint8_t* src, uint8_t* dst);
-	void DOrderTiles(uint8_t* src, uint8_t* dst);
+	//Blit a Graphics at x and y coordinates
+	void Blit(const Graphics& other, const uint32_t& x, const uint32_t& y);
+	//Blit a tile (8x8 Graphics) at tile-x*8 and tile-y*8 coordinates
+	//This is faster than Blit.
+	void BlitTile(const Graphics& tile, const uint32_t& tile_x, const uint32_t& tile_y);
+public:
+	//Compare two Graphics. This compare the palette index, so assume both use
+	//same palette and the palette don't have duplicated colors.
+	//Bpp difference don't necessary means that Graphics are not equal.
+	bool operator==(const Graphics& graphics) const
+	{
+		if(GetWidth() != graphics.GetWidth())		
+			return false;
 
-	void LoadFromRom(RomFile& file);
-	void InsertImage(RomFile& file);
+		if(GetHeight() != graphics.GetHeight())
+			return false;
+
+		if(GetBpp() == graphics.GetBpp())
+		{
+			return memcmp(GetData(), graphics.GetData(), GetLenght()) == 0;
+		} else 
+		{
+			//ToDo:
+			//Pixel to pixel comparison
+		}
+	}
+
+	void operator=(const Graphics& other)
+	{
+		SetBpp(other.GetBpp());
+
+		if(!other.GetData())
+			return;
+
+		uint32_t lenght = GetLenght();
+
+		m_pRawData = new uint8_t[lenght];
+
+		memcpy(m_pRawData, other.GetData(), GetLenght());
+	}
 };

@@ -18,7 +18,7 @@ bool App::OnInit()
 	SetAppName("HM Studio");
 
 	wxFileName fn(wxStandardPaths::Get().GetExecutablePath());
-	fn.SetExt(L"ini");
+	fn.SetExt(L"ini");	
 
 	wxFileConfig* configs = new wxFileConfig(wxEmptyString, wxEmptyString, fn.GetFullPath());
 	configs->SetRecordDefaults();

@@ -76,11 +76,11 @@ void ItemEditorFrame::UpdateText()
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
-		m_Graphics.SetImgOffset(((ItemEditor*)m_pEditor)->GetImgAdress(true));
-		m_Graphics.SetPalOffset(((ItemEditor*)m_pEditor)->GetPalAdress(true));
+		// m_Graphics.SetImgOffset(((ItemEditor*)m_pEditor)->GetImgAdress(true));
+		// m_Graphics.SetPalOffset(((ItemEditor*)m_pEditor)->GetPalAdress(true));
 
-		m_Graphics.LoadFromRom(m_pEditor->GetRom(true));
-		m_pItemIconView->SetGraphics(&m_Graphics);
+		// m_Graphics.LoadFromRom(m_pEditor->GetRom(true));
+		// m_pItemIconView->SetGraphics(&m_Graphics);
 	}
 }
 

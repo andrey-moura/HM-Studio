@@ -19,6 +19,7 @@
 #include "frame_graphics_editor.hpp"
 #include "frame_string_editor.hpp"
 #include "frame_value_editor.hpp"
+#include "animation_frame.hpp"
 
 #include "dialog_spellchecker.hpp"
 
@@ -44,7 +45,7 @@ private:
 private:
 	int m_DefaultSelection;
 	id GetCurrentId();
-	long m_Processes[3];
+	long m_Processes[3] { -1, -1, -1 };
 
 	template<typename T>
 	void OnEditorClick(wxCommandEvent& event)

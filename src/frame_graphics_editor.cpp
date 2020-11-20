@@ -133,7 +133,10 @@ void GraphicsEditorFrame::GetGraphicsList()
 
 	AppendGraphics(calendar);
 
-	// AppendGraphics();
+	GraphicsTreeParent test("test", false);
+	test.push_back(GraphicsTreeItem("Test 1", GraphicsInfo(0x6c316c, 0x6c40f0, 8, 8)));
+
+	AppendGraphics(test);
 }
 
 void GraphicsEditorFrame::FromOriginal()
@@ -156,30 +159,6 @@ void GraphicsEditorFrame::ExportImage()
 
 	if (path.empty())
 		return;
-
-	const uint8_t* data = m_Graphic.GetData();
-	const Palette& palette = m_Graphic.GetPalette();
-
-	wxBitmap bitmap(wxSize(m_Graphic.GetWidth(), m_Graphic.GetHeight()), 24);
-
-	wxMemoryDC dc(bitmap);
-
-	dc.SetPen(*wxTRANSPARENT_PEN);
-
-	wxBrush brush(*wxBLACK, wxBRUSHSTYLE_SOLID);
-
-	for (size_t y = 0; y < m_Graphic.GetHeight(); ++y)
-	{
-		for (size_t x = 0; x < m_Graphic.GetWidth(); ++x)
-		{
-			brush.SetColour(palette[*(data + x + y * m_Graphic.GetWidth())].GetBGR());
-			dc.SetBrush(brush);
-
-			dc.DrawRectangle(x, y, 1, 1);
-		}
-	}
-
-	bitmap.SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 }
 
 void GraphicsEditorFrame::SaveImage()
@@ -204,35 +183,35 @@ void GraphicsEditorFrame::SaveImage()
 
 void GraphicsEditorFrame::ImportImage()
 {
-	wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
+	// wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
 
-	wxBitmap bitmap(path, wxBitmapType::wxBITMAP_TYPE_PNG);
+	// wxBitmap bitmap(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 
-	wxMemoryDC dc(bitmap);
+	// wxMemoryDC dc(bitmap);
 
-	const Palette& pal = m_Graphic.GetPalette();
-	uint8_t* data = m_Graphic.GetData();
+	// const Palette& pal = m_Graphic.GetPalette();
+	// uint8_t* data = m_Graphic.GetData();
 
-	for (size_t y = 0; y < bitmap.GetHeight(); ++y)
-	{
-		for (size_t x = 0; x < bitmap.GetWidth(); ++x)
-		{
-			wxColour color;
-			dc.GetPixel(x, y, &color);
+	// for (size_t y = 0; y < bitmap.GetHeight(); ++y)
+	// {
+	// 	for (size_t x = 0; x < bitmap.GetWidth(); ++x)
+	// 	{
+	// 		wxColour color;
+	// 		dc.GetPixel(x, y, &color);
 
-			size_t pos = pal.FindRGB(color.GetRGB());
+	// 		size_t pos = pal.FindRGB(color.GetRGB());
 			
-			if (pos == std::string::npos)
-			{
-				//Todo: Find the closest color
-				continue;
-			}
+	// 		if (pos == std::string::npos)
+	// 		{
+	// 			//Todo: Find the closest color
+	// 			continue;
+	// 		}
 
-			data[x + (y * m_Graphic.GetWidth())] = pos;
-		}
-	}
+	// 		data[x + (y * m_Graphic.GetWidth())] = pos;
+	// 	}
+	// }
 
-	m_ImageView->Refresh();
+	// m_ImageView->Refresh();
 }
 
 void GraphicsEditorFrame::OnSaveFileClick(wxCommandEvent& event)
@@ -326,109 +305,109 @@ void GraphicsEditorFrame::SetRootName(const wxString& name)
 
 void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
 {	
-	m_Graphic.SetWidth(info.m_Width);
-	m_Graphic.SetHeight(info.m_Height);
-	m_Graphic.SetImgOffset(info.m_ImageAdress);
-	m_Graphic.SetPalOffset(info.m_PaletteAdress);
-	m_Graphic.SetBpp(info.m_Bpp);
-	m_Graphic.SetReversed(info.m_Reversed);
-	m_Graphic.SetPlanar(info.m_Planar);
-	m_Graphic.SetTileWidth(info.m_TileWidth);
-	m_Graphic.SetTileHeight(info.m_TileHeight);
+	// m_Graphic.SetWidth(info.m_Width);
+	// m_Graphic.SetHeight(info.m_Height);
+	// m_Graphic.SetImgOffset(info.m_ImageAdress);
+	// m_Graphic.SetPalOffset(info.m_PaletteAdress);
+	// m_Graphic.SetBpp(info.m_Bpp);
+	// m_Graphic.SetReversed(info.m_Reversed);
+	// m_Graphic.SetPlanar(info.m_Planar);
+	// m_Graphic.SetTileWidth(info.m_TileWidth);
+	// m_Graphic.SetTileHeight(info.m_TileHeight);
 
-	m_Graphic.LoadFromRom(rom);
+	// m_Graphic.LoadFromRom(rom);
 
-	m_ImageView->SetGraphics(&m_Graphic);
-	m_PalCtrl->SetPal(m_Graphic.GetPalette());
-	m_InfoViewer->SetInfo(info);
+	// m_ImageView->SetGraphics(&m_Graphic);
+	// m_PalCtrl->SetPal(m_Graphic.GetPalette());
+	// m_InfoViewer->SetInfo(info);
 }
 
 void GraphicsEditorFrame::GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom)
 {
-	wxSize size;
-	std::vector<Graphics> graphics;
+	// wxSize size;
+	// std::vector<Graphics> graphics;
 
-	size.y = parent[0].m_Info.m_Height;
+	// size.y = parent[0].m_Info.m_Height;
 
-	for (const GraphicsTreeItem& item : parent)
-	{
-		size.x += item.m_Info.m_Width;
+	// for (const GraphicsTreeItem& item : parent)
+	// {
+	// 	size.x += item.m_Info.m_Width;
 
-		graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
-		graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);
-		graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
-		graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
-	}
+	// 	graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
+	// 	graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);
+	// 	graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
+	// 	graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
+	// }
 
-	for (Graphics& cur_graphics : graphics)
-		cur_graphics.LoadFromRom(rom);
+	// for (Graphics& cur_graphics : graphics)
+	// 	cur_graphics.LoadFromRom(rom);
 
-	unsigned char* bytes = new unsigned char[size.GetWidth() * size.GetHeight()];
+	// unsigned char* bytes = new unsigned char[size.GetWidth() * size.GetHeight()];
 
-	for (size_t y = 0, x = 0; y < size.GetHeight(); ++y, x = 0)
-	{
-		for (const Graphics& cur_graphics : graphics)
-		{
-			memcpy(bytes + (x + (y * size.GetWidth())), cur_graphics.GetData() + (y * cur_graphics.GetWidth()), cur_graphics.GetWidth());
-			x += cur_graphics.GetWidth();
-		}
-	}
+	// for (size_t y = 0, x = 0; y < size.GetHeight(); ++y, x = 0)
+	// {
+	// 	for (const Graphics& cur_graphics : graphics)
+	// 	{
+	// 		memcpy(bytes + (x + (y * size.GetWidth())), cur_graphics.GetData() + (y * cur_graphics.GetWidth()), cur_graphics.GetWidth());
+	// 		x += cur_graphics.GetWidth();
+	// 	}
+	// }
 
-	m_Graphic = graphics[0];
+	// m_Graphic = graphics[0];
 
-	uint32_t palSize = (1 << m_Graphic.GetBpp()) * 2;
-	uint8_t* rawPal = new uint8_t[palSize];
-	rom.Seek(m_Graphic.GetPalOffset());
-	rom.Read(rawPal, palSize);
+	// uint32_t palSize = (1 << m_Graphic.GetBpp()) * 2;
+	// uint8_t* rawPal = new uint8_t[palSize];
+	// rom.Seek(m_Graphic.GetPalOffset());
+	// rom.Read(rawPal, palSize);
 
-	m_Graphic.GetPalette().DecodeColors((uint16_t*)rawPal, m_Graphic.GetBpp());
+	// m_Graphic.GetPalette().DecodeColors((uint16_t*)rawPal, m_Graphic.GetBpp());
 
-	m_Graphic.SetWidth(size.GetWidth());
-	m_Graphic.SetHeight(size.GetHeight());
-	m_Graphic.SetData(bytes);
-	m_ImageView->SetGraphics(&m_Graphic);
-	m_PalCtrl->SetPal(m_Graphic.GetPalette());
+	// m_Graphic.SetWidth(size.GetWidth());
+	// m_Graphic.SetHeight(size.GetHeight());
+	// m_Graphic.SetData(bytes);
+	// m_ImageView->SetGraphics(&m_Graphic);
+	// m_PalCtrl->SetPal(m_Graphic.GetPalette());
 }
 
 void GraphicsEditorFrame::InsertImage()
 {
-	if (!m_IsPieces)
-	{
-		m_Graphic.InsertImage(m_RomTranslated);
-	}
-	else
-	{
-		std::vector<Graphics> graphics;		
+	// if (!m_IsPieces)
+	// {
+	// 	m_Graphic.InsertImage(m_RomTranslated);
+	// }
+	// else
+	// {
+	// 	std::vector<Graphics> graphics;		
 
-		for (const GraphicsTreeItem& item : m_MountGraphics[m_MountIndex])
-		{
-			graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
-			graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);			
-		}
+	// 	for (const GraphicsTreeItem& item : m_MountGraphics[m_MountIndex])
+	// 	{
+	// 		graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
+	// 		graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);			
+	// 	}
 
-		wxSize totalSize(m_Graphic.GetWidth(), m_Graphic.GetHeight());
+	// 	wxSize totalSize(m_Graphic.GetWidth(), m_Graphic.GetHeight());
 		
-		unsigned char* src = m_Graphic.GetData();	
+	// 	unsigned char* src = m_Graphic.GetData();	
 
-		size_t x = 0;
+	// 	size_t x = 0;
 
-		for (Graphics& cur_graphics : graphics)
-		{
-			unsigned char* bytes = new unsigned char[cur_graphics.GetWidth() * cur_graphics.GetHeight()];			
-			unsigned char* _bytes = bytes;
+	// 	for (Graphics& cur_graphics : graphics)
+	// 	{
+	// 		unsigned char* bytes = new unsigned char[cur_graphics.GetWidth() * cur_graphics.GetHeight()];			
+	// 		unsigned char* _bytes = bytes;
 
-			for (size_t line = 0; line < cur_graphics.GetHeight(); line++)
-			{
-				memcpy(bytes, src + (line * m_Graphic.GetWidth()) + x, cur_graphics.GetWidth());
-				bytes += cur_graphics.GetWidth();
-			}
+	// 		for (size_t line = 0; line < cur_graphics.GetHeight(); line++)
+	// 		{
+	// 			memcpy(bytes, src + (line * m_Graphic.GetWidth()) + x, cur_graphics.GetWidth());
+	// 			bytes += cur_graphics.GetWidth();
+	// 		}
 
-			x += cur_graphics.GetWidth();
+	// 		x += cur_graphics.GetWidth();
 
-			cur_graphics.SetData(_bytes);
-			cur_graphics.InsertImage(m_RomTranslated);			
-		}
-	}
+	// 		cur_graphics.SetData(_bytes);
+	// 		cur_graphics.InsertImage(m_RomTranslated);			
+	// 	}
+	// }
 }
 
 void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)

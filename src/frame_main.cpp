@@ -108,10 +108,13 @@ void MainFrame::OnClose(wxCloseEvent& event)
 	//Close all opened emulators
 	for (const long& pid : m_Processes)
 	{
-		if (wxProcess::Exists(pid))
+		if(pid != -1)
 		{
-			wxProcess::Kill(pid);
-		}
+			if (wxProcess::Exists(pid))
+			{
+				wxProcess::Kill(pid);
+			}
+		}		
 	}
 
 	wxTheApp->ExitMainLoop();	
@@ -251,6 +254,7 @@ void MainFrame::CreateGUIControls()
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<StringEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"String Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<GraphicsEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Graphics Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ValueEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Value Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<AnimationEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Animation Editor")->GetId());
 
 	wxMenu* toolsMenu = new wxMenu();
 	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", L"Spell Checker Settings")->GetId());

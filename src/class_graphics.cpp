@@ -1,178 +1,20 @@
 #include "class_graphics.hpp"
 
-Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar, uint32_t tilewidth, uint32_t tileheight) :
-	m_Bpp(bpp), m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar), m_TileWidth(tilewidth), m_TileHeight(tileheight)
+Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar) :
+	m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
 {
+	SetBpp(bpp);
+}
 
+Graphics::Graphics(const Graphics& graphics)
+	: m_Width(graphics.GetWidth()), m_Height(graphics.GetHeight()), m_Reversed(graphics.IsReversed()), m_Planar(graphics.IsPlanar())
+{
+	*this = graphics;
 }
 
 Graphics::~Graphics()
 {
-	if (m_8bppData)
-		delete[] m_8bppData;
-}
-
-void Graphics::LoadFromRom(RomFile& file)
-{
-	uint8_t bits = 8 / m_Bpp;
-	uint8_t mask = (1 << m_Bpp) - 1;
-	uint32_t newSize = m_Width * m_Height;
-	uint32_t rawSize = newSize / bits;
-	uint32_t palSize = (1 << m_Bpp) * 2;
-
-	uint8_t* linear8bpp = new uint8_t[newSize];
-
-	file.Seek(m_ImgOffset);
-
-	if (m_Bpp == 8)
-	{
-		file.Read(linear8bpp, rawSize);
-	}
-	else
-	{
-		uint8_t* raw = new uint8_t[rawSize];
-		file.Read(raw, rawSize);
-
-		uint32_t curByte = 0;
-
-		for (size_t i = 0; i < rawSize; ++i)
-		{
-			uint8_t byte = raw[i];
-
-			if (!m_Reversed)
-				byte = Moon::BitConverter::ReverseBits(byte);
-
-			for (size_t bit = 0; bit < bits; ++bit)
-			{				
-				uint8_t shiftCount = (m_Bpp * bit);
-
-				linear8bpp[curByte] = (byte & (mask << shiftCount)) >> shiftCount;			
-				++curByte;
-			}
-		}
-
-		delete[] raw;
-	}
-
-	if (GetAllocation())
-	{
-		if (m_8bppData != nullptr)
-			delete m_8bppData;
-
-		m_8bppData = new uint8_t[newSize];
-	}	
-
-	OrderTiles(linear8bpp, m_8bppData);
-
-	delete[] linear8bpp;
-
-	uint8_t* rawPal = new uint8_t[palSize];
-	file.Seek(m_PalOffset);
-	file.Read(rawPal, palSize);
-
-	m_Palette.DecodeColors((uint16_t*)rawPal, m_Bpp);
-
-	ClearAllocation();
-}
-
-void Graphics::InsertImage(RomFile& file)
-{
-	uint8_t bits = 8 / m_Bpp;
-	uint8_t mask = (1 << m_Bpp) - 1;
-	uint32_t newSize = m_Width * m_Height;
-	uint32_t rawSize = newSize / bits;
-	uint32_t palSize = (1 << m_Bpp) * 2;
-
-	uint8_t* linear8bpp = new uint8_t[newSize];
-
-	DOrderTiles(m_8bppData, linear8bpp);
-
-	uint8_t* raw = new uint8_t[rawSize];
-
-	uint32_t curByte = 0;
-
-	for (size_t i = 0; i < rawSize; ++i)
-	{		
-		raw[i] = 0;
-
-		for (size_t bit = 0; bit < bits; ++bit)
-		{
-			uint8_t byte = linear8bpp[curByte];							
-
-			uint8_t shiftCount = (m_Bpp * bit);
-
-			raw[i] |= (byte << shiftCount);							
-
-			++curByte;
-		}
-
-		if (!m_Reversed)
-			raw[i] = Moon::BitConverter::ReverseBits(raw[i]);
-	}	
-
-	file.Seek(m_ImgOffset);
-	file.Write(raw, rawSize);
-	file.Flush();
-
-	delete[] linear8bpp;
-	delete[] raw;
-}
-
-void Graphics::OrderTiles(uint8_t* src, uint8_t* dst)
-{
-	size_t tile_count_x = m_Width / m_TileWidth;
-	size_t tile_count_y = m_Height / m_TileHeight;
-	size_t tile_bytes = m_TileWidth * m_TileHeight;
-
-	unsigned char* srcTile = src;
-	size_t line_offset = 0;
-
-	for (size_t cur_tile_y = 0; cur_tile_y < tile_count_y; ++cur_tile_y)
-	{
-		for (size_t cur_line = 0, line_offset = 0; cur_line < m_TileHeight; ++cur_line, line_offset += m_TileWidth)
-		{
-			srcTile = src+ (cur_tile_y * (tile_bytes * tile_count_x));
-
-			for (size_t cur_tile_x = 0; cur_tile_x < tile_count_x; ++cur_tile_x)
-			{
-				memcpy(dst, srcTile + line_offset, m_TileWidth);
-				dst += m_TileWidth;
-				srcTile += tile_bytes;
-			}
-		}		
-	}	
-}
-
-void Graphics::DOrderTiles(uint8_t* src, uint8_t* dst)
-{
-	size_t tile_count_x = m_Width / m_TileWidth;
-	size_t tile_count_y = m_Height / m_TileHeight;
-	size_t tile_bytes = m_TileWidth * m_TileHeight;
-
-	unsigned char* _src = src;	
-	unsigned char* _dst = dst;
-	size_t line_offset = 0;
-
-	unsigned char* tile_start = src;
-
-	for (size_t tile_y = 0; tile_y < tile_count_y; ++tile_y)
-	{
-		tile_start = src + (m_TileHeight * m_Width) * tile_y;
-
-		for (size_t tile_x = 0; tile_x < tile_count_x; tile_x++)
-		{
-			_src = tile_start;
-
-			for (size_t line = 0; line < m_TileHeight; line++)
-			{
-				memcpy(dst, _src, m_TileWidth);
-				_src += m_Width;
-				dst += m_TileWidth;
-			}
-
-			tile_start += 8;
-		}
-	}
+	delete[] m_pRawData;
 }
 
 Palette::Palette(uint16_t* colors, uint8_t bpp)
@@ -206,13 +48,16 @@ void Palette::DecodeColors(uint16_t* colors, uint8_t bpp)
 	delete[] colors;
 }
 
-size_t Palette::FindRGB(uint32_t rgb) const
-{			
-	Color* color = (Color*)(&rgb);
+// size_t Palette::FindRGB(uint32_t rgb) const
+// {			
+	
+// }
 
-	for (size_t i = 0; i < m_Count; ++i)
+size_t Palette::FindColor(const Color& c) const
+{
+	for(size_t i = 0; i < m_Count; ++i)
 	{
-		if (m_Colors[i] == *color)
+		if(m_Colors[i] == c)
 		{
 			return i;
 		}
@@ -221,29 +66,11 @@ size_t Palette::FindRGB(uint32_t rgb) const
 	return std::string::npos;
 }
 
-void Graphics::SetWidth(uint32_t width)
-{
-	VerifyAndSet(width, m_Width);
-}
-
-void Graphics::SetHeight(uint32_t height)
-{
-	VerifyAndSet(height, m_Height);
-}
-
-void Graphics::SetImgOffset(uint32_t offset)
-{
-	m_ImgOffset = offset;
-}
-
-void Graphics::SetPalOffset(uint32_t offset)
-{
-	m_PalOffset = offset;
-}
-
 void Graphics::SetBpp(uint8_t bpp)
-{
-	VerifyAndSet(bpp, m_Bpp);
+{	
+	m_Bpp = bpp;
+	m_PixelsPerByte = 8/bpp;
+	m_Mask = (1 << m_Bpp) - 1;
 }
 
 void Graphics::SetPlanar(bool planar)
@@ -256,22 +83,93 @@ void Graphics::SetReversed(bool reversed)
 	m_Reversed = reversed;
 }
 
-void Graphics::SetTileWidth(uint32_t width)
+void Graphics::Create(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar)
 {
-	VerifyAndSet(width, m_TileWidth);
+	m_Width = width;
+	m_Height = height;
+	m_Reversed = reversed;
+	m_Planar = planar;
+
+	SetBpp(bpp);
+
+	m_pRawData = new uint8_t[GetLenght()];
 }
 
-void Graphics::SetTileHeight(uint32_t height)
-{
-	VerifyAndSet(height, m_TileHeight);
+void Graphics::Blit(const Graphics& other, const uint32_t& x, const uint32_t& y)
+{	
+	//ToDo
 }
 
-template <class T>
-inline void Graphics::VerifyAndSet(const T& verify, T& set)
+void Graphics::BlitTile(const Graphics& tile, const uint32_t& tile_x, const uint32_t& tile_y)
 {
-	if (verify != set)
+	if(tile.GetBpp() != GetBpp())
 	{
-		SetAllocation();
-		set = verify;
+		return;
+	}	
+
+	size_t n = tile_x * 64;
+	n += tile_y * (64*(m_Width/8));
+
+	memcpy(m_pRawData+(n/m_PixelsPerByte), tile.m_pRawData, 64/m_PixelsPerByte);
+}
+
+uint8_t Graphics::GetPixel(size_t n) const
+{		
+	return GetPixel(n % m_Width, n / m_Width);
+}
+
+uint8_t Graphics::GetPixel(size_t x, size_t y) const
+{
+	size_t n;	
+
+	if(x < 8 && y < 8)
+	{
+		n = x+(y*8);
+	} else 
+	{
+		size_t tile_x = x / 8;
+		size_t tile_y = y / 8;
+		size_t tile_index = tile_x  + (tile_y*(m_Width/8));		
+
+		n = tile_x * 64;
+		n += x-(tile_x*8);
+		n += tile_y * (64*(m_Width/8));
+		n += (y-(tile_y*8)) * 8;
 	}
+
+	uint8_t b = m_pRawData[n/m_PixelsPerByte];
+	uint8_t s = (n%m_PixelsPerByte) * m_Bpp;
+
+	return (b & (m_Mask<<s)) >> s;
+}
+
+void Graphics::SetPixel(size_t n, uint8_t p)
+{
+	SetPixel(n % m_Width, n / m_Width, p);
+}
+
+void Graphics::SetPixel(size_t x, size_t y, uint8_t p)
+{
+	size_t n;	
+
+	if(x < 8 && y < 8)
+	{
+		n = x+(y*8);
+	} else 
+	{
+		size_t tile_x = x / 8;
+		size_t tile_y = y / 8;
+		size_t tile_index = tile_x  + (tile_y*(m_Width/8));		
+
+		n = tile_x * 64;
+		n += x-(tile_x*8);
+		n += tile_y * (64*(m_Width/8));
+		n += (y-(tile_y*8)) * 8;
+	}
+
+	uint8_t b = m_pRawData[n/m_PixelsPerByte];
+	uint8_t s = (n%m_PixelsPerByte) * m_Bpp;
+
+	b = (b & (~(m_Mask<<s))) | p<<s;
+	m_pRawData[n/m_PixelsPerByte] = b;	
 }
