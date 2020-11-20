@@ -534,9 +534,6 @@ void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event)
 
 void AnimationEditorFrame::OnEditFramesClick(wxCommandEvent& event)
 {
-    FrameEditorFrame* frame = new FrameEditorFrame(m_Animator, m_CurrentAnimation);
-    frame->Show();
-
     event.Skip();
 }
 
