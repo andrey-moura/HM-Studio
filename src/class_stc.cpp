@@ -80,16 +80,7 @@ inline void STC::VerifyCurLineLenght()
 
 inline void STC::Highlight(size_t start, size_t lenght, int style)
 {	
-//
-//	The StartStyling(int pos, int mask) is deprecated under wxMSW,
-//	but is still in use in wxGTK+ 
-//
-
-#ifdef __WXMSW__
 	StartStyling(start);
-#else ifdef __WXGTK__	
-	StartStyling(start, 31);
-#endif	
 	SetStyling(lenght, style);
 }
 

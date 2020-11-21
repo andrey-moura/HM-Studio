@@ -465,8 +465,14 @@ void ScriptEditor::DumpAll(bool translated)
 
 	uint32_t maxPosition = m_Info.StartBlock + m_Info.BlockLenght;
 
-	Moon::File::MakeDir(m_ScriptDir);
-	Moon::File::MakeDir(Moon::File::AppenPath(m_ScriptDir, translated ? "Translated" : "Original"));
+	wxFileName fn;
+	fn.SetPath(m_ScriptDir);
+	fn.AppendDir(translated ? L"Translated" : L"Original");
+
+	if(!fn.DirExists())
+	{
+		fn.Mkdir();
+	}	
 
 	for (uint32_t i = 0; i < m_Info.Count; ++i)
 	{

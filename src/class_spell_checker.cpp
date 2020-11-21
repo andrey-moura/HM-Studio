@@ -76,7 +76,10 @@ void SpellChecker::Initialize()
 		fileName.AppendDir("Dics");
 		fileName.SetExt("usr");
 
-		Moon::File::MakeDir(fileName.GetPath().ToStdString());
+		if(!fileName.DirExists())
+		{
+			fileName.Mkdir(511, wxPATH_MKDIR_FULL);
+		}
 
 		AddUserDic(fileName.GetFullPath().ToStdString());		
 	}

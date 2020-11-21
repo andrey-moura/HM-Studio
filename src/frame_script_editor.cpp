@@ -239,8 +239,8 @@ void ScriptEditorFrame::FindText()
 void ScriptEditorFrame::OnSaveString()
 {
 	if (tScriptTranslated->GetModify())
-	{
-		m_pEditor->SaveText(tScriptTranslated->GetText().ToStdString());
+	{				
+		m_pEditor->SaveText(tScriptTranslated->GetText().ToStdString(wxCSConv(wxFONTENCODING_CP1252)));
 		BackupText();
 	}
 	else
@@ -302,8 +302,14 @@ void ScriptEditorFrame::SetTextRange()
 
 void ScriptEditorFrame::UpdateText()
 {	
-	tScriptOriginal->SetText(((ScriptEditor*)m_pEditor)->GetCurOriginal());
-	tScriptTranslated->SetText(((ScriptEditor*)m_pEditor)->GetCurTranslated());
+	std::string std_translated = ((ScriptEditor*)m_pEditor)->GetCurTranslated();
+	wxString translated(std_translated.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_translated.size());
+
+	std::string std_original = ((ScriptEditor*)m_pEditor)->GetCurOriginal();
+	wxString original(std_original.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_original.size());
+
+	tScriptOriginal->SetText(original);
+	tScriptTranslated->SetText(translated);
 
 	m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
 		

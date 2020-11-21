@@ -81,10 +81,11 @@ void RomFile::SetupVars()
 	{
 		m_VarTable.SetVarSize(12);
 
-		m_VarTable.Reserve(6);
+		m_VarTable.Reserve(7);
 		m_VarTable.Append('!', "<PlayerName>");
 		m_VarTable.Append('$', "<Ranch-Name>");
 		m_VarTable.Append('%', "<AnimalName>");
+		m_VarTable.Append('&', "<Format0001>");
 		m_VarTable.Append(')', "<CustomName>");
 		m_VarTable.Append('*', "<Child-Name>");
 		m_VarTable.Append('"', "<Horse-Name>");

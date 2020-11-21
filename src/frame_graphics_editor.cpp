@@ -6,10 +6,14 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Gra
 
 	wxFileName fn;
 	fn.SetPath(m_RomTranslated.m_HomeDir);
-	fn.AppendDir(L"Graphics");
+	fn.AppendDir(L"Graphics");	
+
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
 
 	m_RootDir = fn.GetFullPath();
-	Moon::File::MakeDir(m_RootDir.ToStdString());
 
 	GetGraphicsList();
 }
@@ -22,8 +26,12 @@ GraphicsEditorFrame::GraphicsEditorFrame(id i, GraphicsTreeParent& graphics) : w
 	fn.SetPath(m_RomTranslated.m_HomeDir);
 	fn.AppendDir(L"Graphics");
 
-	m_RootDir = fn.GetFullPath();
-	Moon::File::MakeDir(m_RootDir.ToStdString());
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
+
+	m_RootDir = fn.GetFullPath();	
 
 	AppendGraphics(graphics);
 }

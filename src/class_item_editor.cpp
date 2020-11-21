@@ -174,13 +174,19 @@ void ItemEditor::Dump()
 		cur += item.GetDescription().size() + 1;
 	}
 
-	std::string itemDir = Moon::File::AppenPath(m_RomTranslated.m_HomeDir, "Itens");
+	wxFileName itemDir;
+	itemDir.SetPath(m_RomTranslated.m_HomeDir);
+	itemDir.AppendDir(L"Itens");
 
-	Moon::File::MakeDir(itemDir);
+	if(!itemDir.DirExists())
+	{
+		itemDir.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
 
-	std::string path = Moon::File::SetName(itemDir, m_Infos[m_InfoIndex].m_Name + ".itens");
+	itemDir.SetName(m_Infos[m_InfoIndex].m_Name);
+	itemDir.SetExt("itens");	
 
-	Moon::File::WriteAllBytes(path, block, size);
+	Moon::File::WriteAllBytes(itemDir.GetFullPath().ToStdString(), block, size);
 
 	delete[] block;
 }
@@ -202,13 +208,20 @@ void ItemEditor::DumpImages()
 		cur += 16 * 2;
 	}
 
-	std::string itemDir = Moon::File::AppenPath(m_RomTranslated.m_HomeDir, "Itens");
+	wxFileName fn;
+	fn.SetPath(m_RomTranslated.m_HomeDir);
+	fn.AppendDir(L"Itens");
 
-	Moon::File::MakeDir(itemDir);
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
 
-	std::string path = Moon::File::SetName(itemDir, m_Infos[m_InfoIndex].m_Name + ".itensimg");
 
-	Moon::File::WriteAllBytes(path, data, size);
+	fn.SetName(m_Infos[m_InfoIndex].m_Name);
+	fn.SetExt("itensimg");	
+
+	Moon::File::WriteAllBytes(fn.GetFullPath().ToStdString(), data, size);
 
 	delete[] data;
 }

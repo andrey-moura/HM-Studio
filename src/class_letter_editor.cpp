@@ -295,10 +295,28 @@ void LetterEditor::GetRomInfo()
 		break;
 	}
 
-	m_LetterDir = Moon::File::AppenPath(m_RomOriginal.m_HomeDir, "Letters");
-	Moon::File::MakeDir(m_LetterDir);
-	Moon::File::MakeDir(Moon::File::AppenPath(m_LetterDir, m_RomOriginal.State));
-	Moon::File::MakeDir(Moon::File::AppenPath(m_LetterDir, m_RomTranslated.State));
+	wxFileName fn;
+	fn.SetPath(m_RomOriginal.m_HomeDir);
+	fn.AppendDir(L"Letters");
+
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
+
+	fn.AppendDir(L"Original");
+	
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
+
+	fn.AppendDir(L"Translated");
+
+	if(!fn.DirExists())
+	{
+		fn.Mkdir(511, wxPATH_MKDIR_FULL);
+	}
 }
 
 std::string LetterEditor::GetPath(const size_t& number, const bool& translated) const
