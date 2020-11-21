@@ -23,7 +23,7 @@ public:
 public:
 	inline void Input(std::string& str, const Moon::Hacking::Table& tbl)
 	{
-		size_t varPos = str.find('�');		
+		size_t varPos = str.find(0xff);
 
 		std::vector<VarPos> poss;
 
@@ -38,7 +38,7 @@ public:
 				poss.push_back(VarPos(varIndex, varPos + (poss.size() * (m_VarSize - 2))));				
 			}
 
-			varPos = str.find('�', varPos + 1);
+			varPos = str.find(0xff, varPos + 1);
 		}
 
 		tbl.Input(str);
@@ -85,7 +85,7 @@ public:
 
 			//Do not make copies of the string
 			str[pos.m_VarPos + 1] = var;
-			str[pos.m_VarPos] = '�';
+			str[pos.m_VarPos] = 0xff;
 
 			str.erase(pos.m_VarPos + 2, m_VarSize - 2);
 		}

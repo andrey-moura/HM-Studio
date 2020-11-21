@@ -115,7 +115,7 @@ void LetterEditor::InsertAll()
 	letter_block.reserve(m_Info.BlockLenght);
 	letters_counts_all.reserve(m_Info.Count);
 
-	uint32_t end_line = std::string::npos;
+	size_t end_line = std::string::npos;
 
 	std::vector<uint32_t> letters_pointers_all;
 	letters_pointers_all.reserve(m_Info.Count);
@@ -214,7 +214,7 @@ void LetterEditor::InsertFile()
 	std::vector<uint32_t> pointers;
 	pointers.resize(lines.size());
 
-	uint32_t end_line = std::string::npos;
+	size_t end_line = std::string::npos;
 	uint32_t letter_pointer = 0;
 
 	for (size_t line_index = 0; line_index < lines.size(); ++line_index)

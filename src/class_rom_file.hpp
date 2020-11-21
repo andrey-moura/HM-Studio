@@ -83,7 +83,7 @@ public:
 	uint32_t ReadUInt32();
 	uint64_t ReadUint64(uint32_t off);
 
-	uint32_t FindFreeSpace(uint32_t size);
+	size_t FindFreeSpace(uint32_t size);
 
 	uint32_t ReadPointer32(uint32_t offset);
 

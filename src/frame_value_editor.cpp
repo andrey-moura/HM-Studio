@@ -44,6 +44,8 @@ ValueType Value::GetValueFromName(const wxString& name)
 	{
 		return ValueType::BoolValue;
 	}
+
+	return ValueType::StringValue;	
 }
 
 void Value::ValueFromString(const wxString& value)
@@ -124,6 +126,8 @@ wxString Value::ValueToString() const
 	{
 		return Moon::BitConverter::ToBooleanString(value);
 	}
+
+	return wxEmptyString;
 }
 
 wxString Value::OffsetToString() const

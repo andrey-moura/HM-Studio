@@ -278,7 +278,7 @@ void ScriptEditor::SetEvent(uint32_t index)
 	m_RomTranslated.Flush();
 }
 
-inline uint32_t ScriptEditor::ScriptSize(uint32_t* value)
+inline size_t ScriptEditor::ScriptSize(uint32_t* value)
 {
 	if (value[0] != SCRIPT_RIFF)
 		return std::string::npos;

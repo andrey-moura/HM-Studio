@@ -405,6 +405,8 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 	m_RomTranslated.Seek(start);
 	m_RomTranslated.Write(new_block.data() , new_block.size());
 	m_RomTranslated.Flush();
+
+	return true;
 }
 
 void StringEditor::InsertFile()

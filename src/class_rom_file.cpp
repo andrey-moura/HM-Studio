@@ -359,7 +359,7 @@ void RomFile::BackupRom(const std::string& inform)
 	wxCopyFile(Path, destination.GetFullPath(), true);	
 }
 
-uint32_t RomFile::FindFreeSpace(uint32_t size)
+size_t RomFile::FindFreeSpace(uint32_t size)
 {
 	std::string block;
 	block.resize(m_FreeSpace);
