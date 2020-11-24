@@ -23,8 +23,8 @@ protected:
 	RomFile m_RomTranslated;
 
 	size_t m_Number = std::string::npos;
-	size_t m_Index;
-	size_t m_Count;
+	uint32_t m_Index;
+	uint32_t m_Count;
 	std::string m_Type;
 	std::string m_FileExt;
 	EditorInfo m_Info;

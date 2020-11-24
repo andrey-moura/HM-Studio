@@ -6,7 +6,7 @@ StringEditor::StringEditor(const id& i) : Editor(i, L"String")
 	wxFileName path;
 	path.SetPath(m_RomTranslated.m_HomeDir);
 	path.AppendDir(L"String");
-	path.SetFullName(L"String_%s.xml");
+	path.SetFullName(L"String_%s.bin");
 	m_PathFormat = path.GetFullPath();
 
 	if (!path.DirExists())
@@ -17,7 +17,7 @@ StringEditor::StringEditor(const id& i) : Editor(i, L"String")
 	m_EditorDir = path.GetPath();
 
 	wxArrayString files;
-	wxDir::GetAllFiles(m_EditorDir, &files, L"*.xml");
+	wxDir::GetAllFiles(m_EditorDir, &files, L"*.bin");
 
 	size_t index = 0;
 
@@ -39,58 +39,107 @@ StringEditor::StringEditor(const id& i) : Editor(i, L"String")
 
 bool StringEditor::LoadFile(const wxString& path, std::vector<RomString>& strings, uint32_t& blocklength, uint32_t& blockstart)
 {
-	wxXmlDocument doc(path, L"UTF-16");
-
-	if (!doc.IsOk())
+	if(!wxFileExists(path))
 		return false;
-
-	wxXmlNode* root_node = doc.GetRoot();
-
-	if (!root_node)
-	{
-		return false;
-	}
 
 	strings.clear();
 
-	blocklength = std::stoi(root_node->GetAttribute(L"size").ToStdWstring(), nullptr, 16);
-	blockstart = std::stoi(root_node->GetAttribute(L"start").ToStdWstring(), nullptr, 16);
+	wxFile file(path);
 
-	wxXmlNode* str_node = root_node->GetChildren();
+	uint32_t count;
 
-	while (str_node)
+	file.Read(&blockstart, sizeof(count));
+	file.Read(&blocklength, sizeof(uint32_t));
+	file.Read(&count, sizeof(count));
+
+	strings.resize(count);
+
+	for(size_t i = 0; i < count; ++i)
 	{
-		wxString attribute = str_node->GetAttribute(L"references");
-		wxXmlNode* content_node = str_node->GetChildren();
-		const std::wstring& std_attribute = attribute.ToStdWstring();
+		uint32_t ref_count;
 
-		wxString string = content_node->GetContent();
+		file.Read(&ref_count, sizeof(uint32_t));
 
-		string.Replace(L"[END]", L'\x5', true);
-		string.Replace(L"[CLEAR]", L'\xc', true);
-		strings.push_back(RomString(string));
+		strings[i].references.resize(ref_count);
 
-		size_t attribute_size = std_attribute.size();
-
-		uint32_t references_count = 0;
-
-		if (attribute_size < 8)
+		for(uint32_t& ref : strings[i].references)
 		{
-			return false;
+			file.Read(&ref, sizeof(uint32_t));
 		}
-		else
-		{
-			references_count = (attribute_size / 9) + 1;
-		}
-
-		for (size_t reference_index = 0; reference_index < references_count; ++reference_index)
-		{
-			uint32_t reference = std::stoi(std_attribute.substr(reference_index * 9, 8), nullptr, 16);
-			strings.back().push_reference(reference);
-		}
-
-		str_node = str_node->GetNext();
 	}
+
+	for(size_t i = 0; i < count; ++i)
+	{
+		std::string str;
+		char c;
+
+		file.Read(&c, sizeof(char));
+
+		while(c)
+		{
+			str.push_back(c);
+			file.Read(&c, sizeof(char));
+		}
+
+		m_RomTranslated.InputTextWithVariables(str);
+
+		strings[i].string =	wxString(str.c_str(), wxCSConv(wxFONTENCODING_CP1252), str.size());
+	}
+
+	//m_Original.push_back(RomString(wxString(str.c_str(), wxCSConv(wxFONTENCODING_CP1252), str.size())));
+
+	// wxXmlDocument doc(path, L"UTF-16");
+
+	// if (!doc.IsOk())
+	// 	return false;
+
+	// wxXmlNode* root_node = doc.GetRoot();
+
+	// if (!root_node)
+	// {
+	// 	return false;
+	// }
+
+	// strings.clear();
+
+	// blocklength = std::stoi(root_node->GetAttribute(L"size").ToStdWstring(), nullptr, 16);
+	// blockstart = std::stoi(root_node->GetAttribute(L"start").ToStdWstring(), nullptr, 16);
+
+	// wxXmlNode* str_node = root_node->GetChildren();
+
+	// while (str_node)
+	// {
+	// 	wxString attribute = str_node->GetAttribute(L"references");
+	// 	wxXmlNode* content_node = str_node->GetChildren();
+	// 	const std::wstring& std_attribute = attribute.ToStdWstring();
+
+	// 	wxString string = content_node->GetContent();
+
+	// 	string.Replace(L"[END]", L'\x5', true);
+	// 	string.Replace(L"[CLEAR]", L'\xc', true);
+	// 	strings.push_back(RomString(string));
+
+	// 	size_t attribute_size = std_attribute.size();
+
+	// 	uint32_t references_count = 0;
+
+	// 	if (attribute_size < 8)
+	// 	{
+	// 		return false;
+	// 	}
+	// 	else
+	// 	{
+	// 		references_count = (attribute_size / 9) + 1;
+	// 	}
+
+	// 	for (size_t reference_index = 0; reference_index < references_count; ++reference_index)
+	// 	{
+	// 		uint32_t reference = std::stoi(std_attribute.substr(reference_index * 9, 8), nullptr, 16);
+	// 		strings.back().push_reference(reference);
+	// 	}
+
+	// 	str_node = str_node->GetNext();
+	// }	
 
 	return true;
 }
@@ -101,6 +150,7 @@ bool StringEditor::Open(const wxString& path)
 		return false;
 
 	m_Count = m_Strings.size();
+	m_Index = 0;
 
 	OpenOriginal();
 
@@ -219,7 +269,10 @@ void StringEditor::OpenOriginal()
 		uint32_t addr = m_RomOriginal.ReadPointer32(ref);
 
 		m_RomOriginal.Seek(addr);
-		m_Original.push_back(RomString(m_RomOriginal.ReadString()));
+
+		std::string str = m_RomOriginal.ReadString();		
+
+		m_Original.push_back(RomString(wxString(str.c_str(), wxCSConv(wxFONTENCODING_CP1252), str.size())));
 	}
 }
 
@@ -249,56 +302,34 @@ bool StringEditor::Open(uint32_t number)
 
 void StringEditor::SaveFile()
 {
-	wxXmlDocument doc;
-	doc.SetFileEncoding(L"UTF-16");
-	wxXmlNode* root = new wxXmlNode(nullptr, wxXmlNodeType::wxXML_ELEMENT_NODE, L"ROM-String");
-	doc.SetRoot(root);
-	root->AddAttribute(L"start", Moon::BitConverter::ToHexString(m_Info.StartBlock));
-	root->AddAttribute(L"size", Moon::BitConverter::ToHexString(m_Info.BlockLenght));	
+	wxString path = wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(m_Files[m_Number]));
 
-	size_t i = 0;
-	wxString string_format = L"String %i";
-	wxXmlNodeType mode;
+	wxFile file;
+	file.Create(path, true);
+	file.Open(path, wxFile::OpenMode::write);
 
-	uint32_t eol = Moon::String::EOLToInt(doc.GetEOL().ToStdWstring());
-	wxString empty_chars = doc.GetEOL() << L" ";
+	file.Write(&m_Info.StartBlock, sizeof(uint32_t));
+	file.Write(&m_Info.BlockLenght, sizeof(uint32_t));
 
+	file.Write(&m_Count, sizeof(m_Count));
 
-	for (int i = m_Strings.size()-1; i >= 0; --i)
+	for(const RomString& str : m_Strings)
 	{
-		wxXmlNode* str_node = new wxXmlNode(root, wxXmlNodeType::wxXML_ELEMENT_NODE, "String", wxEmptyString, nullptr, nullptr, i + 2);		
+		uint32_t count = str.references.size();
+		file.Write(&count, sizeof(count));
 
-		wxString string = m_Strings[i].string;
-		Moon::String::ConvertLineEnds(const_cast<std::wstring&>(string.ToStdWstring()), eol);
-		string.Replace(L'\x5', L"[END]");
-		string.Replace(L'\xc', L"[CLEAR]");
-
-		//The XML file don't allow white spaces only strings
-		if (string.find_first_not_of(empty_chars) == std::string::npos)
+		for(const uint32_t& ref : str.references)
 		{
-			mode = wxXmlNodeType::wxXML_CDATA_SECTION_NODE;
+			file.Write(&ref, sizeof(ref));
 		}
-		else
-		{
-			mode = wxXmlNodeType::wxXML_TEXT_NODE;
-		}
-
-		str_node->AddChild(new wxXmlNode(mode, L"", string));
-
-		std::string references;
-
-		for (size_t reference_index = 0; reference_index < m_Strings[i].references.size(); ++reference_index)
-		{
-			references.append(Moon::BitConverter::ToHexString(m_Strings[i].references[reference_index]));
-			references.append(",");
-		}
-
-		references.pop_back();
-
-		str_node->AddAttribute(L"references", references);
 	}
-	
-	doc.Save(wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(m_Info.StartBlock)));
+
+	for(const RomString& str : m_Strings)
+	{
+		std::string s = str.string.ToStdString(wxCSConv(wxFONTENCODING_CP1252));
+		m_RomTranslated.OutputTextWithVariables(s);
+		file.Write(s.c_str(), s.size()+1);
+	}
 }
 
 bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstart)
@@ -322,7 +353,7 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 
 		wxString wxStr = str.string;
 		m_RomTranslated.ReplaceWideChars(wxStr);
-		std::string table_str = wxStr.ToStdString();
+		std::string table_str = wxStr.ToStdString(wxCSConv(wxFONTENCODING_CP1252));
 		Moon::String::ConvertLineEnds(table_str, m_RomTranslated.GetEOL());
 		m_RomTranslated.OutputTextWithVariables(table_str);		
 		new_block.append(table_str);
@@ -441,32 +472,6 @@ void StringEditor::InsertAll()
 
 bool StringEditor::GetTextFromPath(const std::string& file)
 {
-	wxXmlDocument doc(file, L"UTF-16");
-
-	if (!doc.IsOk())
-		return false;
-
-	wxXmlNode* root_node = doc.GetRoot();
-
-	if (!root_node)
-	{
-		return false;
-	}
-
-	wxXmlNode* str_node = root_node->GetChildren();
-	uint32_t i = 0;
-
-	while (str_node)
-	{		
-		wxXmlNode* content_node = str_node->GetChildren();		
-
-		const wxString& content = content_node->GetContent();
-		m_Strings[i].string = content;
-
-		str_node = str_node->GetNext();
-		++i;
-	}
-
 	return true;	
 }
 
@@ -559,7 +564,15 @@ void StringEditorFrame::OnUpdateFilesClick(wxCommandEvent& event)
 {
 	for (size_t i = 0; i < m_pEditor->GetCount(); ++i)
 	{
+		((StringEditor*)m_pEditor)->Open(i);
 
+		for(RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
+		{
+			str.string.Replace(L"[END]", L'\x5', true);
+			str.string.Replace(L"[CLEAR]", L'\xc', true);
+		}
+
+		((StringEditor*)m_pEditor)->SaveFile();
 	}
 
 	event.Skip();

@@ -146,15 +146,13 @@ void RomFile::ReplaceWideChars(wxString& text)
 		table.push_back(std::pair<wchar_t, char>(0x2605, 0x9a)); //★
 		table.push_back(std::pair<wchar_t, char>(0x2606, 0x99)); //☆
 		table.push_back(std::pair<wchar_t, char>(0x2666, 0x9F)); //♦
-		table.push_back(std::pair<wchar_t, char>(0x2022, 0x45)); //•
-		
-		wxString replace(1, '0');
+		table.push_back(std::pair<wchar_t, char>(0x2022, 0x45)); //•		
 
 		for (auto& tbl : table)
 		{
 			tbl.second = m_Table[tbl.second];
 
-			replace = tbl.second; //The char need to be converted to wxString first
+			wxString replace(&tbl.second, wxCSConv(wxFONTENCODING_CP1252), 1);
 
 			size_t pos = text.find(tbl.first);
 
