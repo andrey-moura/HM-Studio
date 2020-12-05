@@ -193,7 +193,7 @@ wxString RomFile::ReplaceWideChars(std::string& text)
 			tbl.second = m_Table[tbl.second];
 
 			search.RemoveLast();
-			search.append(tbl.second);
+			search.append(wxString(&tbl.second, wxCSConv(wxFONTENCODING_CP1252), 1));
 
 			size_t pos = ret.find(search);
 
