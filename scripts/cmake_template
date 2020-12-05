@@ -34,7 +34,9 @@ if(WIN32)
 	# Group ALL_BUILD and ZERO_CHECK in one folder
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 	# Set HMStudio as the startup project
-	set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT "HMStudio")		
+	set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT "HMStudio")
+	# Disable these annoying warnings
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
 	#wxWidgets
 	find_package(wxWidgets REQUIRED COMPONENTS net core base xml)

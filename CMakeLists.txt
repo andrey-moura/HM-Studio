@@ -18,15 +18,6 @@ if(WIN32)
 		include_directories("$ENV{WXWIN}\\include\\msvc")
 		# wxWidgets library folder
 		link_directories("$ENV{WXWIN}\\lib\\vc_lib")
-		
-		# Set characters to Unicode
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /UMBCS /D_UNICODE /DUNICODE")
-		
-		# Group ALL_BUILD and ZERO_CHECK in one folder
-		set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-		# Set HMStudio as the startup project		
-		set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT "HMStudio")
-
 	endif()
 	if(DEFINED ENV{HUNSPELL})
 		message(STATUS "Found Hunspell in $ENV{HUNSPELL}")
@@ -36,6 +27,16 @@ if(WIN32)
 		# hunspell library folder
 		link_directories("$ENV{Hunspell}\\msvc")		
 	endif()
+
+	# Set characters to Unicode
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /UMBCS /D_UNICODE /DUNICODE")
+			
+	# Group ALL_BUILD and ZERO_CHECK in one folder
+	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+	# Set HMStudio as the startup project
+	set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT "HMStudio")
+	# Disable these annoying warnings
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
 	#wxWidgets
 	find_package(wxWidgets REQUIRED COMPONENTS net core base xml)
