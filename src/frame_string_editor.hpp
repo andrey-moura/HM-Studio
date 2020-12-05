@@ -73,9 +73,10 @@ private:
 	virtual void OnGoFile() override;
 	virtual void OnSaveString() override;
 	virtual void UpdateText() override;	
+	virtual void UpdateFile() override;
 	virtual void OnResumeBackup(const wxString& bakcup) override;
 private:
-	void GoFile(const wxString& offset);
+	void GoFile(const wxString& offset);	
 private:
 	void OnUpdateFilesClick(wxCommandEvent& event);
 private:

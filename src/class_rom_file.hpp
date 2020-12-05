@@ -12,6 +12,8 @@
 
 #include <moon/table.hpp>
 
+#include <wx/config.h>
+
 #define ROM_BUS 0x8000000
 #define ROM_BUS_NOT 0xF7FFFFFF
 

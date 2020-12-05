@@ -11,6 +11,10 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, "HM Studio")
 	{
 		ToggleWindowStyle(wxSTAY_ON_TOP);		
 	}	
+	
+	wxFileName fn(wxStandardPaths::Get().GetExecutablePath());
+
+	wxString dir = pConfig->Read(L"/Global/WorkingDir", fn.GetPath());
 
 	CreateGUIControls();
 	Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
@@ -222,6 +226,22 @@ void MainFrame::OnSpellCheckerClick(wxCommandEvent& event)
 	event.Skip();
 }
 
+void MainFrame::SetWorkingFolder(wxCommandEvent& event)
+{
+	wxConfigBase* config = wxConfigBase::Get();
+
+	wxString path = config->Read(L"/Global/WorkingDir");
+
+	wxDirDialog dialog(nullptr, L"Set the dir where HM Studio will look to ROM folders", path);		
+
+	if(dialog.ShowModal() == wxID_OK)
+	{
+		config->Write(L"/Global/WorkingDir", dialog.GetPath());
+	}
+
+	event.Skip();
+}
+
 void MainFrame::OnAlwaysOnTopClick(wxCommandEvent& event)
 {
 	wxConfigBase* pConfig = wxConfigBase::Get();
@@ -245,7 +265,7 @@ void MainFrame::CreateGUIControls()
 	wxMenuItem* default_check = fileMenu->AppendCheckItem(wxID_ANY, L"Default", L"Always open HM Studio with this ROM");
 	default_check->Check(true);
 
-	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenDefaultClick, this, default_check->GetId());
+	fileMenu->Bind(wxEVT_MENU, &MainFrame::OnOpenDefaultClick, this, default_check->GetId());		
 
 	wxMenu* editorsMenu = new wxMenu();
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ScriptEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Script Editor")->GetId());
@@ -258,6 +278,7 @@ void MainFrame::CreateGUIControls()
 
 	wxMenu* toolsMenu = new wxMenu();
 	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", L"Spell Checker Settings")->GetId());
+	toolsMenu->Bind(wxEVT_MENU, &MainFrame::SetWorkingFolder, this, toolsMenu->Append(wxID_ANY, L"Set Directory", L"Set Editor Directory")->GetId());	
 
 	wxMenu* viewMenu = new wxMenu();
 	m_pAlwaysOnTop = viewMenu->AppendCheckItem(wxID_ANY, L"Always on Top", L"Show window always on top");
@@ -285,7 +306,13 @@ void MainFrame::CreateGUIControls()
 	m_pSelection->SetSelection(m_DefaultSelection);
 
 	int widths[2]{ -1, m_pSelection->GetSize().GetWidth() + 10 };
+
 	m_frameStatusBar->SetStatusWidths(2, widths);
+
+#ifdef __WXGTK__
+	int styles[2]{ wxSB_RAISED, wxSB_RAISED };
+	m_frameStatusBar->SetStatusStyles(2, styles);	
+#endif
 
 	m_frameStatusBar->Bind(wxEVT_SIZE, &MainFrame::OnStatusSize, this);		
 

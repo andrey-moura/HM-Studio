@@ -40,7 +40,8 @@ private:
 	void OnBackupClick(wxCommandEvent& event);
 	void OnCopyFromOriginal(wxCommandEvent& event);
 	void OnSpellCheckerClick(wxCommandEvent& event);
-	void OnAlwaysOnTopClick(wxCommandEvent& event);
+	void SetWorkingFolder(wxCommandEvent& event);
+	void OnAlwaysOnTopClick(wxCommandEvent& event);	
 	void OnClose(wxCloseEvent& event);
 private:
 	int m_DefaultSelection;

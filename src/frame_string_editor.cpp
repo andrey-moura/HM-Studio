@@ -327,7 +327,7 @@ void StringEditor::SaveFile()
 	for(const RomString& str : m_Strings)
 	{
 		std::string s = str.string.ToStdString(wxCSConv(wxFONTENCODING_CP1252));
-		m_RomTranslated.OutputTextWithVariables(s);
+		m_RomTranslated.OutputTextWithVariables(s);		
 		file.Write(s.c_str(), s.size()+1);
 	}
 }
@@ -489,6 +489,14 @@ StringEditorFrame::StringEditorFrame(const id& i) : EditorFrame(new StringEditor
 {
 	CreateGUIControls();
 	CheckBackup();	
+
+	if(m_pEditor->GetRom(false).Console == console::DS)
+	{
+		m_pTextEditor->SetEOLMode(0x0a);
+	} else 
+	{
+		m_pTextEditor->SetEOLMode(0x0d0a);
+	}
 }
 
 void StringEditorFrame::OnGoFile()
@@ -560,16 +568,20 @@ void StringEditorFrame::UpdateText()
 	m_pTextOriginal->SetText(((StringEditor*)m_pEditor)->GetCurrentOriginal().string);
 }
 
+void StringEditorFrame::UpdateFile()
+{
+	SetTitle(wxString::Format(L"String at %s", Moon::BitConverter::ToHexString(((StringEditor*)m_pEditor)->GetEditorInfo().StartBlock)));
+}
+
 void StringEditorFrame::OnUpdateFilesClick(wxCommandEvent& event)
 {
-	for (size_t i = 0; i < m_pEditor->GetCount(); ++i)
+	for (size_t i = 0; i < m_pEditor->GetEditorInfo().Count; ++i)
 	{
 		((StringEditor*)m_pEditor)->Open(i);
 
 		for(RomString& str : ((StringEditor*)m_pEditor)->GetStrings())
 		{
-			str.string.Replace(L"[END]", L'\x5', true);
-			str.string.Replace(L"[CLEAR]", L'\xc', true);
+			str.string.Replace("\x05\x0c\r\n\r\n", "\x05\x0c\r\n");
 		}
 
 		((StringEditor*)m_pEditor)->SaveFile();
@@ -585,6 +597,8 @@ void StringEditorFrame::CreateGUIControls()
 	CreateStringMenu();
 	CreateViewMenu();
 	CreateToolsMenu(false, true, false, false);
+
+	Bind(wxEVT_MENU, &StringEditorFrame::OnUpdateFilesClick, this, m_pMenuTools->Append(wxID_ANY, L"Update Files")->GetId());
 
 #ifdef _DEBUG
 	m_pMenuTools->Append(wxID_ANY, L"Update All Files", nullptr);
