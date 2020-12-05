@@ -42,7 +42,7 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
 	#wxWidgets
-	find_package(wxWidgets REQUIRED COMPONENTS net core base xml)
+	find_package(wxWidgets REQUIRED COMPONENTS net core base xml stc)
 	include(${wxWidgets_USE_FILE})
 	
 	find_package(libhunspell)
