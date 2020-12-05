@@ -12,7 +12,7 @@
 #define HUNSPELL_STATIC
 
 #ifdef ENABLE_SPELL
-#include <hunspell.hxx>
+#include <hunspell/hunspell.hxx>
 #else
 //ToDo: change this class to a wrapper to allow disabled, Hunspell or Aspell
 class Hunspell

@@ -23,9 +23,13 @@ if(WIN32)
 		message(STATUS "Found Hunspell in $ENV{HUNSPELL}")
 		
 		# hunspell include directory
-		include_directories("$ENV{HUNSPELL}\\include")		
+		include_directories("$ENV{HUNSPELL}\\src")
 		# hunspell library folder
-		link_directories("$ENV{Hunspell}\\msvc")		
+		link_directories("$ENV{Hunspell}\\msvc\\Release")
+		link_directories("$ENV{Hunspell}\\msvc\\Debug")
+		
+		# enable Hunspell
+		add_definitions(-DENABLE_SPELL)
 	endif()
 
 	# Set characters to Unicode

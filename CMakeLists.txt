@@ -23,9 +23,12 @@ if(WIN32)
 		message(STATUS "Found Hunspell in $ENV{HUNSPELL}")
 		
 		# hunspell include directory
-		include_directories("$ENV{HUNSPELL}\\include")		
+		include_directories("$ENV{HUNSPELL}\\src")
 		# hunspell library folder
-		link_directories("$ENV{Hunspell}\\msvc")		
+		link_directories("$ENV{Hunspell}\\msvc\\${CMAKE_BUILD_TYPE}\\libhunspell")
+		
+		# enable Hunspell
+		add_definitions(-DENABLE_SPELL)
 	endif()
 
 	# Set characters to Unicode
@@ -136,6 +139,10 @@ SET(HDR
 
 if(WIN32)
 	add_executable(HMStudio WIN32 ${SRC} ${HDR})	
+	
+	if(DEFINED ENV{WXWIN})	
+		target_link_libraries(HMStudio libhunspell)	
+	endif()
 else()
 	add_executable(HMStudio ${SRC} ${HDR})	
 	
