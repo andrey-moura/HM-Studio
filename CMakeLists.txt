@@ -7,16 +7,47 @@ set (CMAKE_CXX_STANDARD 17)
 #Set project name
 project(HMStudio)
 
-#wxWidgets
-find_package(wxWidgets REQUIRED COMPONENTS net core base xml stc)
-find_package(libhunspell)
+#Don't try to search under Windows
+if(WIN32)
+	#wxWidgets
+	if(DEFINED ENV{WXWIN})		
+		message(STATUS "Found wxWidgets in $ENV{WXWIN}")
+		
+		# wxWidgets include directory
+		include_directories("$ENV{WXWIN}\\include")
+		include_directories("$ENV{WXWIN}\\include\\msvc")
+		# wxWidgets library folder
+		link_directories("$ENV{WXWIN}\\lib\\vc_lib")
+		
+		# Set characters to Unicode
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /UMBCS /D_UNICODE /DUNICODE")
+		
+		# Group ALL_BUILD and ZERO_CHECK in one folder
+		set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+		# Set HMStudio as the startup project		
+		set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT "HMStudio")
 
-include(${wxWidgets_USE_FILE})
-
-if(DEFINED HUNSPELL_FOUND)
-	include(${HUNSPELL_INCLUDE_DIR})
-	add_definitions(-DENABLE_SPELL)
-endif(DEFINED HUNSPELL_FOUND)
+	endif()
+	if(DEFINED ENV{HUNSPELL})
+		message(STATUS "Found Hunspell in $ENV{HUNSPELL}")
+		
+		# hunspell include directory
+		include_directories("$ENV{HUNSPELL}\\include")		
+		# hunspell library folder
+		link_directories("$ENV{Hunspell}\\msvc")		
+	endif()
+else()
+	#wxWidgets
+	find_package(wxWidgets REQUIRED COMPONENTS net core base xml)
+	include(${wxWidgets_USE_FILE})
+	
+	find_package(libhunspell)
+	
+	if(DEFINED HUNSPELL_FOUND)
+		include(${HUNSPELL_INCLUDE_DIR})
+		add_definitions(-DENABLE_SPELL)
+	endif(DEFINED HUNSPELL_FOUND)	
+endif()
 
 include_directories(include)
 
@@ -102,7 +133,10 @@ SET(HDR
 	src/window_find_results.hpp
 )
 
-#Add the executable
-add_executable(HMStudio ${SRC} ${HDR})
-
-target_link_libraries(HMStudio ${wxWidgets_LIBRARIES})
+if(WIN32)
+	add_executable(HMStudio WIN32 ${SRC} ${HDR})	
+else()
+	add_executable(HMStudio ${SRC} ${HDR})	
+	
+	target_link_libraries(HMStudio ${wxWidgets_LIBRARIES})
+endif()
