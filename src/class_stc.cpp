@@ -366,7 +366,7 @@ void STC::SuggestToMenu(wxPoint point)
 				{
 					for (size_t i = 0; i < strings.size(); ++i)
 					{
-						wxString str(strings[i].c_str(), wxCSConv(wxFONTENCODING_CP1252), strings[i].size());
+						wxString str(strings[i].c_str(), wxCSConv(wxFONTENCODING_UTF8), strings[i].size());
 
 						m_pMenu->Bind(wxEVT_MENU, &STC::OnSuggestionClick, this, m_pMenu->Append(wxNewId(), str)->GetId());
 					}
