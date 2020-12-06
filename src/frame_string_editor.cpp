@@ -402,25 +402,30 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 
 		for (const RomString& str : strings)
 		{
-			char cur_char = 1;			
+			uint8_t c = 0;
 			uint32_t str_size = 0;
 
-			m_RomTranslated.Seek(str.references[0]);		
+			m_RomTranslated.Seek(str.references[0]);
 			uint32_t pointer = m_RomTranslated.ConvertPointers(m_RomTranslated.ReadUInt32());
 			m_RomTranslated.Seek(pointer);
 
-			while (cur_char)
+			m_RomTranslated.Read(&c, 1);
+
+			while(c)
 			{
-				cur_char = m_RomTranslated.ReadInt8();
 				++str_size;
+
+				m_RomTranslated.Read(&c, 1);
 			}
-			
+
 			m_RomTranslated.Seek(pointer);
 
-			if (str_size > buffer.size())
-				buffer.resize(0x00, str_size);
+			while(str_size != 0)
+			{
+				m_RomTranslated.Write(&c, 1);
 
-			m_RomTranslated.Write(buffer.data(), str_size);
+				str_size--;
+			}
 		}
 	}
 
