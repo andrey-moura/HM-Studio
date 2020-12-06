@@ -453,9 +453,7 @@ void StringEditor::InsertFile()
 	if (success)
 	{
 		if (start != 0)
-		{
-			m_Info.StartBlock = start;
-			m_Info.BlockLenght = size;
+		{			
 			wxMessageBox(wxString(L"The string block was moved to adress 0x") << Moon::BitConverter::ToHexString(start), L"Warning", wxICON_WARNING);
 		}
 
