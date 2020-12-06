@@ -11,7 +11,7 @@ project(HMStudio)
 if(WIN32)
 	#wxWidgets
 	if(DEFINED ENV{WXWIN})		
-		message(STATUS "Found wxWidgets in $ENV{WXWIN}")
+		message(STATUS "Found wxWidgets: $ENV{WXWIN}")
 		
 		# wxWidgets include directory
 		include_directories("$ENV{WXWIN}\\include")
@@ -20,12 +20,13 @@ if(WIN32)
 		link_directories("$ENV{WXWIN}\\lib\\vc_lib")
 	endif()
 	if(DEFINED ENV{HUNSPELL})
-		message(STATUS "Found Hunspell in $ENV{HUNSPELL}")
+		message(STATUS "Found Hunspell: $ENV{HUNSPELL}")
 		
 		# hunspell include directory
 		include_directories("$ENV{HUNSPELL}\\src")
 		# hunspell library folder
-		link_directories("$ENV{Hunspell}\\msvc\\${CMAKE_BUILD_TYPE}\\libhunspell")
+		link_directories("$ENV{Hunspell}\\msvc\\Release")
+		link_directories("$ENV{Hunspell}\\msvc\\Debug")
 		
 		# enable Hunspell
 		add_definitions(-DENABLE_SPELL)
@@ -45,10 +46,12 @@ else()
 	find_package(wxWidgets REQUIRED COMPONENTS net core base xml stc)
 	include(${wxWidgets_USE_FILE})
 	
-	find_package(libhunspell)
+	find_package(hunspell)
 	
 	if(DEFINED HUNSPELL_FOUND)
-		include(${HUNSPELL_INCLUDE_DIR})
+		# hunspell include directory
+		include_directories(${HUNSPELL_INCLUDE_DIR})
+		# enable Hunspell
 		add_definitions(-DENABLE_SPELL)
 	endif(DEFINED HUNSPELL_FOUND)	
 endif()
@@ -139,12 +142,12 @@ SET(HDR
 
 if(WIN32)
 	add_executable(HMStudio WIN32 ${SRC} ${HDR})	
-	
-	if(DEFINED ENV{WXWIN})	
-		target_link_libraries(HMStudio libhunspell)	
-	endif()
 else()
 	add_executable(HMStudio ${SRC} ${HDR})	
 	
 	target_link_libraries(HMStudio ${wxWidgets_LIBRARIES})
+	
+	if(DEFINED HUNSPELL_FOUND)
+		target_link_libraries(HMStudio ${HUNSPELL_LIBRARIES})
+	endif()	
 endif()
