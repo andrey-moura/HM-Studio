@@ -434,8 +434,7 @@ bool StringEditor::InsertFile(size_t index, uint32_t* outsize, uint32_t* outstar
 	}
 
 	m_RomTranslated.Seek(start);
-	m_RomTranslated.Write(new_block.data() , new_block.size());
-	m_RomTranslated.Flush();
+	m_RomTranslated.Write(new_block.data() , new_block.size());	
 
 	return true;
 }
@@ -454,6 +453,8 @@ void StringEditor::InsertFile()
 			m_Info.BlockLenght = size;
 			wxMessageBox(wxString(L"The string block was moved to adress 0x") << Moon::BitConverter::ToHexString(start), L"Warning", wxICON_WARNING);
 		}
+
+		m_RomTranslated.Flush();
 	}
 	else
 	{
@@ -468,6 +469,8 @@ void StringEditor::InsertAll()
 	{
 		InsertFile(file.first, nullptr, nullptr);
 	}
+
+	m_RomTranslated.Flush();
 }
 
 bool StringEditor::GetTextFromPath(const std::string& file)
