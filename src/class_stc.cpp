@@ -274,7 +274,7 @@ void STC::OnMouseRight(wxMouseEvent& event)
 	m_ClickedWordPos.first = WordStartPosition(position, false);
 	m_ClickedWordPos.second = WordEndPosition(position, false);
 	m_ClickedWord = GetTextRange(m_ClickedWordPos.first, m_ClickedWordPos.second).ToStdString();
-	ShowMenu(event.GetPosition());	
+	ShowMenu(event.GetPosition());		
 }
 
 void STC::InsertOnCtrlKey(const std::string& s, char key)
@@ -548,7 +548,15 @@ void STC::DoBinds()
 	Bind(wxEVT_STC_MODIFIED, &STC::OnModified, this);
 	m_Timer.Bind(wxEVT_TIMER, &STC::OnTimer, this);
 	Bind(wxEVT_STC_STYLENEEDED, &STC::OnStyleNeeded, this);	
+
+	//Under wxGTK the menu is shown in the key down, while under Windows
+	//the menu is shown in the key up
+#ifdef __WXGTK__
+	Bind(wxEVT_RIGHT_DOWN, &STC::OnMouseRight, this);
+#else
 	Bind(wxEVT_RIGHT_UP, &STC::OnMouseRight, this);
+#endif
+
 	Bind(wxEVT_KEY_DOWN, &STC::OnKeyPress, this);
 	Bind(wxEVT_STC_UPDATEUI, &STC::OnUpdateUI, this);	
 }
