@@ -35,10 +35,10 @@ void MainFrame::OnOpenRomClick(wxCommandEvent& event)
 {
 	id id = GetCurrentId();
 	
-	if (wxProcess::Exists(m_Processes[(int)id]))
+	if (m_Processes[(int)id] != -1 && wxProcess::Exists(m_Processes[(int)id]))
 	{
 		wxProcess::Kill(m_Processes[(int)id]);
-		m_Processes[(int)id] = 0;
+		m_Processes[(int)id] = -1;
 	}
 
 	RomFile rom(id, true);
