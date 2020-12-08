@@ -173,3 +173,35 @@ void Graphics::SetPixel(size_t x, size_t y, uint8_t p)
 	b = (b & (~(m_Mask<<s))) | p<<s;
 	m_pRawData[n/m_PixelsPerByte] = b;	
 }
+
+bool Graphics::operator==(const Graphics& other) const
+{
+	if(GetWidth() != other.GetWidth())		
+		return false;
+
+	if(GetHeight() != other.GetHeight())
+		return false;
+
+	if(GetBpp() == other.GetBpp())
+	{
+		return memcmp(GetData(), other.GetData(), GetLenght()) == 0;
+	} else 
+	{
+		//ToDo:
+		//Pixel to pixel comparison
+	}
+}
+
+void Graphics::operator=(const Graphics& other)
+{
+	SetBpp(other.GetBpp());
+
+	if(!other.GetData())
+		return;
+
+	uint32_t lenght = GetLenght();
+
+	m_pRawData = new uint8_t[lenght];
+
+	memcpy(m_pRawData, other.GetData(), GetLenght());
+}

@@ -124,35 +124,6 @@ public:
 	//Compare two Graphics. This compare the palette index, so assume both use
 	//same palette and the palette don't have duplicated colors.
 	//Bpp difference don't necessary means that Graphics are not equal.
-	bool operator==(const Graphics& graphics) const
-	{
-		if(GetWidth() != graphics.GetWidth())		
-			return false;
-
-		if(GetHeight() != graphics.GetHeight())
-			return false;
-
-		if(GetBpp() == graphics.GetBpp())
-		{
-			return memcmp(GetData(), graphics.GetData(), GetLenght()) == 0;
-		} else 
-		{
-			//ToDo:
-			//Pixel to pixel comparison
-		}
-	}
-
-	void operator=(const Graphics& other)
-	{
-		SetBpp(other.GetBpp());
-
-		if(!other.GetData())
-			return;
-
-		uint32_t lenght = GetLenght();
-
-		m_pRawData = new uint8_t[lenght];
-
-		memcpy(m_pRawData, other.GetData(), GetLenght());
-	}
+	bool operator==(const Graphics& other) const;
+	void operator=(const Graphics& other);	
 };
