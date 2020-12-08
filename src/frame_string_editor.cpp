@@ -511,7 +511,12 @@ void StringEditorFrame::OnGoFile()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		GoFile(dialog.GetValue());
+		wxString value = dialog.GetValue();
+
+		if ( value.empty() )
+			return;
+
+		GoFile(value);
 	}
 }
 

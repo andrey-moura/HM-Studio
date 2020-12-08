@@ -307,11 +307,16 @@ void EditorFrame::SetIndex(size_t index)
 void EditorFrame::OnGoFile()
 {
 	wxTextEntryDialog dialog(nullptr, L"Choose a number");
-	dialog.SetTextValidator(wxFILTER_NUMERIC);
+	dialog.SetTextValidator(wxFILTER_NUMERIC);	
 
 	if (dialog.ShowModal() != wxID_CANCEL)
 	{
-		uint32_t number = std::stoi(dialog.GetValue().ToStdString());
+		wxString value = dialog.GetValue();
+
+		if( value.empty() )
+			return;
+
+		uint32_t number = std::stoi(value.ToStdString());
 		if (m_pEditor->Open(number))
 		{
 			UpdateFile();
