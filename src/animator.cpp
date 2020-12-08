@@ -20,43 +20,58 @@ std::pair<uint16_t,uint16_t> sprite_sizes[] =
 
 using range = std::vector<std::pair<uint16_t,uint16_t>>;
 
-void Animator::LoadFromRom(RomFile& rom, uint32_t offset)
+uint32_t Animator::GetLength() const
+{
+    uint32_t size = 7 * 4;
+    size += m_AnimRanges.size()*sizeof(AnimRange);
+    size += m_FrameInfos.size()*sizeof(FrameInfo);
+    size += m_Attributes.size()*sizeof(SpriteAttribute);
+    size += m_Tiles.size()*32;
+    size += m_Palettes.size()*32;
+    size += m_Affines.size()*sizeof(AnimAff);
+    size += m_Instructions.size()*sizeof(AnimInstruction);
+
+    return size; 
+}
+
+void Animator::LoadFromFile(wxFile& file)
 {
     m_Animations.clear();
-    m_Frames.clear();
+    m_Frames.clear();    
 
-    rom.Seek(offset);
-
-    uint32_t animCount = rom.ReadUInt32();
+    uint32_t animCount;
+    file.Read(&animCount, sizeof(uint32_t));
     
     m_Animations.reserve(animCount);
     
-    m_AnimRanges.reserve(animCount);
+    m_AnimRanges.resize(animCount);
 
     for(size_t i = 0; i < animCount; ++i)
-    {
-        m_AnimRanges.push_back( { rom.ReadUInt16(), rom.ReadUInt16() } );
+    {        
+        file.Read(&m_AnimRanges[i], sizeof(AnimRange));        
     }
-
-    m_FrameCount = rom.ReadUInt32();
+    
+    file.Read(&m_FrameCount, sizeof(uint32_t));
 
     m_FrameInfos.resize(m_FrameCount);    
 
     for(size_t i = 0; i < m_FrameCount; ++i)
     {
-        rom.Read(&m_FrameInfos[i], sizeof(FrameInfo));
+        file.Read(&m_FrameInfos[i], sizeof(FrameInfo));
     }
 
-    uint32_t oamCount = rom.ReadUInt32();
+    uint32_t oamCount;
+    file.Read(&oamCount, sizeof(uint32_t));
 
     m_Attributes.resize(oamCount);
 
     for(size_t i = 0; i < oamCount; ++i)
     {
-        rom.Read(&m_Attributes[i], sizeof(SpriteAttribute));
+        file.Read(&m_Attributes[i], sizeof(SpriteAttribute));
     }
     
-    uint32_t tileCount = rom.ReadUInt32();
+    uint32_t tileCount;
+    file.Read(&tileCount, sizeof(uint32_t));
 
     m_Tiles.reserve(tileCount);
 
@@ -65,101 +80,99 @@ void Animator::LoadFromRom(RomFile& rom, uint32_t offset)
         Graphics tile;
         tile.Create(8, 8);
 
-        rom.Read(tile.GetData(), tile.GetLenght());
+        file.Read(tile.GetData(), tile.GetLenght());
 
         m_Tiles.push_back(tile);
     }
 
-    uint32_t palette_count = rom.ReadUInt32();    
+    uint32_t palette_count;
+    file.Read(&palette_count, sizeof(uint32_t));
 
     m_Palettes.reserve(palette_count);
 
     for(size_t i = 0; i < palette_count; ++i)
     {
         uint16_t* raw_palette = new uint16_t[16];
-        rom.Read(raw_palette, 32);
+        file.Read(raw_palette, 32);
 
         m_Palettes.push_back(Palette(raw_palette, 4));        
     }    
 
-    uint32_t affCount = rom.ReadUInt32();
+    uint32_t affCount;
+    file.Read(&affCount, sizeof(uint32_t));
+
     m_Affines.resize(affCount);
 
     for(size_t i = 0; i < affCount; ++i)
     {
-        rom.Read(&m_Affines[i], sizeof(AnimAff));
+        file.Read(&m_Affines[i], sizeof(AnimAff));
     }    
 
-    uint32_t animInsrCount = rom.ReadUInt32();
+    uint32_t animInsrCount;
+    file.Read(&animInsrCount, sizeof(uint32_t));
 
     m_Instructions.resize(animInsrCount);
 
     for(size_t i = 0; i < animInsrCount; ++i)
     {
-        rom.Read(&m_Instructions[i], sizeof(AnimInstruction));
+        file.Read(&m_Instructions[i], sizeof(AnimInstruction));
     }
 
-    GenerateFrames();
-
-    m_OldSize = rom.Tell()-offset;
+    GenerateFrames();    
 }
 
-void Animator::WriteToRom(RomFile& file, const uint32_t& offset)
+void Animator::WriteToFile(wxFile& file)
 {
-    file.Seek(offset);
-
-    file.WriteT<uint32_t>(m_AnimRanges.size());
+    uint32_t animCount = m_AnimRanges.size();
+    file.Write(&animCount, sizeof(uint32_t));
 
     for(const AnimRange& range : m_AnimRanges)
     {
-        file.WriteT(range);
+        file.Write(&range, sizeof(AnimRange));
     }
 
-    file.WriteT<uint32_t>(m_FrameCount);
+    file.Write(&m_FrameCount, sizeof(uint32_t));
     
     for(const FrameInfo& info : m_FrameInfos)
     {
-        file.WriteT(info);
+        file.Write(&info, sizeof(FrameInfo));
     }
 
-    file.WriteT<uint32_t>(m_Attributes.size());
+    uint32_t attrCount = m_Attributes.size();
+    file.Write(&attrCount, sizeof(uint32_t));
 
     for(const SpriteAttribute& attr : m_Attributes)
     {
-        file.WriteT(attr);
+        file.Write(&attr, sizeof(SpriteAttribute));
     }
 
-    file.WriteT<uint32_t>(m_Tiles.size());
+    uint32_t tileCount = m_Tiles.size();
+    file.Write(&tileCount, sizeof(uint32_t));
 
     for(const Graphics& tile : m_Tiles)
     {
         file.Write(tile.GetData(), tile.GetLenght());
     }
 
-    file.WriteT<uint32_t>(m_Palettes.size());
+    uint32_t palCount = m_Palettes.size();
+    file.Write(&palCount, sizeof(uint32_t));
     file.Seek(file.Tell()+(m_Palettes.size()*32)); //Not save palettes changes ToDo
 
-    file.WriteT<uint32_t>(m_Affines.size());
+    uint32_t affCount = m_Affines.size();
+    file.Write(&affCount, sizeof(uint32_t));
 
     for(const AnimAff& aff : m_Affines)
     {
-        file.WriteT(aff);
+        file.Write(&aff, sizeof(AnimAff));
     }
 
-    file.WriteT<uint32_t>(m_Instructions.size());
+    uint32_t instrCount = m_Instructions.size();
+    file.Write(&instrCount, sizeof(uint32_t));
     
     for(const AnimInstruction& inst : m_Instructions)
     {
-        file.WriteT(inst);
-    }
-
-    uint32_t newSize = file.Tell()-offset;
-
-    while(newSize < m_OldSize)
-    {
-        file.WriteT<uint8_t>(0);
-        newSize++;
-    }
+        file.Write(&inst, sizeof(AnimInstruction));
+    }    
 }   
 
 void Animator::GenerateFrames()

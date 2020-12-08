@@ -72,7 +72,6 @@ class Animator
 {
 private:
     uint16_t m_FrameCount = 0;
-    uint32_t m_OldSize = 0;
 
     std::vector<AnimAff> m_Affines;
     std::vector<Palette> m_Palettes;
@@ -84,8 +83,10 @@ private:
     std::vector<SpriteAttribute> m_Attributes;
     std::vector<AnimInstruction> m_Instructions;
 public:
-    void LoadFromRom(RomFile& rom, uint32_t offset);
+    void LoadFromFile(wxFile& rom);
     void GenerateFrames();
+
+    uint32_t GetLength() const;
 
     Graphics& GetFrame(size_t n) { return m_Frames[n]; }
     std::vector<Graphics>& GetFrames() { return m_Frames; }
@@ -106,7 +107,7 @@ public:
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
     std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }
 
-    void WriteToRom(RomFile& file, const uint32_t& offset);
+    void WriteToFile(wxFile& file);
 public:
     Animation& operator[](size_t n)
     {

@@ -340,7 +340,11 @@ void AnimationEditorFrame::LoadFromRom(RomFile& file, uint32_t offset)
     m_Offset = offset;
     m_CurrentAnimation = 0;
     m_CurrentInstruction = 0;    
-    m_Animator.LoadFromRom(file, offset);    
+    file.Seek(offset);
+    m_Animator.LoadFromFile(file);
+
+    m_OldSize = m_Animator.GetLength();
+
     UpdateAnimation();
 }
 
@@ -541,8 +545,43 @@ void AnimationEditorFrame::OnOpenAnimationClick(wxCommandEvent& event)
 
 void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
 {
-    m_Animator.WriteToRom(m_RomTranslated, m_Offset);
     event.Skip();
+    
+    uint32_t newSize = m_Animator.GetLength();
+    bool move = newSize > m_OldSize;
+
+    uint32_t insert_offset = m_Offset;
+
+    uint32_t fill = 0;
+
+    if(move)
+    {
+        insert_offset = m_RomTranslated.FindFreeSpace(newSize);
+
+        if(insert_offset == std::string::npos)
+        {
+            wxMessageBox(L"Failed to insert the animator. No space found.", L"Error", wxICON_ERROR);
+            return;
+        }
+    } else 
+    {
+        fill = m_OldSize - newSize;
+    }
+
+    m_RomTranslated.Seek(insert_offset);
+    m_Animator.WriteToFile(m_RomTranslated);
+
+    if(move)
+    {
+        wxMessageBox(L"The animator was moved to " + Moon::BitConverter::ToHexString(insert_offset), L"Warning", wxICON_WARNING);
+        return;
+    }
+    
+    while(fill)
+    {
+        m_RomTranslated.WriteT<uint8_t>(0);
+        --fill;
+    }
 }
 
 void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event) 

@@ -22,6 +22,7 @@ private:
     uint32_t m_CurrentAnimation;
     uint32_t m_CurrentInstruction;
     uint32_t m_Offset = 0;
+    uint32_t m_OldSize = 0;
     //wxBitmapView* m_pTileViewer = nullptr;
     //wxBitmapView* m_pTileEditor = nullptr;
     //GraphicsView* m_pFrameView = nullptr;
