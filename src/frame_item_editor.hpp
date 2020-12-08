@@ -1,17 +1,6 @@
 #pragma once
 
-#include <wx/frame.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/sizer.h>
-#include <wx/choice.h>
-#include <wx/combobox.h>
-#include <wx/button.h>
-#include <wx/statbox.h>
-#include <wx/msgdlg.h>
-#include <wx/image.h>
-#include <wx/statbmp.h>
-#include <wx/menu.h>
+#include <wx/wx.h>
 
 #include "frame_graphics_editor.hpp"
 
