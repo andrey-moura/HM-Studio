@@ -11,10 +11,10 @@
 class FramesEditorFrame : public wxFrame
 {
 private:
-    Animator& m_Animator;
+    AnimatorEditor& m_Animator;
     uint16_t m_SelectedFrame = 0;
 public:
-    FramesEditorFrame(Animator& animator) :
+    FramesEditorFrame(AnimatorEditor& animator) :
         wxFrame(nullptr, wxID_ANY, L"Edit Frames"), m_Animator(animator)
     {
         wxMenu* menuFrame = new wxMenu();
@@ -242,17 +242,17 @@ private:
             gtiles.push_back(gtile);
         }
 
-        FrameInfo info = m_Animator.GetFrameInfo(m_SelectedFrame);
+        FrameInfo info =  m_Animator.GetFrameInfo(m_SelectedFrame);
         AnimRange tile_range = info.tile;
 
-        auto& anim_tiles = m_Animator.GetTiles();
+        auto& anim_tiles =  m_Animator.GetTiles();
 
         for(size_t i = 0; i < tile_range.length; ++i)
         {
             anim_tiles[i+tile_range.start] = gtiles[i];
         }
 
-        m_Animator.GenerateFrames();
+         m_Animator.GenerateFrames();
         
         UpdateFrame(m_SelectedFrame);
     }
@@ -272,7 +272,7 @@ private:
         size_t other_index = std::stoi(dialog.GetValue().ToStdWstring());
 
         FrameInfo other_info = m_Animator.GetFrameInfo(other_index);
-        FrameInfo info = m_Animator.GetFrameInfo(m_SelectedFrame);
+        FrameInfo info =  m_Animator.GetFrameInfo(m_SelectedFrame);
 
         AnimRange other_range = other_info.tile;
         AnimRange range = info.tile;
@@ -283,7 +283,7 @@ private:
             return;
         }   
 
-        auto& tiles = m_Animator.GetTiles();
+        auto& tiles =  m_Animator.GetTiles();
 
         for(size_t i = 0; i < range.length; ++i)
         {
@@ -316,7 +316,7 @@ private:
 
         const Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
 
-        Color* colors = Graphics::ToImage24(frame, m_Animator.GetPalette(0));
+        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetPalette(0));
 
         //~wxImage takes care of deleting colors
         wxBitmap(wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)colors)).SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
@@ -327,10 +327,13 @@ private:
 //                                          Animation Editor
 //-----------------------------------------------------------------------------------------------//
 
-AnimationEditorFrame::AnimationEditorFrame(const id& id) : wxFrame(nullptr, wxID_ANY, L"Animation Editor"), m_RomTranslated(id, true)
+AnimationEditorFrame::AnimationEditorFrame(const id& id)
+    : EditorFrame(new AnimatorEditor(id))
 {
+    m_pAnimator = (AnimatorEditor*)m_pEditor;
+
     CreateGUIControls();    
-    LoadFromRom(m_RomTranslated, 0x6C2F38);
+    LoadFromRom(m_pEditor->GetRom(true), 0x6C2F38);
 
     m_Timer.Bind(wxEVT_TIMER, &AnimationEditorFrame::OnTimer, this);
 }
@@ -341,22 +344,22 @@ void AnimationEditorFrame::LoadFromRom(RomFile& file, uint32_t offset)
     m_CurrentAnimation = 0;
     m_CurrentInstruction = 0;    
     file.Seek(offset);
-    m_Animator.LoadFromFile(file);
+    m_pAnimator->LoadFromFile(file);
 
-    m_OldSize = m_Animator.GetLength();
+    m_OldSize = m_pAnimator->GetLength();
 
     UpdateAnimation();
 }
 
 void AnimationEditorFrame::UpdateAnimation()
 {    
-    AnimRange range = m_Animator.GetAnimRange(m_CurrentAnimation);
+    AnimRange range = m_pAnimator->GetAnimRange(m_CurrentAnimation);
     m_pAnimationStart->SetValue(range.start);
     m_pAnimationLenght->SetValue(range.length);
 
     m_CurrentInstruction = 0;        
 
-    auto& instrs = m_Animator.GetInstructions();
+    auto& instrs = m_pAnimator->GetInstructions();
 
     int rows = m_pInstructionList->GetNumberRows();
     int diff = range.length-rows;
@@ -385,19 +388,19 @@ void AnimationEditorFrame::UpdateAnimation()
 
 void AnimationEditorFrame::UpdateFrame()
 {
-    AnimRange range = m_Animator.GetAnimRange(m_CurrentAnimation);
+    AnimRange range = m_pAnimator->GetAnimRange(m_CurrentAnimation);
     
     uint32_t cur_instruction = range.start+m_CurrentInstruction;
-    AnimInstruction instruction = m_Animator.GetInstruction(cur_instruction);        
+    AnimInstruction instruction = m_pAnimator->GetInstruction(cur_instruction);        
 
-    Graphics& frame = m_Animator.GetFrame(instruction.frame);
+    Graphics& frame = m_pAnimator->GetFrame(instruction.frame);
 
     if(instruction.time != 0)
     {        
         m_Timer.Start(instruction.time*16, true);
     }
 
-    m_pAnimationViewer->SetPalette(&m_Animator.GetPalette(0));
+    m_pAnimationViewer->SetPalette(&m_pAnimator->GetPalette(0));
     m_pAnimationViewer->SetGraphics(&frame);    
 
     m_CurrentInstruction++;  
@@ -420,9 +423,9 @@ void AnimationEditorFrame::FlushTilePalette()
     wxPoint p;
 
     wxBitmap tile_bmp(8, 8, 24);
-    Palette& palette = m_Animator.GetPalette(0);    
+    Palette& palette = m_pAnimator->GetPalette(0);    
 
-    for(const Graphics& tile : m_Animator.GetTiles())
+    for(const Graphics& tile : m_pAnimator->GetTiles())
     {
         size_t n = 0;
 
@@ -475,7 +478,7 @@ void AnimationEditorFrame::OnPrevAnimClick(wxCommandEvent& event)
 
 void AnimationEditorFrame::OnProxAnimClick(wxCommandEvent& event)
 {
-    if(m_CurrentAnimation < m_Animator.GetAnimCount()-1)
+    if(m_CurrentAnimation < m_pAnimator->GetAnimCount()-1)
     {
         m_CurrentAnimation++;
         UpdateAnimation();
@@ -498,7 +501,7 @@ void AnimationEditorFrame::OnChangingCell(wxGridEvent& event)
 
     size_t i = std::stoi(str.ToStdWstring());
 
-    if(i >= m_Animator.GetFrames().size())
+    if(i >= m_pAnimator->GetFrames().size())
     {
         event.Veto();
     }            
@@ -506,8 +509,8 @@ void AnimationEditorFrame::OnChangingCell(wxGridEvent& event)
 
 void AnimationEditorFrame::OnCellChanged(wxGridEvent& event)
 {
-    AnimRange range = m_Animator.GetAnimRange(m_CurrentAnimation);
-    AnimInstruction instruction = m_Animator.GetInstruction(range.start+event.GetRow());
+    AnimRange range = m_pAnimator->GetAnimRange(m_CurrentAnimation);
+    AnimInstruction instruction = m_pAnimator->GetInstruction(range.start+event.GetRow());
 
     wxString str = m_pInstructionList->GetCellValue(event.GetRow(), event.GetCol());
 
@@ -524,7 +527,7 @@ void AnimationEditorFrame::OnCellChanged(wxGridEvent& event)
         instruction.time = i;
     }
 
-    m_Animator.SetInstruction(range.start+event.GetRow(), instruction);
+    m_pAnimator->SetInstruction(range.start+event.GetRow(), instruction);
     UpdateAnimation();
 
     event.Skip();
@@ -537,7 +540,7 @@ void AnimationEditorFrame::OnOpenAnimationClick(wxCommandEvent& event)
 
     if(dialog.ShowModal() == wxID_OK)
     {    
-        LoadFromRom(m_RomTranslated, std::stoi(dialog.GetValue().ToStdWstring(), nullptr, 16));
+        LoadFromRom(m_pEditor->GetRom(true), std::stoi(dialog.GetValue().ToStdWstring(), nullptr, 16));
     }
 
     event.Skip();
@@ -547,7 +550,7 @@ void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
 {
     event.Skip();
     
-    uint32_t newSize = m_Animator.GetLength();
+    uint32_t newSize = m_pAnimator->GetLength();
     bool move = newSize > m_OldSize;
 
     uint32_t insert_offset = m_Offset;
@@ -556,7 +559,7 @@ void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
 
     if(move)
     {
-        insert_offset = m_RomTranslated.FindFreeSpace(newSize);
+        insert_offset = m_pEditor->GetRom(true).FindFreeSpace(newSize);
 
         if(insert_offset == std::string::npos)
         {
@@ -568,8 +571,8 @@ void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
         fill = m_OldSize - newSize;
     }
 
-    m_RomTranslated.Seek(insert_offset);
-    m_Animator.WriteToFile(m_RomTranslated);
+    m_pEditor->GetRom(true).Seek(insert_offset);
+    m_pAnimator->WriteToFile(m_pEditor->GetRom(true));
 
     if(move)
     {
@@ -579,14 +582,14 @@ void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
     
     while(fill)
     {
-        m_RomTranslated.WriteT<uint8_t>(0);
+        m_pEditor->GetRom(true).WriteT<uint8_t>(0);
         --fill;
     }
 }
 
 void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event) 
 {
-    FramesEditorFrame* frame = new FramesEditorFrame(m_Animator);
+    FramesEditorFrame* frame = new FramesEditorFrame(*m_pAnimator);
     frame->Show();
 
     event.Skip();
@@ -599,7 +602,7 @@ void AnimationEditorFrame::OnEditFramesClick(wxCommandEvent& event)
 
 void AnimationEditorFrame::OnEditRemoveInstrClick(wxCommandEvent& event)
 {
-    if(m_Animator.GetAnimRange(m_CurrentAnimation).length == 1)
+    if(m_pAnimator->GetAnimRange(m_CurrentAnimation).length == 1)
     {
         wxMessageBox(L"Can not delete frame of an animation with one frame.", L"Error", wxICON_ERROR);
         return;
@@ -617,9 +620,9 @@ void AnimationEditorFrame::OnEditRemoveInstrClick(wxCommandEvent& event)
 
     size_t instr = std::stoi(str.ToStdWstring());    
 
-    auto& instructions = m_Animator.GetInstructions();        
+    auto& instructions = m_pAnimator->GetInstructions();        
 
-    AnimRange range = m_Animator.GetAnimRange(m_CurrentAnimation);
+    AnimRange range = m_pAnimator->GetAnimRange(m_CurrentAnimation);
     range.length--;    
 
     if(instr >= range.length)
@@ -628,16 +631,16 @@ void AnimationEditorFrame::OnEditRemoveInstrClick(wxCommandEvent& event)
         return;
     }
 
-    m_Animator.SetRange(m_CurrentAnimation, range);
+    m_pAnimator->SetRange(m_CurrentAnimation, range);
 
     instructions.erase(instructions.begin()+(instr+range.start));
 
-    for(size_t i = m_CurrentAnimation+1; i < m_Animator.GetAnimCount(); ++i)
+    for(size_t i = m_CurrentAnimation+1; i < m_pAnimator->GetAnimCount(); ++i)
     {
-        AnimRange range = m_Animator.GetAnimRange(i);
+        AnimRange range = m_pAnimator->GetAnimRange(i);
         range.start--;
 
-        m_Animator.SetRange(i, range);
+        m_pAnimator->SetRange(i, range);
     }
 
     UpdateAnimation();
@@ -663,8 +666,8 @@ void AnimationEditorFrame::OnInsertInstruction(wxCommandEvent& event)
         pos++;
     }
 
-    auto& instrs = m_Animator.GetInstructions();
-    auto& ranges = m_Animator.GetAnimRanges();
+    auto& instrs = m_pAnimator->GetInstructions();
+    auto& ranges = m_pAnimator->GetAnimRanges();
 
     AnimInstruction instruction;
     instruction.frame = inputs[1];
@@ -702,7 +705,11 @@ void AnimationEditorFrame::CreateGUIControls()
 
     wxMenuBar* menuBar = new wxMenuBar();
     menuBar->Append(menuAnimator, L"Animator");    
-    menuBar->Append(menuAnimation, L"Animation");    
+    menuBar->Append(menuAnimation, L"Animation");  
+
+    SetMenuBar(menuBar);
+
+    CreateMyToolBar(true, true, true, true, true);
 
     m_pAnimationViewer = new GraphicsView(this);
     m_pAnimationViewer->SetMinSize(wxSize(128, 128));
@@ -758,7 +765,5 @@ void AnimationEditorFrame::CreateGUIControls()
     sizer->AddStretchSpacer(1);
     sizer->Add(m_RightPanel);
 
-    SetSizer(sizer);    
-
-    SetMenuBar(menuBar);
+    SetSizer(sizer);        
 }

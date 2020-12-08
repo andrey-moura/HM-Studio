@@ -20,7 +20,7 @@ std::pair<uint16_t,uint16_t> sprite_sizes[] =
 
 using range = std::vector<std::pair<uint16_t,uint16_t>>;
 
-uint32_t Animator::GetLength() const
+uint32_t AnimatorEditor::GetLength() const
 {
     uint32_t size = 7 * 4;
     size += m_AnimRanges.size()*sizeof(AnimRange);
@@ -34,7 +34,7 @@ uint32_t Animator::GetLength() const
     return size; 
 }
 
-void Animator::LoadFromFile(wxFile& file)
+void AnimatorEditor::LoadFromFile(wxFile& file)
 {
     m_Animations.clear();
     m_Frames.clear();    
@@ -121,7 +121,7 @@ void Animator::LoadFromFile(wxFile& file)
     GenerateFrames();    
 }
 
-void Animator::WriteToFile(wxFile& file)
+void AnimatorEditor::WriteToFile(wxFile& file)
 {
     uint32_t animCount = m_AnimRanges.size();
     file.Write(&animCount, sizeof(uint32_t));
@@ -175,7 +175,7 @@ void Animator::WriteToFile(wxFile& file)
     }    
 }   
 
-void Animator::GenerateFrames()
+void AnimatorEditor::GenerateFrames()
 {
     m_Frames.clear();
     m_Frames.reserve(m_FrameCount);

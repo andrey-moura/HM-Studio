@@ -3,6 +3,7 @@
 #include <vector>
 #include <ctype.h>
 
+#include "class_editor.hpp"
 #include "animation.hpp"
 #include "class_graphics.hpp"
 
@@ -68,8 +69,14 @@ public:
     }	
 };
 
-class Animator
+class AnimatorEditor : public Editor
 {
+public:
+    AnimatorEditor(const id& id)
+        : Editor(id, L"Animator")
+        {
+            
+        }
 private:
     uint16_t m_FrameCount = 0;
 

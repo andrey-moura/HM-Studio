@@ -10,22 +10,20 @@
 #include "control_graphics_view.hpp"
 #include "palctrl.hpp"
 
-class AnimationEditorFrame : public wxFrame
+#include "frame_editor.hpp"
+
+class AnimationEditorFrame : public EditorFrame
 {
 public:
     AnimationEditorFrame(const id& id);
 private:
-    Animator m_Animator;
+    AnimatorEditor* m_pAnimator;
     wxBitmap m_TilePalette;
-    wxBitmap m_Frame;
-    RomFile m_RomTranslated;
+    wxBitmap m_Frame;    
     uint32_t m_CurrentAnimation;
     uint32_t m_CurrentInstruction;
     uint32_t m_Offset = 0;
     uint32_t m_OldSize = 0;
-    //wxBitmapView* m_pTileViewer = nullptr;
-    //wxBitmapView* m_pTileEditor = nullptr;
-    //GraphicsView* m_pFrameView = nullptr;
     wxTimer m_Timer;
 private:
     void LoadFromRom(RomFile& file, uint32_t offset);
