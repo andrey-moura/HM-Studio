@@ -20,6 +20,8 @@ public:
         wxMenu* menuFrame = new wxMenu();
         Bind(wxEVT_MENU, &FramesEditorFrame::OnSwapFrameClick, this, menuFrame->Append(wxID_ANY, L"Swap tiles...")->GetId());
         Bind(wxEVT_MENU, &FramesEditorFrame::OnReplaceTilesClick, this, menuFrame->Append(wxID_ANY, L"Replace tiles...")->GetId());
+        menuFrame->AppendSeparator();
+        Bind(wxEVT_MENU, &FramesEditorFrame::OnExportFrameClick, this, menuFrame->Append(wxID_ANY, L"Export")->GetId());
 
         wxMenuBar* menuBar = new wxMenuBar();
         menuBar->Append(menuFrame, L"Frame");
@@ -299,6 +301,25 @@ private:
         m_pFramesWindows->SetScrollPos(wxVERTICAL, 0);
         UpdateFrame(m_SelectedFrame);
         UpdateFrame(other_index);
+    }
+
+    void OnExportFrameClick(wxCommandEvent& event)
+    {
+        event.Skip();
+
+        wxString path = wxSaveFileSelector(L"Image File", L"png");
+
+        if(path.empty())
+        {
+            return;
+        }        
+
+        const Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
+
+        Color* colors = Graphics::ToImage24(frame, m_Animator.GetPalette(0));
+
+        //~wxImage takes care of deleting colors
+        wxBitmap(wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)colors)).SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
     }
 };
 

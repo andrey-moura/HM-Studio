@@ -205,3 +205,28 @@ void Graphics::operator=(const Graphics& other)
 
 	memcpy(m_pRawData, other.GetData(), GetLenght());
 }
+
+Color* Graphics::ToImage24(const Graphics& graphics, const Palette& palette)
+{
+	const uint8_t* data = graphics.GetData();
+
+	if(!data)
+		return nullptr;
+
+	if(graphics.GetWidth() == 0 || graphics.GetHeight() == 0)
+		return nullptr;
+
+	size_t count = graphics.GetWidth()*graphics.GetHeight();
+	
+	Color* colors = new Color[count];
+
+	size_t i = 0;
+
+	while(i < count)
+	{
+		colors[i] = palette[graphics.GetPixel(i)];
+		++i;
+	}
+
+	return colors;
+}
