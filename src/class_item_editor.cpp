@@ -296,7 +296,7 @@ bool ItemEditor::GetTextFromPath(const std::string& path)
 
 bool ItemEditor::IsInsideBlock(uint32_t offset)
 {
-	return MathUtil::IsInsideBlock(offset, m_Infos[m_InfoIndex].m_StartBlock, m_Infos[m_InfoIndex].m_BlockLenght);
+	return offset >= m_Infos[m_InfoIndex].m_StartBlock && offset < (m_Infos[m_InfoIndex].m_StartBlock + m_Infos[m_InfoIndex].m_BlockLenght);
 }
 
 void ItemEditor::GetItensInfos()

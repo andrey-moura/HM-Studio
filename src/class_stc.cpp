@@ -279,8 +279,10 @@ void STC::OnMouseRight(wxMouseEvent& event)
 
 void STC::InsertOnCtrlKey(const std::string& s, char key)
 {
-	if (!MathUtil::IsInsideBlock(key, 61, 26))
+	if(key >= 61 && key < 61+26)
+	{
 		return;
+	}	
 
 	size_t index = m_Keys.find(key, 0);
 

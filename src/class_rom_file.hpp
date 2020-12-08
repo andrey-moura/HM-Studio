@@ -8,7 +8,6 @@
 
 #include "class_var_table.hpp"
 #include "class_script.hpp"
-#include "namespace_math.hpp"
 
 #include <moon/table.hpp>
 
@@ -69,7 +68,7 @@ public:
 	void ReplaceWideChars(wxString& text);
 	inline bool IsInsideFreeSpace(const uint32_t& offset)
 	{
-		return MathUtil::IsInsideBlock(offset, m_End, m_FreeSpace);
+		return offset >= m_End && offset < (m_End + m_FreeSpace);		 
 	}
 	uint32_t GetBusStart() { return m_PointerIndex; }
 //File

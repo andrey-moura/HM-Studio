@@ -6,7 +6,6 @@
 #include "class_item.hpp"
 #include "class_editor.hpp"
 #include "class_rom_file.hpp"
-#include "namespace_math.hpp"
 
 struct ItemInfo
 {

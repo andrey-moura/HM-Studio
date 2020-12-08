@@ -300,7 +300,7 @@ inline uint32_t ScriptEditor::ScriptSize(const uint32_t& offset, uint8_t* bytes)
 
 inline bool ScriptEditor::IsInsideBlock(const uint32_t& offset)
 {
-	return MathUtil::IsInsideBlock(offset, m_Info.StartBlock, m_Info.BlockLenght);
+	return offset >= m_Info.StartBlock && offset < (m_Info.StartBlock + m_Info.BlockLenght);	
 }
 
 inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& size)

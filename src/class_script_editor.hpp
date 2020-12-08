@@ -12,7 +12,6 @@
 #include "class_script.hpp"
 #include "class_editor.hpp"
 #include "class_finder.hpp"
-#include "namespace_math.hpp"
 #include "window_find_results.hpp"
 
 class ScriptEditor : public Editor

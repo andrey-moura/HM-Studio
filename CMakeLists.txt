@@ -94,7 +94,6 @@ SET(SRC
 	src/frame_text_block_editor.cpp
 	src/frame_value_editor.cpp
 	src/graphicsinfoviewer.cpp
-	src/namespace_math.cpp
 	src/palctrl.cpp
 	src/window_find_results.cpp
 )
@@ -135,7 +134,6 @@ SET(HDR
 	src/frame_text_block_editor.hpp
 	src/frame_value_editor.hpp
 	src/graphicsinfoviewer.hpp
-	src/namespace_math.hpp
 	src/palctrl.hpp
 	src/window_find_results.hpp
 )

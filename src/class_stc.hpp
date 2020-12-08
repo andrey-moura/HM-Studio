@@ -16,7 +16,6 @@
 #include <wx/statusbr.h>
 
 #include "class_finder.hpp"
-#include "namespace_math.hpp"
 
 #include "class_spell_checker.hpp"
 
