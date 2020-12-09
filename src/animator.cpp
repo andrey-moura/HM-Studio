@@ -20,6 +20,42 @@ std::pair<uint16_t,uint16_t> sprite_sizes[] =
 
 using range = std::vector<std::pair<uint16_t,uint16_t>>;
 
+AnimatorEditor::AnimatorEditor(const id& id)
+        : Editor(id, L"Animator")
+    {
+        wxFileName fn;
+
+        fn.SetPath(m_EditorDir);
+        fn.SetName(L"%s");
+        fn.SetExt(L"bin");
+
+        m_PathFormat = fn.GetFullPath();
+
+        wxArrayString files;
+        wxDir::GetAllFiles(m_EditorDir, &files, L"*.bin");        
+
+        for(const wxString& file : files)
+        {
+            wxFileName file_name(file);
+
+            wxString name = file_name.GetName();
+            bool x = true;
+
+            for(const wxChar c : name)
+            {
+                if(!isxdigit(c))
+                {
+                    x = false;
+                    break;
+                }
+            }
+
+            uint32_t offset = std::stoi(name.ToStdWstring(), nullptr, 16);
+
+            m_Animators.push_back(offset);
+        }
+    }
+
 uint32_t AnimatorEditor::GetLength() const
 {
     uint32_t size = 7 * 4;
@@ -32,6 +68,16 @@ uint32_t AnimatorEditor::GetLength() const
     size += m_Instructions.size()*sizeof(AnimInstruction);
 
     return size; 
+}
+
+wxString AnimatorEditor::FormatPath(const uint32_t& offset)
+{
+    return wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(offset));
+}
+
+wxString AnimatorEditor::FormatPath()
+{
+    return wxEmptyString;
 }
 
 void AnimatorEditor::LoadFromFile(wxFile& file)

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <wx/wx.h>
+#include <wx/dir.h>
+
 #include <vector>
 #include <ctype.h>
 
@@ -72,12 +75,10 @@ public:
 class AnimatorEditor : public Editor
 {
 public:
-    AnimatorEditor(const id& id)
-        : Editor(id, L"Animator")
-        {
-            
-        }
+    AnimatorEditor(const id& id);
 private:
+    std::vector<uint32_t> m_Animators;
+
     uint16_t m_FrameCount = 0;
 
     std::vector<AnimAff> m_Affines;
@@ -89,11 +90,16 @@ private:
     std::vector<AnimRange> m_AnimRanges;
     std::vector<SpriteAttribute> m_Attributes;
     std::vector<AnimInstruction> m_Instructions;
+
+    wxString m_PathFormat;
 public:
     void LoadFromFile(wxFile& rom);
     void GenerateFrames();
 
     uint32_t GetLength() const;
+
+    wxString FormatPath(const uint32_t& offset);
+    wxString FormatPath();
 
     Graphics& GetFrame(size_t n) { return m_Frames[n]; }
     std::vector<Graphics>& GetFrames() { return m_Frames; }

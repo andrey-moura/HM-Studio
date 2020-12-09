@@ -31,6 +31,8 @@ private:
     void UpdateAnimation();
     void FlushTilePalette();
 private:
+    virtual void OnSaveFile();
+private:
     void OnOpenAnimationClick(wxCommandEvent& event);
     void OnInsertAnimator(wxCommandEvent& event);    
     void OnEditFramesClick(wxCommandEvent& event);

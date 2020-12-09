@@ -338,11 +338,24 @@ AnimationEditorFrame::AnimationEditorFrame(const id& id)
     m_Timer.Bind(wxEVT_TIMER, &AnimationEditorFrame::OnTimer, this);
 }
 
+void AnimationEditorFrame::OnSaveFile()
+{
+    AnimatorEditor* editor = ((AnimatorEditor*)m_pEditor);
+    wxString path = editor->FormatPath(0x6C2F38);
+
+    wxFile file;
+    file.Create(path, true);
+    file.Open(path, wxFile::read_write);
+
+    editor->WriteToFile(file);
+}
+
 void AnimationEditorFrame::LoadFromRom(RomFile& file, uint32_t offset)
 {
     m_Offset = offset;
     m_CurrentAnimation = 0;
-    m_CurrentInstruction = 0;    
+    m_CurrentInstruction = 0;
+
     file.Seek(offset);
     m_pAnimator->LoadFromFile(file);
 
