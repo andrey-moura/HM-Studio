@@ -7,7 +7,6 @@
 #include <ctype.h>
 
 #include "class_editor.hpp"
-#include "animation.hpp"
 #include "class_graphics.hpp"
 
 struct AnimRange
@@ -72,34 +71,26 @@ public:
     }	
 };
 
-class AnimatorEditor : public Editor
+class Animator
 {
-public:
-    AnimatorEditor(const id& id);
 private:
-    std::vector<uint32_t> m_Animators;
-
     uint16_t m_FrameCount = 0;
 
     std::vector<AnimAff> m_Affines;
     std::vector<Palette> m_Palettes;
     std::vector<Graphics> m_Tiles;
     std::vector<Graphics> m_Frames;
-    std::vector<FrameInfo> m_FrameInfos;
-    std::vector<Animation> m_Animations;
+    std::vector<FrameInfo> m_FrameInfos;    
     std::vector<AnimRange> m_AnimRanges;
     std::vector<SpriteAttribute> m_Attributes;
-    std::vector<AnimInstruction> m_Instructions;
-
-    wxString m_PathFormat;
+    std::vector<AnimInstruction> m_Instructions;    
 public:
-    void LoadFromFile(wxFile& rom);
+    void LoadFromFile(wxFile& file);
+    void WriteToFile(wxFile& file);
+
     void GenerateFrames();
 
-    uint32_t GetLength() const;
-
-    wxString FormatPath(const uint32_t& offset);
-    wxString FormatPath();
+    uint32_t GetLength() const;    
 
     Graphics& GetFrame(size_t n) { return m_Frames[n]; }
     std::vector<Graphics>& GetFrames() { return m_Frames; }
@@ -118,12 +109,5 @@ public:
 
     void SetInstruction(size_t n, const AnimInstruction& instruction) { m_Instructions[n] = instruction; }
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
-    std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }
-
-    void WriteToFile(wxFile& file);
-public:
-    Animation& operator[](size_t n)
-    {
-        return m_Animations[n];
-    }
+    std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }    
 };

@@ -5,7 +5,7 @@
 
 #include <moon/wx/bmpviewer.hpp>
 
-#include "animation.hpp"
+#include "animator_editor.hpp"
 #include "animator.hpp"
 #include "control_graphics_view.hpp"
 #include "palctrl.hpp"
@@ -17,7 +17,7 @@ class AnimationEditorFrame : public EditorFrame
 public:
     AnimationEditorFrame(const id& id);
 private:
-    AnimatorEditor* m_pAnimator;
+    AnimatorEditor* m_pAnimatorEditor;
     wxBitmap m_TilePalette;
     wxBitmap m_Frame;    
     uint32_t m_CurrentAnimation;
@@ -31,7 +31,7 @@ private:
     void UpdateAnimation();
     void FlushTilePalette();
 private:
-    virtual void OnSaveFile();
+    virtual void UpdateFile() override;
 private:
     void OnOpenAnimationClick(wxCommandEvent& event);
     void OnInsertAnimator(wxCommandEvent& event);    

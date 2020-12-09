@@ -20,43 +20,7 @@ std::pair<uint16_t,uint16_t> sprite_sizes[] =
 
 using range = std::vector<std::pair<uint16_t,uint16_t>>;
 
-AnimatorEditor::AnimatorEditor(const id& id)
-        : Editor(id, L"Animator")
-    {
-        wxFileName fn;
-
-        fn.SetPath(m_EditorDir);
-        fn.SetName(L"%s");
-        fn.SetExt(L"bin");
-
-        m_PathFormat = fn.GetFullPath();
-
-        wxArrayString files;
-        wxDir::GetAllFiles(m_EditorDir, &files, L"*.bin");        
-
-        for(const wxString& file : files)
-        {
-            wxFileName file_name(file);
-
-            wxString name = file_name.GetName();
-            bool x = true;
-
-            for(const wxChar c : name)
-            {
-                if(!isxdigit(c))
-                {
-                    x = false;
-                    break;
-                }
-            }
-
-            uint32_t offset = std::stoi(name.ToStdWstring(), nullptr, 16);
-
-            m_Animators.push_back(offset);
-        }
-    }
-
-uint32_t AnimatorEditor::GetLength() const
+uint32_t Animator::GetLength() const
 {
     uint32_t size = 7 * 4;
     size += m_AnimRanges.size()*sizeof(AnimRange);
@@ -70,25 +34,12 @@ uint32_t AnimatorEditor::GetLength() const
     return size; 
 }
 
-wxString AnimatorEditor::FormatPath(const uint32_t& offset)
-{
-    return wxString::Format(m_PathFormat, Moon::BitConverter::ToHexString(offset));
-}
-
-wxString AnimatorEditor::FormatPath()
-{
-    return wxEmptyString;
-}
-
-void AnimatorEditor::LoadFromFile(wxFile& file)
-{
-    m_Animations.clear();
+void Animator::LoadFromFile(wxFile& file)
+{    
     m_Frames.clear();    
 
     uint32_t animCount;
-    file.Read(&animCount, sizeof(uint32_t));
-    
-    m_Animations.reserve(animCount);
+    file.Read(&animCount, sizeof(uint32_t));    
     
     m_AnimRanges.resize(animCount);
 
@@ -167,7 +118,7 @@ void AnimatorEditor::LoadFromFile(wxFile& file)
     GenerateFrames();    
 }
 
-void AnimatorEditor::WriteToFile(wxFile& file)
+void Animator::WriteToFile(wxFile& file)
 {
     uint32_t animCount = m_AnimRanges.size();
     file.Write(&animCount, sizeof(uint32_t));
@@ -221,7 +172,7 @@ void AnimatorEditor::WriteToFile(wxFile& file)
     }    
 }   
 
-void AnimatorEditor::GenerateFrames()
+void Animator::GenerateFrames()
 {
     m_Frames.clear();
     m_Frames.reserve(m_FrameCount);

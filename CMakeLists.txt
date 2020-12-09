@@ -60,9 +60,9 @@ include_directories(include)
 
 SET(SRC
 	src/FishEditor.cpp
-	src/animation.cpp
 	src/animation_frame.cpp
 	src/animator.cpp
+	src/animator_editor.cpp
 	src/class_app.cpp
 	src/class_editor.cpp
 	src/class_finder.cpp
@@ -100,9 +100,9 @@ SET(SRC
 
 SET(HDR
 	src/FishEditor.hpp
-	src/animation.hpp
 	src/animation_frame.hpp
 	src/animator.hpp
+	src/animator_editor.hpp
 	src/class_app.hpp
 	src/class_editor.hpp
 	src/class_finder.hpp
