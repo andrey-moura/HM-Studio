@@ -89,10 +89,12 @@ void Animator::LoadFromFile(wxFile& file)
 
     for(size_t i = 0; i < palette_count; ++i)
     {
-        uint16_t* raw_palette = new uint16_t[16];
-        file.Read(raw_palette, 32);
+        std::vector<uint16_t> raw_palette;
+        raw_palette.resize(16);
+        
+        file.Read(raw_palette.data(), 16*2);                
 
-        m_Palettes.push_back(Palette(raw_palette, 4));        
+        m_Palettes.push_back(gba_to_palette(raw_palette));
     }    
 
     uint32_t affCount;
@@ -153,7 +155,13 @@ void Animator::WriteToFile(wxFile& file)
 
     uint32_t palCount = m_Palettes.size();
     file.Write(&palCount, sizeof(uint32_t));
-    file.Seek(file.Tell()+(m_Palettes.size()*32)); //Not save palettes changes ToDo
+
+    for(size_t i = 0; i < palCount; ++i)    
+    {
+        std::vector<uint16_t> raw_pal = color_to_gba(m_Palettes[i]);
+
+        file.Write(raw_pal.data(), raw_pal.size()*2);
+    }
 
     uint32_t affCount = m_Affines.size();
     file.Write(&affCount, sizeof(uint32_t));

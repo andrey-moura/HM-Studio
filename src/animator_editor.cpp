@@ -62,13 +62,22 @@ bool AnimatorEditor::Open(uint32_t number)
     m_Animator.LoadFromFile(file);
 }
 
+void AnimatorEditor::OpenNew(uint32_t offset)
+{
+    m_RomTranslated.Seek(offset);
+    m_Animator.LoadFromFile(m_RomTranslated);
+
+    m_Animators.push_back(offset);
+    m_Number = m_Animators.size()-1;
+}
+
 void AnimatorEditor::SaveFile()
 {
     wxString path = FormatPath(m_Animators[m_Number]);
 
     wxFile file;
-    file.Create(path, wxFile::read_write);
-    file.Open(path);
+    file.Create(path, true);
+    file.Open(path, wxFile::read_write);
 
     m_Animator.WriteToFile(file);
 }

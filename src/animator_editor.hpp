@@ -14,6 +14,7 @@ private:
     uint32_t m_Offset;
 public:
     virtual bool Open(uint32_t number) override;
+    void OpenNew(uint32_t offset);
     virtual void SaveFile() override;
     virtual void InsertFile() override;
 

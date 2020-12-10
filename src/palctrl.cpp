@@ -32,10 +32,9 @@ void PalCtrl::CreateGUIControls()
 
 void PalCtrl::SetPal(const Palette& pal)
 {	
-	if (m_Count != pal.GetCount())
-	{
-		delete[] m_Colors;
-		m_Count = pal.GetCount();
+	if (m_Count != pal.size())
+	{		
+		m_Count = pal.size();
 		m_Colors = new wxColour[m_Count];
 	}
 

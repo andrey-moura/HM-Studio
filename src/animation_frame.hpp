@@ -32,6 +32,7 @@ private:
     void FlushTilePalette();
 private:
     virtual void UpdateFile() override;
+    virtual void OnGoFile() override;
 private:
     void OnOpenAnimationClick(wxCommandEvent& event);
     void OnInsertAnimator(wxCommandEvent& event);    

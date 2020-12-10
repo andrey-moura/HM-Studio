@@ -221,7 +221,7 @@ private:
                 
                 Color c {r, g, b};
 
-                size_t p = pal.FindColor(c);
+                size_t p = pal.find_color(c);
 
                 if(p == std::string::npos)
                 {
@@ -344,6 +344,19 @@ void AnimationEditorFrame::UpdateFile()
     m_CurrentInstruction = 0;
 
     UpdateAnimation();
+}
+
+void AnimationEditorFrame::OnGoFile()
+{
+    wxTextEntryDialog dialog(nullptr, L"Please, type an offset", L"Open animator");
+    dialog.SetTextValidator(wxTextValidatorStyle::wxFILTER_XDIGITS);
+
+    if(dialog.ShowModal() == wxID_OK)
+    {
+        m_pAnimatorEditor->OpenNew(std::stoi(dialog.GetValue().ToStdWstring(), nullptr, 16));
+
+        UpdateFile();
+    }
 }
 
 // void AnimationEditorFrame::LoadFromRom(RomFile& file, uint32_t offset)

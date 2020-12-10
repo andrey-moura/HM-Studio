@@ -1,5 +1,20 @@
 #include "class_graphics.hpp"
 
+size_t Palette::find_color(const Color& c) const
+{
+	for(size_t i = 0; i < size(); ++i)
+	{
+		if(at(0) == c)
+		{
+			return i;
+		}
+	}
+
+	return std::string::npos;
+}
+
+//-------------------------------------------------//
+
 Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar) :
 	m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
 {
@@ -15,55 +30,6 @@ Graphics::Graphics(const Graphics& graphics)
 Graphics::~Graphics()
 {
 	delete[] m_pRawData;
-}
-
-Palette::Palette(uint16_t* colors, uint8_t bpp)
-{
-	DecodeColors(colors, bpp);
-}
-
-void Palette::SetCount(uint8_t count)
-{
-	if (count != m_Count)
-	{
-		delete[] m_Colors;
-		m_Colors = new Color[count];
-		m_Count = count;
-	}
-}
-
-void Palette::DecodeColors(uint16_t* colors, uint8_t bpp)
-{
-	char palCount = 1 << bpp;
-
-	SetCount(palCount);	
-
-	m_Colors = new Color[palCount];
-
-	for (size_t index = 0; index < palCount; ++index)
-	{
-		SetColor(index, (colors[index] & 31) << 3, ((colors[index] >> 5) & 31) << 3, ((colors[index] >> 10) & 31) << 3);
-	}
-
-	delete[] colors;
-}
-
-// size_t Palette::FindRGB(uint32_t rgb) const
-// {			
-	
-// }
-
-size_t Palette::FindColor(const Color& c) const
-{
-	for(size_t i = 0; i < m_Count; ++i)
-	{
-		if(m_Colors[i] == c)
-		{
-			return i;
-		}
-	}
-
-	return std::string::npos;
 }
 
 void Graphics::SetBpp(uint8_t bpp)

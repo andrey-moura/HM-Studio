@@ -19,17 +19,12 @@ struct Color {
 		blue = b;
 	}
 
-	Color()
-	{
-		red = 00;
-		green = 00;
-		blue = 00;
-	}
+	Color()	{ }
 
 	uint32_t GetRGB() const { return (red << 16) | (green << 8) | blue; }
 	uint32_t GetBGR() const { return (blue << 16) |(green << 8) | red; }
 
-	bool operator==(const Color other)
+	bool operator==(const Color& other) const
 	{
 		if (red != other.red)
 			return false;
@@ -42,38 +37,10 @@ struct Color {
 	}
 };
 
-struct Palette {
-	Color* m_Colors = nullptr;
-	uint8_t m_Count = 0;
-
-	Palette(uint16_t* colors, uint8_t bpp);
-	Palette(const Palette& palette)
-	{
-		SetCount(palette.m_Count);
-		memcpy(m_Colors, palette.m_Colors, m_Count*sizeof(Color));
-	}
-	Palette() = default;
-
-	~Palette() { delete[] m_Colors; }
-
-	void DecodeColors(uint16_t* colors, uint8_t bpp);
-
-	void SetColor(const int& index, const uint8_t& red, const uint8_t& green, const uint8_t& blue)
-	{
-		m_Colors[index] = Color(red, green, blue);
-	}
-
-	const Color& operator[](const int& index) const
-	{
-		return m_Colors[index];
-	}
-
-	//size_t FindRGB(uint32_t rgb) const;
-	size_t FindColor(const Color& c) const;
-
-	uint8_t GetCount() const { return m_Count; }
-
-	void SetCount(uint8_t count);
+class Palette : public std::vector<Color>
+{
+public:
+	size_t find_color(const Color& c) const;
 };
 
 class Graphics

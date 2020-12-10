@@ -8,6 +8,7 @@
 
 #include "class_editor.hpp"
 #include "class_graphics.hpp"
+#include "gba_graphics.hpp"
 
 struct AnimRange
 {
