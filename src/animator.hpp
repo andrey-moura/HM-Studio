@@ -75,15 +75,14 @@ public:
 class Animator
 {
 private:
-    uint16_t m_FrameCount = 0;
-
-    std::vector<AnimAff> m_Affines;
-    std::vector<Palette> m_Palettes;
-    std::vector<Graphics> m_Tiles;
-    std::vector<Graphics> m_Frames;
-    std::vector<FrameInfo> m_FrameInfos;    
     std::vector<AnimRange> m_AnimRanges;
+    uint16_t m_FrameCount = 0;
+    std::vector<FrameInfo> m_FrameInfos;    
+    std::vector<Graphics> m_Frames;
     std::vector<SpriteAttribute> m_Attributes;
+    std::vector<Graphics> m_Tiles;
+    std::vector<Palette> m_Palettes;
+    std::vector<AnimAff> m_Affines;
     std::vector<AnimInstruction> m_Instructions;    
 public:
     void LoadFromFile(wxFile& file);
