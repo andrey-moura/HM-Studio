@@ -33,7 +33,7 @@ AnimatorEditor::AnimatorEditor(const id& id)
         uint32_t offset = std::stoi(name.ToStdWstring(), nullptr, 16);
 
         m_Animators.push_back(offset);
-    }
+    }    
 }
 
 wxString AnimatorEditor::FormatPath(const uint32_t& offset)
@@ -60,6 +60,8 @@ bool AnimatorEditor::Open(uint32_t number)
 
     wxFile file(path);
     m_Animator.LoadFromFile(file);
+
+    m_Number = number;
 }
 
 void AnimatorEditor::OpenNew(uint32_t offset)

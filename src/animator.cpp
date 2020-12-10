@@ -35,9 +35,7 @@ uint32_t Animator::GetLength() const
 }
 
 void Animator::LoadFromFile(wxFile& file)
-{    
-    m_Frames.clear();    
-
+{
     uint32_t animCount;
     file.Read(&animCount, sizeof(uint32_t));    
     
@@ -70,22 +68,18 @@ void Animator::LoadFromFile(wxFile& file)
     uint32_t tileCount;
     file.Read(&tileCount, sizeof(uint32_t));
 
-    m_Tiles.reserve(tileCount);
+    m_Tiles.resize(tileCount);
 
     for(size_t i = 0; i < tileCount; ++i)
     {        
-        Graphics tile;
-        tile.Create(8, 8);
-
-        file.Read(tile.GetData(), tile.GetLenght());
-
-        m_Tiles.push_back(tile);
+        m_Tiles[i].Create(8, 8);
+        file.Read(m_Tiles[i].GetData(), m_Tiles[i].GetLenght());
     }
 
     uint32_t palette_count;
     file.Read(&palette_count, sizeof(uint32_t));
 
-    m_Palettes.reserve(palette_count);
+    m_Palettes.resize(palette_count);
 
     for(size_t i = 0; i < palette_count; ++i)
     {
@@ -94,7 +88,7 @@ void Animator::LoadFromFile(wxFile& file)
         
         file.Read(raw_palette.data(), 16*2);                
 
-        m_Palettes.push_back(gba_to_palette(raw_palette));
+        m_Palettes[i] = gba_to_palette(raw_palette);
     }    
 
     uint32_t affCount;
@@ -186,38 +180,63 @@ void Animator::GenerateFrames()
     m_Frames.reserve(m_FrameCount);
 
     for(FrameInfo& info : m_FrameInfos)
-    {        
+    {   
+        Graphics frame;        
+
+        uint16_t max_x = 0;
+        uint16_t max_y = 0; 
+
         for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
         {
             SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
             auto size = sprite_sizes[oam.GetSize() + (oam.GetShape()*4)];
+            uint16_t x = oam.GetX();
+            uint16_t y = oam.GetY();            
+
+            if(size.first + x > max_x)
+            {
+                max_x = size.first + x;
+            }
+
+            if(size.second + y > max_y)
+            {
+                max_y = size.second + y;
+            }            
+        }
+
+        frame.Create(max_x, max_y);
+
+        for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+        {
+            SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
+
+            auto size = sprite_sizes[oam.GetSize() + (oam.GetShape()*4)];
             auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
-            auto tile_count = tile_size.first*tile_size.second;
+            uint16_t tile_count = tile_size.first*tile_size.second;
+            
+            uint16_t tile_x = oam.GetX() / 8;
+            uint16_t tile_y = oam.GetY() / 8;
+
+            uint16_t tile_x_start = oam.GetX() / 8;
 
             AnimRange tile_range;
             tile_range.start = info.tile.start + oam.GetTile();
-            tile_range.length = tile_count;
-
-            Graphics graphics;
-            graphics.Create(size.first, size.second);
-
-            uint32_t tile_x = 0;
-            uint32_t tile_y = 0;
+            tile_range.length = tile_count;                        
 
             for(size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
             {
-                graphics.BlitTile(m_Tiles[tile_i+tile_range.start], tile_x, tile_y);
+                frame.BlitTile(m_Tiles[tile_i+tile_range.start], tile_x, tile_y);
 
                 tile_x++;
 
-                if(tile_x == tile_size.first)
+                if(tile_x == tile_size.first+tile_x_start)
                 {
-                    tile_x = 0;
-                    tile_y++;
+                    tile_x = oam.GetX() / 8;
+                    tile_y ++;
                 }
-            }
-
-            m_Frames.push_back(graphics);
+            }     
         }
+
+        m_Frames.push_back(frame);
     }
 }
