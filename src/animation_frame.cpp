@@ -348,12 +348,53 @@ void AnimationEditorFrame::UpdateFile()
 
 void AnimationEditorFrame::OnGoFile()
 {
-    wxTextEntryDialog dialog(nullptr, L"Please, type an offset", L"Open animator");
-    dialog.SetTextValidator(wxTextValidatorStyle::wxFILTER_XDIGITS);
+    wxTextEntryDialog dialog(nullptr, L"Please, type an offset. Prefix the offset with '-' when using offset of the first tile.", L"Open animator");
 
     if(dialog.ShowModal() == wxID_OK)
     {
-        m_pAnimatorEditor->OpenNew(std::stoi(dialog.GetValue().ToStdWstring(), nullptr, 16));
+        wxString value = dialog.GetValue();
+
+        bool find = value[0] == '-';
+
+        if(find)
+        {
+            value.erase(0, 1);
+        }
+
+        for(const wchar_t c : value)
+        {
+            if(!isxdigit(c))
+            {
+                wxMessageBox(L"Invalid offset. Please, type hex numbers only.", L"Error", wxICON_ERROR);
+                return;
+            }
+        }
+
+        uint32_t offset = std::stoi(value.ToStdWstring(), nullptr, 16);
+
+        if(find)
+        {            
+            RomFile& rom = m_pAnimatorEditor->GetRom(true);
+            rom.Seek(offset);
+
+            offset = Animator::FindAnimatorOffset(rom);
+
+            if(offset == 0)
+            {
+                wxMessageBox(L"Failed to find the animator.", L"Error,", wxICON_ERROR);
+                return;
+            } else 
+            {
+                if(
+                    wxMessageBox(wxString::Format(L"Found animator at %s. Open?", Moon::BitConverter::ToHexString(offset)), wxString::FromAscii(wxMessageBoxCaptionStr), wxICON_QUESTION | wxYES_NO, this)
+                    != wxYES)
+                    {
+                        return;
+                    }
+            }
+        }
+
+        m_pAnimatorEditor->OpenNew(offset);
 
         UpdateFile();
     }

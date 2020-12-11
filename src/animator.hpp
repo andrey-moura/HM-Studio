@@ -86,7 +86,7 @@ private:
     std::vector<AnimInstruction> m_Instructions;    
 public:
     void LoadFromFile(wxFile& file);
-    void WriteToFile(wxFile& file);
+    void WriteToFile(wxFile& file);    
 
     void GenerateFrames();
 
@@ -110,4 +110,6 @@ public:
     void SetInstruction(size_t n, const AnimInstruction& instruction) { m_Instructions[n] = instruction; }
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
     std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }    
+public:
+    static uint32_t FindAnimatorOffset(wxFile& file);
 };

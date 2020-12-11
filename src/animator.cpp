@@ -172,7 +172,58 @@ void Animator::WriteToFile(wxFile& file)
     {
         file.Write(&inst, sizeof(AnimInstruction));
     }    
-}   
+}
+
+uint32_t Animator::FindAnimatorOffset(wxFile& file)
+{
+    file.Seek(file.Tell() - 4);
+
+    uint32_t attrCount = 1;
+    uint32_t buffer;
+
+    while(1)
+    {
+        file.Seek(file.Tell() - sizeof(SpriteAttribute) - 4);
+        file.Read(&buffer, sizeof(uint32_t));
+
+        if(buffer == attrCount)
+            break;
+
+        ++attrCount;        
+    }
+
+    file.Seek(file.Tell()-4);
+
+    uint32_t frameCount = 1;    
+
+    while(1)
+    {
+        file.Seek(file.Tell() - sizeof(FrameInfo) - 4);
+        file.Read(&buffer, sizeof(uint32_t));
+
+        if(buffer == frameCount)
+            break;
+
+        ++frameCount;        
+    }
+
+    file.Seek(file.Tell()-4);
+
+    uint32_t animCount = 1;
+
+    while(1)
+    {
+        file.Seek(file.Tell()- sizeof(uint32_t) - 4);
+        file.Read(&buffer, sizeof(uint32_t));
+
+        if(buffer == animCount)
+            break;
+
+        ++animCount;        
+    }    
+
+    return file.Tell() - 4;
+}
 
 void Animator::GenerateFrames()
 {
