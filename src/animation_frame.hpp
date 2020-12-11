@@ -33,9 +33,7 @@ private:
 private:
     virtual void UpdateFile() override;
     virtual void OnGoFile() override;
-private:
-    void OnOpenAnimationClick(wxCommandEvent& event);
-    void OnInsertAnimator(wxCommandEvent& event);    
+private:    
     void OnEditFramesClick(wxCommandEvent& event);
     void OnEditRemoveInstrClick(wxCommandEvent& event);    
     void OnEditAnimFrameClick(wxCommandEvent& event);    

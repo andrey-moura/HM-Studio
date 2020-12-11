@@ -555,59 +555,46 @@ void AnimationEditorFrame::OnCellChanged(wxGridEvent& event)
     event.Skip();
 }
 
-void AnimationEditorFrame::OnOpenAnimationClick(wxCommandEvent& event)
-{
-    wxTextEntryDialog dialog(nullptr, L"Type an offset", "Open Animation");
-    dialog.SetTextValidator(wxTextValidatorStyle::wxFILTER_XDIGITS);
-
-    if(dialog.ShowModal() == wxID_OK)
-    {    
-        //LoadFromRom(m_pEditor->GetRom(true), std::stoi(dialog.GetValue().ToStdWstring(), nullptr, 16));
-    }
-
-    event.Skip();
-}
-
-void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
-{
-    event.Skip();
+// void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
+// {
+//     event.Skip();
     
-    uint32_t newSize = m_pAnimatorEditor->GetAnimator().GetLength();
-    bool move = newSize > m_OldSize;
+//     uint32_t newSize = m_pAnimatorEditor->GetAnimator().GetLength();
+//     bool move = newSize > m_OldSize;
 
-    uint32_t insert_offset = m_Offset;
+//     uint32_t insert_offset = m_Offset;
 
-    uint32_t fill = 0;
+//     uint32_t fill = 0;
 
-    if(move)
-    {
-        insert_offset = m_pEditor->GetRom(true).FindFreeSpace(newSize);
+//     if(move)
+//     {
+//         insert_offset = m_pEditor->GetRom(true).FindFreeSpace(newSize);
 
-        if(insert_offset == std::string::npos)
-        {
-            wxMessageBox(L"Failed to insert the animator. No space found.", L"Error", wxICON_ERROR);
-            return;
-        }
-    } else 
-    {
-        fill = m_OldSize - newSize;
-    }
+//         if(insert_offset == std::string::npos)
+//         {
+//             wxMessageBox(L"Failed to insert the animator. No space found.", L"Error", wxICON_ERROR);
+//             return;
+//         }
+//     } else 
+//     {
+//         fill = m_OldSize - newSize;
+//     }
 
-    m_pEditor->GetRom(true).Seek(insert_offset);
-    m_pAnimatorEditor->GetAnimator().WriteToFile(m_pEditor->GetRom(true));
+//     m_pEditor->GetRom(true).Seek(insert_offset);
+//     m_pAnimatorEditor->GetAnimator().WriteToFile(m_pEditor->GetRom(true));
 
-    if(move)
-    {
-        wxMessageBox(L"The animator was moved to " + Moon::BitConverter::ToHexString(insert_offset), L"Warning", wxICON_WARNING);
-        return;
-    }
+//     if(move)
+//     {
+//         wxMessageBox(L"The animator was moved to " + Moon::BitConverter::ToHexString(insert_offset), L"Warning", wxICON_WARNING);
+//         return;
+//     }
     
-    while(fill)
-    {
-        m_pEditor->GetRom(true).WriteT<uint8_t>(0);
-        --fill;
-    }
-}
+//     while(fill)
+//     {
+//         m_pEditor->GetRom(true).WriteT<uint8_t>(0);
+//         --fill;
+//     }
+// }
 
 void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event) 
 {
@@ -715,9 +702,7 @@ void AnimationEditorFrame::OnTimer(wxTimerEvent& event)
 
 void AnimationEditorFrame::CreateGUIControls()
 {
-    wxMenu* menuAnimator = new wxMenu();
-    Bind(wxEVT_MENU, &AnimationEditorFrame::OnOpenAnimationClick, this, menuAnimator->Append(wxID_ANY, "Open Animator...")->GetId());
-    Bind(wxEVT_MENU, &AnimationEditorFrame::OnInsertAnimator, this, menuAnimator->Append(wxID_ANY, "Insert Animator")->GetId());
+    wxMenu* menuAnimator = new wxMenu();    
     Bind(wxEVT_MENU, &AnimationEditorFrame::OnEditAnimFrameClick, this, menuAnimator->Append(wxID_ANY, "Edit Frames")->GetId());
 
     wxMenu* menuAnimation = new wxMenu();
