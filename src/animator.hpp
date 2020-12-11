@@ -37,39 +37,19 @@ struct FrameInfo
 
 struct SpriteAttribute
 {
-    uint16_t attributes[3];
-private:
-    uint16_t unused;
-public:
-	uint16_t GetX()
-    {
-		return 0x1FF & attributes[1];
-    }
+    signed y : 8;
+    unsigned : 6;
+    unsigned shape : 2;
 
-	uint8_t GetY()
-    {
-		return 0xFF & attributes[0];
-    }
+    signed x : 9;
+    unsigned : 5;
+    unsigned size : 2;
 
-	uint16_t GetTile()
-    {
-		return 0x3FF & attributes[2];
-    }
+    unsigned tile : 10;
+    unsigned : 2;
+    unsigned palette : 4;
 
-	uint8_t GetPalette()
-    {
-		return 0xF & (attributes[2] >> 12);
-    }
-
-	uint8_t GetShape()
-    {
-		return 0x3 & (attributes[0] >> 14);
-    }
-
-	uint8_t GetSize()
-    {
-		return 0x3 & (attributes[1] >> 14);
-    }	
+    unsigned unused : 16;
 };
 
 class Animator

@@ -229,7 +229,7 @@ Palette& Animator::GetFramePalette(size_t n)
 {
     FrameInfo& info = m_FrameInfos[n];
 
-    return m_Palettes[info.color.start + m_Attributes[info.oam.start].GetPalette()];
+    return m_Palettes[info.color.start + m_Attributes[info.oam.start].palette];
 }
 
 void Animator::GenerateFrames()
@@ -247,9 +247,10 @@ void Animator::GenerateFrames()
         for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
         {
             SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
-            auto size = sprite_sizes[oam.GetSize() + (oam.GetShape()*4)];
-            uint16_t x = oam.GetX();
-            uint16_t y = oam.GetY();            
+
+            auto size = sprite_sizes[oam.size + (oam.shape*4)];
+            int x = oam.x;
+            int y = oam.y;            
 
             if(size.first + x > max_x)
             {
@@ -259,7 +260,7 @@ void Animator::GenerateFrames()
             if(size.second + y > max_y)
             {
                 max_y = size.second + y;
-            }            
+            }
         }
 
         frame.Create(max_x, max_y);
@@ -268,17 +269,17 @@ void Animator::GenerateFrames()
         {
             SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
 
-            auto size = sprite_sizes[oam.GetSize() + (oam.GetShape()*4)];
+            auto size = sprite_sizes[oam.size + (oam.shape*4)];
             auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
             uint16_t tile_count = tile_size.first*tile_size.second;
             
-            uint16_t tile_x = oam.GetX() / 8;
-            uint16_t tile_y = oam.GetY() / 8;
+            uint16_t tile_x = oam.x / 8;
+            uint16_t tile_y = oam.y / 8;
 
-            uint16_t tile_x_start = oam.GetX() / 8;
+            uint16_t tile_x_start = oam.x / 8;
 
             AnimRange tile_range;
-            tile_range.start = info.tile.start + oam.GetTile();
+            tile_range.start = info.tile.start + oam.tile;
             tile_range.length = tile_count;                        
 
             for(size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
@@ -289,7 +290,7 @@ void Animator::GenerateFrames()
 
                 if(tile_x == tile_size.first+tile_x_start)
                 {
-                    tile_x = oam.GetX() / 8;
+                    tile_x = oam.x / 8;
                     tile_y ++;
                 }
             }     
