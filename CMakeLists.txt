@@ -25,8 +25,7 @@ if(WIN32)
 		# hunspell include directory
 		include_directories("$ENV{HUNSPELL}\\src")
 		# hunspell library folder
-		link_directories("$ENV{Hunspell}\\msvc\\Release")
-		link_directories("$ENV{Hunspell}\\msvc\\Debug")
+		link_directories("$ENV{Hunspell}\\msvc\\${CMAKE_BUILD_TYPE}\\libhunspell")		
 		
 		# enable Hunspell
 		add_definitions(-DENABLE_SPELL)
@@ -141,6 +140,8 @@ SET(HDR
 
 if(WIN32)
 	add_executable(HMStudio WIN32 ${SRC} ${HDR})	
+	
+	target_link_libraries(HMStudio libhunspell)
 else()
 	add_executable(HMStudio ${SRC} ${HDR})	
 	
