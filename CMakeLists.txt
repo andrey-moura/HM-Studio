@@ -133,6 +133,7 @@ SET(HDR
 	src/frame_string_editor.hpp
 	src/frame_text_block_editor.hpp
 	src/frame_value_editor.hpp
+	src/gba_graphics.hpp
 	src/graphicsinfoviewer.hpp
 	src/palctrl.hpp
 	src/window_find_results.hpp
