@@ -249,8 +249,8 @@ void Animator::GenerateFrames()
             SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
 
             auto size = sprite_sizes[oam.size + (oam.shape*4)];
-            int x = oam.x;
-            int y = oam.y;            
+            uint16_t x = oam.x;
+            uint16_t y = oam.y;
 
             if(size.first + x > max_x)
             {
@@ -271,12 +271,12 @@ void Animator::GenerateFrames()
 
             auto size = sprite_sizes[oam.size + (oam.shape*4)];
             auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
-            uint16_t tile_count = tile_size.first*tile_size.second;
-            
+            uint16_t tile_count = tile_size.first*tile_size.second;            
+
             uint16_t tile_x = oam.x / 8;
             uint16_t tile_y = oam.y / 8;
 
-            uint16_t tile_x_start = oam.x / 8;
+            uint16_t tile_x_start = tile_x;
 
             AnimRange tile_range;
             tile_range.start = info.tile.start + oam.tile;

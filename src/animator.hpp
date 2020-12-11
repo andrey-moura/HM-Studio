@@ -37,11 +37,11 @@ struct FrameInfo
 
 struct SpriteAttribute
 {
-    signed y : 8;
+    unsigned y : 8;
     unsigned : 6;
     unsigned shape : 2;
 
-    signed x : 9;
+    unsigned x : 9;
     unsigned : 5;
     unsigned size : 2;
 

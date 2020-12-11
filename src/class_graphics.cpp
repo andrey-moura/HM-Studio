@@ -15,8 +15,14 @@ size_t Palette::find_color(const Color& c) const
 
 //-------------------------------------------------//
 
-Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar) :
-	m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
+Graphics::Graphics()
+	: m_Width(16), m_Height(16), m_Reversed(true), m_Planar(false)
+{
+	SetBpp(4);
+}
+
+Graphics::Graphics(uint32_t width, uint32_t height, uint8_t bpp, bool reversed, bool planar)
+	: m_Width(width), m_Height(height), m_Reversed(reversed), m_Planar(planar)
 {
 	SetBpp(bpp);
 }
