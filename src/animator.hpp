@@ -101,6 +101,7 @@ public:
     std::vector<Graphics>& GetTiles() { return m_Tiles; } 
 
     Palette& GetPalette(size_t n) { return m_Palettes[n]; }
+    Palette& GetFramePalette(size_t n);
 
     void SetRange(size_t n, const AnimRange& range) { m_AnimRanges[n] = range; }
     AnimRange GetAnimRange(size_t n) { return m_AnimRanges[n]; }

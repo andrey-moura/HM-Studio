@@ -225,6 +225,13 @@ uint32_t Animator::FindAnimatorOffset(wxFile& file)
     return file.Tell() - 4;
 }
 
+Palette& Animator::GetFramePalette(size_t n)
+{
+    FrameInfo& info = m_FrameInfos[n];
+
+    return m_Palettes[info.color.start + m_Attributes[info.oam.start].GetPalette()];
+}
+
 void Animator::GenerateFrames()
 {
     m_Frames.clear();

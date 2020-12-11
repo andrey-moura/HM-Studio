@@ -81,7 +81,7 @@ public:
 
     void UpdateFrame(size_t i)
     {
-        wxBitmap frame = GraphicsView::ConvertToBitmap(m_Animator.GetFrame(i), m_Animator.GetPalette(0));
+        wxBitmap frame = GraphicsView::ConvertToBitmap(m_Animator.GetFrame(i), m_Animator.GetFramePalette(i));
 
         if(i == m_SelectedFrame)
         {
@@ -196,7 +196,7 @@ private:
             rect.y += 8;
         }
 
-        Palette& pal = m_Animator.GetPalette(0);
+        Palette& pal = m_Animator.GetFramePalette(m_SelectedFrame);
 
         bool wrong_color = false;
 
@@ -316,7 +316,7 @@ private:
 
         const Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
 
-        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetPalette(0));
+        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetFramePalette(m_SelectedFrame));
 
         //~wxImage takes care of deleting colors
         wxBitmap(wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)colors)).SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
@@ -463,7 +463,7 @@ void AnimationEditorFrame::UpdateFrame()
         m_Timer.Start(instruction.time*16, true);
     }
 
-    m_pAnimationViewer->SetPalette(&m_pAnimatorEditor->GetAnimator().GetPalette(0));
+    m_pAnimationViewer->SetPalette(&m_pAnimatorEditor->GetAnimator().GetFramePalette(instruction.frame));
     m_pAnimationViewer->SetGraphics(&frame);    
 
     m_CurrentInstruction++;  
