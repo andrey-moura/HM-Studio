@@ -225,6 +225,11 @@ uint32_t Animator::FindAnimatorOffset(wxFile& file)
     return file.Tell() - 4;
 }
 
+std::pair<uint16_t, uint16_t>* Animator::GetSizeList()
+{
+    return sprite_sizes;
+}
+
 Palette& Animator::GetFramePalette(size_t n)
 {
     FrameInfo& info = m_FrameInfos[n];

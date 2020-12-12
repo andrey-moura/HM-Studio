@@ -83,6 +83,8 @@ public:
     Palette& GetPalette(size_t n) { return m_Palettes[n]; }
     Palette& GetFramePalette(size_t n);
 
+    SpriteAttribute& GetAttribute(size_t n) { return m_Attributes[n]; }
+
     void SetRange(size_t n, const AnimRange& range) { m_AnimRanges[n] = range; }
     AnimRange GetAnimRange(size_t n) { return m_AnimRanges[n]; }
     std::vector<AnimRange>& GetAnimRanges() { return m_AnimRanges; }
@@ -92,5 +94,6 @@ public:
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
     std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }    
 public:
+    static std::pair<uint16_t, uint16_t>* GetSizeList();
     static uint32_t FindAnimatorOffset(wxFile& file);
 };
