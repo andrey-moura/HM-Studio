@@ -42,6 +42,7 @@ private:
     void OnChangingCell(wxGridEvent& event);
     void OnCellChanged(wxGridEvent& event);
     void OnInsertInstruction(wxCommandEvent& event);
+    void OnExportAnimationClick(wxCommandEvent& event);
     void OnTimer(wxTimerEvent& event);
 private:
     GraphicsView* m_pAnimationViewer = nullptr;    

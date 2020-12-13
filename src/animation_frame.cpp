@@ -2,6 +2,7 @@
 
 #include <wx/textdlg.h>
 
+#include <gif-h/gif.h>
 #include <moon/wx/bitmap.hpp>
 
 //-----------------------------------------------------------------------------------------------//
@@ -393,7 +394,7 @@ private:
 
         const Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
 
-        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetFramePalette(m_SelectedFrame));
+        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetFramePalette(m_SelectedFrame));        
 
         //~wxImage takes care of deleting colors
         wxBitmap(wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)colors)).SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
@@ -771,6 +772,51 @@ void AnimationEditorFrame::OnInsertInstruction(wxCommandEvent& event)
     event.Skip();
 }
 
+void AnimationEditorFrame::OnExportAnimationClick(wxCommandEvent& event)
+{
+    event.Skip();    
+
+    wxString path = wxSaveFileSelector(L"Export GIF Animation", L"gif");
+
+    if (path.empty())
+        return;
+
+    Animator& animator = m_pAnimatorEditor->GetAnimator();
+    auto& animRange = animator.GetAnimRange(m_CurrentAnimation);
+
+    auto& instrs = animator.GetInstructions();    
+
+    uint32_t width = 0, height = 0;    
+
+    //Find largest frame
+    for (size_t i = 0; i < animRange.length; ++i)
+    {
+        Graphics& frame = animator.GetFrame(animRange.start + i);
+
+        width = std::max(frame.GetWidth(), width);
+        height = std::max(frame.GetHeight(), height);
+    }
+
+    GifWriter g;
+    GifBegin(&g, path.ToStdString().c_str(), width, height, 0, 0xffff);
+
+    for (size_t anim_i = 0; anim_i < animRange.length; ++anim_i)
+    {
+        AnimInstruction instr = animator.GetInstruction(animRange.start + anim_i);
+
+        Graphics& frame = animator.GetFrame(instr.frame);
+        Palette& pal = animator.GetFramePalette(instr.frame);
+
+        uint8_t * image = Graphics::ToImage32(frame, pal);
+        
+        GifWriteFrame(&g, image, frame.GetWidth(), frame.GetHeight(), (instr.time*16)/10);
+
+        delete[] image;
+    }
+
+    GifEnd(&g);
+}
+
 void AnimationEditorFrame::OnTimer(wxTimerEvent& event)
 {
     UpdateFrame();
@@ -783,9 +829,10 @@ void AnimationEditorFrame::CreateGUIControls()
     Bind(wxEVT_MENU, &AnimationEditorFrame::OnEditAnimFrameClick, this, menuAnimator->Append(wxID_ANY, "Edit Frames")->GetId());
 
     wxMenu* menuAnimation = new wxMenu();
-    Bind(wxEVT_MENU, &AnimationEditorFrame::OnEditFramesClick, this, menuAnimation->Append(wxID_ANY, L"Edit Frames")->GetId());
     Bind(wxEVT_MENU, &AnimationEditorFrame::OnEditRemoveInstrClick, this, menuAnimation->Append(wxID_ANY, L"Remove Instruction...")->GetId());
-    Bind(wxEVT_MENU, &AnimationEditorFrame::OnInsertInstruction, this, menuAnimation->Append(wxID_ANY, L"Insert instruction...")->GetId());    
+    Bind(wxEVT_MENU, &AnimationEditorFrame::OnInsertInstruction, this, menuAnimation->Append(wxID_ANY, L"Insert instruction...")->GetId());   
+    menuAnimation->AppendSeparator();
+    Bind(wxEVT_MENU, &AnimationEditorFrame::OnExportAnimationClick, this, menuAnimation->Append(wxID_ANY, L"Export...")->GetId());    
 
     wxMenuBar* menuBar = new wxMenuBar();
     menuBar->Append(menuAnimator, L"Animator");    
