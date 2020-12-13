@@ -62,6 +62,8 @@ bool AnimatorEditor::Open(uint32_t number)
     m_Animator.LoadFromFile(file);
 
     m_Number = number;
+
+    m_OldLenght = m_Animator.GetLength();
 }
 
 void AnimatorEditor::OpenNew(uint32_t offset)
@@ -71,6 +73,8 @@ void AnimatorEditor::OpenNew(uint32_t offset)
 
     m_Animators.push_back(offset);
     m_Number = m_Animators.size()-1;
+
+    m_OldLenght = m_Animator.GetLength();
 }
 
 void AnimatorEditor::SaveFile()
@@ -86,6 +90,41 @@ void AnimatorEditor::SaveFile()
 
 void AnimatorEditor::InsertFile()
 {
-    m_RomTranslated.Seek(m_Offset);
+    uint32_t newLength = m_Animator.GetLength();
+    bool move = newLength > m_OldLenght;
+
+    uint32_t insert_offset = m_Offset;
+
+    uint32_t fill = 0;
+
+    if(move)
+    {
+        insert_offset = m_RomTranslated.FindFreeSpace(newLength);
+
+        if(insert_offset == std::string::npos)
+        {
+            wxMessageBox(L"Failed to insert the animator. No space found.", L"Error", wxICON_ERROR);
+            return;
+        }
+    } else 
+    {
+        fill = m_OldLenght - newLength;
+    }
+
+    m_RomTranslated.Seek(insert_offset);
     m_Animator.WriteToFile(m_RomTranslated);
+
+    if(move)
+    {
+        wxMessageBox(L"The animator was moved to " + Moon::BitConverter::ToHexString(insert_offset), L"Warning", wxICON_WARNING);
+        return;
+    }
+
+    while(fill)
+    {
+        m_RomTranslated.WriteT<uint8_t>(0);        
+        --fill;
+    }
+
+    m_RomTranslated.Flush();
 }
