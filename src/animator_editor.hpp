@@ -12,6 +12,8 @@ private:
     std::vector<uint32_t> m_Animators;
     wxString m_PathFormat;
     uint32_t m_Offset;
+
+    uint32_t m_OldLenght = 0;
 public:
     virtual bool Open(uint32_t number) override;
     void OpenNew(uint32_t offset);
