@@ -1,3 +1,6 @@
 [submodule "include/moon"]
 	path = include/moon
 	url = https://www.github.com/moonslate/moon.git
+[submodule "include/gif-h"]
+	path = include/gif-h
+	url = https://www.github.com/Moonslate/gif-h.git
