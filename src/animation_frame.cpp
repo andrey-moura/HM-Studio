@@ -799,7 +799,7 @@ void AnimationEditorFrame::CreateGUIControls()
     m_pAnimationViewer->SetMinSize(wxSize(128, 128));
 
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_pAnimationViewer, 0, wxEXPAND);
+    sizer->Add(m_pAnimationViewer, 1, wxEXPAND);
 
     wxPanel* m_RightPanel = new wxPanel(this, wxID_ANY);
     m_RightPanel->SetBackgroundColour(wxColour(255, 255, 255));    
@@ -846,7 +846,7 @@ void AnimationEditorFrame::CreateGUIControls()
 
     m_RightPanel->SetSizer(rightPanelSizer);
 
-    sizer->AddStretchSpacer(1);
+    //sizer->AddStretchSpacer(1);
     sizer->Add(m_RightPanel);
 
     SetSizer(sizer);        
