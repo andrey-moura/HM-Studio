@@ -95,4 +95,5 @@ public:
 	void operator=(const Graphics& other);
 public:
 	static Color* ToImage24(const Graphics& graphics, const Palette& palette);
+	static uint8_t* ToImage32(const Graphics& graphics, const Palette& palette);
 };

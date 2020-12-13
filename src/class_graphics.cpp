@@ -202,3 +202,31 @@ Color* Graphics::ToImage24(const Graphics& graphics, const Palette& palette)
 
 	return colors;
 }
+
+uint8_t* Graphics::ToImage32(const Graphics& graphics, const Palette& palette)
+{
+	const uint8_t* data = graphics.GetData();
+
+	if (!data)
+		return nullptr;
+
+	if (graphics.GetWidth() == 0 || graphics.GetHeight() == 0)
+		return nullptr;
+
+	size_t count = graphics.GetWidth() * graphics.GetHeight();
+
+	uint8_t* colors = new uint8_t[count * 4];
+
+	size_t it = 0;
+	
+	for(size_t color_it = 0; color_it < count; ++color_it)
+	{
+		Color c = palette[graphics.GetPixel(color_it)];
+		colors[it++] = c.red;
+		colors[it++] = c.green;
+		colors[it++] = c.blue;
+		colors[it++] = 255;
+	}
+
+	return colors;
+}
