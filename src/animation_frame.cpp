@@ -5,6 +5,74 @@
 #include <moon/wx/bitmap.hpp>
 
 //-----------------------------------------------------------------------------------------------//
+//                                      Frame Pieces Editor
+//-----------------------------------------------------------------------------------------------//
+
+class FramePiecesEditor : public wxFrame
+{
+public:
+    FramePiecesEditor(Animator& animator, size_t currentFrame)
+        : wxFrame(nullptr, wxID_ANY, L"Frame Pieces Editor"),
+            m_Animator(animator), m_CurrentFrame(currentFrame)
+    {
+        CreateGUIControls();
+    }
+private:
+    Animator& m_Animator;
+    size_t m_CurrentFrame = 0;
+    size_t m_CurrentPiece = 0;
+    wxBitmap m_Frame;
+
+    std::vector<wxRect> m_Pieces;
+private:
+    wxBitmapView* m_pBitmapViewer;
+private:
+    void CreateGUIControls()
+    {
+        Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
+        m_Frame = wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)Graphics::ToImage24(frame, m_Animator.GetPalette(0)));        
+
+        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
+
+        auto sprite_sizes = Animator::GetSizeList();
+
+        for (size_t i = 0; i < info.oam.length; ++i)
+        {
+            SpriteAttribute& attr = m_Animator.GetAttribute(i + info.oam.start);
+
+            auto size = sprite_sizes[attr.size + (attr.shape * 4)];
+
+            m_Pieces.push_back({ wxPoint(attr.x, attr.y), wxSize(size.first, size.second) });
+        }
+
+        wxMemoryDC dc(m_Frame);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+
+        for (size_t i = 0; i < m_Pieces.size(); ++i)
+        {
+            wxColour c;
+
+            if (m_CurrentPiece == i)
+            {
+                c = wxColour(0, 0, 128);
+            }
+            else
+            {
+                c = wxColour(128, 0, 0);
+            }
+
+            wxPen pen(c, 1, wxPENSTYLE_SOLID);
+            dc.DrawRectangle(m_Pieces[i]);
+        }        
+
+        m_pBitmapViewer = new wxBitmapView(this, wxID_ANY);
+        m_pBitmapViewer->SetBitmap(&m_Frame);
+
+        //m_pBitmapViewer->SetMinSize()
+    }
+};
+
+//-----------------------------------------------------------------------------------------------//
 //                                          Frames Editor
 //-----------------------------------------------------------------------------------------------//
 
@@ -20,6 +88,7 @@ public:
         wxMenu* menuFrame = new wxMenu();
         Bind(wxEVT_MENU, &FramesEditorFrame::OnSwapFrameClick, this, menuFrame->Append(wxID_ANY, L"Swap tiles...")->GetId());
         Bind(wxEVT_MENU, &FramesEditorFrame::OnReplaceTilesClick, this, menuFrame->Append(wxID_ANY, L"Replace tiles...")->GetId());
+        Bind(wxEVT_MENU, &FramesEditorFrame::OnEditPiecesClick, this, menuFrame->Append(wxID_ANY, L"Edit Pieces...")->GetId());
         menuFrame->AppendSeparator();
         Bind(wxEVT_MENU, &FramesEditorFrame::OnExportFrameClick, this, menuFrame->Append(wxID_ANY, L"Export")->GetId());
 
@@ -255,6 +324,14 @@ private:
          m_Animator.GenerateFrames();
         
         UpdateFrame(m_SelectedFrame);
+    }
+
+    void OnEditPiecesClick(wxCommandEvent& event)
+    {
+        FramePiecesEditor* frame = new FramePiecesEditor(m_Animator, m_SelectedFrame);
+        frame->Show();
+
+        event.Skip();
     }
 
     void OnSwapFrameClick(wxCommandEvent& event)
@@ -595,47 +672,6 @@ void AnimationEditorFrame::OnCellChanged(wxGridEvent& event)
 
     event.Skip();
 }
-
-// void AnimationEditorFrame::OnInsertAnimator(wxCommandEvent& event)
-// {
-//     event.Skip();
-    
-//     uint32_t newSize = m_pAnimatorEditor->GetAnimator().GetLength();
-//     bool move = newSize > m_OldSize;
-
-//     uint32_t insert_offset = m_Offset;
-
-//     uint32_t fill = 0;
-
-//     if(move)
-//     {
-//         insert_offset = m_pEditor->GetRom(true).FindFreeSpace(newSize);
-
-//         if(insert_offset == std::string::npos)
-//         {
-//             wxMessageBox(L"Failed to insert the animator. No space found.", L"Error", wxICON_ERROR);
-//             return;
-//         }
-//     } else 
-//     {
-//         fill = m_OldSize - newSize;
-//     }
-
-//     m_pEditor->GetRom(true).Seek(insert_offset);
-//     m_pAnimatorEditor->GetAnimator().WriteToFile(m_pEditor->GetRom(true));
-
-//     if(move)
-//     {
-//         wxMessageBox(L"The animator was moved to " + Moon::BitConverter::ToHexString(insert_offset), L"Warning", wxICON_WARNING);
-//         return;
-//     }
-    
-//     while(fill)
-//     {
-//         m_pEditor->GetRom(true).WriteT<uint8_t>(0);
-//         --fill;
-//     }
-// }
 
 void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event) 
 {
