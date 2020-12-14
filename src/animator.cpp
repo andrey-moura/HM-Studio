@@ -246,28 +246,7 @@ void Animator::GenerateFrame(size_t n)
     uint16_t max_x = 0;
     uint16_t max_y = 0;
 
-    std::vector<std::pair<int, int>> positions;
-    std::pair<int, int> minor_pos;
-
-    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-    {
-        SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
-
-        positions.push_back({ oam.x, oam.y });
-    }
-
-    for (auto& pos : positions)
-    {
-        minor_pos.first = std::min(minor_pos.first, pos.first);
-        minor_pos.second = std::min(minor_pos.second, pos.second);
-    }
-
-    //minor_pos will be {0, 0} and all positions are relative to it.
-    for (auto& pos : positions)
-    {
-        pos.first -= minor_pos.first;
-        pos.second -= minor_pos.second;
-    }
+    std::vector<std::pair<int, int>> positions = GetPositions(n);        
 
     //the max_x and max_y position. aka width and height
     for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
@@ -336,4 +315,34 @@ void Animator::GenerateFrames()
     {   
         GenerateFrame(i);
     }
+}
+
+std::vector<std::pair<int, int>> Animator::GetPositions(size_t n)
+{
+    std::vector<std::pair<int, int>> positions;
+    std::pair<int, int> minor_pos;
+
+    FrameInfo& info = GetFrameInfo(n);    
+
+    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+    {
+        SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
+
+        positions.push_back({ oam.x, oam.y });
+
+        minor_pos.first = std::min(minor_pos.first, oam.x);
+        minor_pos.second = std::min(minor_pos.second, oam.y);
+    }    
+
+    if (minor_pos.first == 0 && minor_pos.second == 0)
+        return positions;
+
+    //minor_pos will be {0, 0} and all positions are relative to it.
+    for (auto& pos : positions)
+    {
+        pos.first -= minor_pos.first;
+        pos.second -= minor_pos.second;
+    }
+
+    return positions;
 }

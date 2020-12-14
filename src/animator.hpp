@@ -95,6 +95,8 @@ public:
     void SetInstruction(size_t n, const AnimInstruction& instruction) { m_Instructions[n] = instruction; }
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
     std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }    
+
+    std::vector<std::pair<int, int>> GetPositions(size_t n);
 public:
     static std::pair<uint16_t, uint16_t>* GetSizeList();
     static uint32_t FindAnimatorOffset(wxFile& file);
