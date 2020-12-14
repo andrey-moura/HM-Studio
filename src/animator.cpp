@@ -46,11 +46,12 @@ void Animator::LoadFromFile(wxFile& file)
         file.Read(&m_AnimRanges[i], sizeof(AnimRange));        
     }
     
-    file.Read(&m_FrameCount, sizeof(uint32_t));
+    uint32_t frameCount;
+    file.Read(&frameCount, sizeof(uint32_t));
 
-    m_FrameInfos.resize(m_FrameCount);    
+    m_FrameInfos.resize(frameCount);
 
-    for(size_t i = 0; i < m_FrameCount; ++i)
+    for(size_t i = 0; i < frameCount; ++i)
     {
         file.Read(&m_FrameInfos[i], sizeof(FrameInfo));
     }
@@ -124,7 +125,8 @@ void Animator::WriteToFile(wxFile& file)
         file.Write(&range, sizeof(AnimRange));
     }
 
-    file.Write(&m_FrameCount, sizeof(uint32_t));
+    uint32_t frameCount = m_FrameInfos.size();
+    file.Write(&frameCount, sizeof(uint32_t));
     
     for(const FrameInfo& info : m_FrameInfos)
     {
@@ -237,96 +239,101 @@ Palette& Animator::GetFramePalette(size_t n)
     return m_Palettes[info.color.start + m_Attributes[info.oam.start].palette];
 }
 
+void Animator::GenerateFrame(size_t n)
+{
+    FrameInfo& info = GetFrameInfo(n);
+
+    uint16_t max_x = 0;
+    uint16_t max_y = 0;
+
+    std::vector<std::pair<int, int>> positions;
+    std::pair<int, int> minor_pos;
+
+    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+    {
+        SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
+
+        positions.push_back({ oam.x, oam.y });
+    }
+
+    for (auto& pos : positions)
+    {
+        minor_pos.first = std::min(minor_pos.first, pos.first);
+        minor_pos.second = std::min(minor_pos.second, pos.second);
+    }
+
+    //minor_pos will be {0, 0} and all positions are relative to it.
+    for (auto& pos : positions)
+    {
+        pos.first -= minor_pos.first;
+        pos.second -= minor_pos.second;
+    }
+
+    //the max_x and max_y position. aka width and height
+    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+    {
+        SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
+
+        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+
+        if (size.first + positions[oam_i].first > max_x)
+        {
+            max_x = size.first + positions[oam_i].first;
+        }
+
+        if (size.second + positions[oam_i].second > max_y)
+        {
+            max_y = size.second + positions[oam_i].second;
+        }
+    }
+
+    if (max_x != m_Frames[n].GetWidth() || max_y != m_Frames[n].GetHeight())
+    {
+        m_Frames[n].Create(max_x, max_y);
+    }    
+
+    //Fills the frame with transparent color. This is useful when the x and y position are negative
+    memset(m_Frames[n].GetData(), 0, m_Frames[n].GetLenght());
+
+    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+    {
+        SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
+
+        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+        auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
+        uint16_t tile_count = tile_size.first * tile_size.second;
+
+        uint16_t tile_x = positions[oam_i].first / 8;
+        uint16_t tile_y = positions[oam_i].second / 8;
+
+        uint16_t tile_x_start = tile_x;
+
+        AnimRange tile_range;
+        tile_range.start = info.tile.start + oam.tile;
+        tile_range.length = tile_count;
+
+        for (size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
+        {
+            m_Frames[n].BlitTile(m_Tiles[tile_i + tile_range.start], tile_x, tile_y);
+
+            tile_x++;
+
+            if (tile_x == tile_size.first + tile_x_start)
+            {
+                tile_x = positions[oam_i].first / 8;
+                tile_y++;
+            }
+        }
+    }    
+}
+
 void Animator::GenerateFrames()
 {
     m_Frames.clear();
-    m_Frames.reserve(m_FrameCount);
+    m_Frames.resize(m_FrameInfos.size());
 
-    for(FrameInfo& info : m_FrameInfos)
+    for(size_t i = 0; i < m_FrameInfos.size(); ++i)    
     {   
-        Graphics frame;        
-
-        uint16_t max_x = 0;
-        uint16_t max_y = 0; 
-
-        std::vector<std::pair<int, int>> positions;
-        std::pair<int, int> minor_pos;
-
-        for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-        {
-            SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];            
-
-            positions.push_back({ oam.x, oam.y });
-        }        
-
-        for (auto& pos : positions)
-        {            
-            minor_pos.first = std::min(minor_pos.first, pos.first);
-            minor_pos.second = std::min(minor_pos.second, pos.second);
-        }
-
-        //minor_pos will be {0, 0} and all positions are relative to it.
-        for (auto& pos : positions)
-        {
-            pos.first -= minor_pos.first;
-            pos.second -= minor_pos.second;
-        }
-
-        //the max_x and max_y position. aka width and height
-        for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-        {
-            SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
-
-            auto size = sprite_sizes[oam.size + (oam.shape*4)];          
-
-            if(size.first + positions[oam_i].first > max_x)
-            {
-                max_x = size.first + positions[oam_i].first;
-            }
-
-            if(size.second + positions[oam_i].second > max_y)
-            {
-                max_y = size.second + positions[oam_i].second;
-            }
-        }
-
-        frame.Create(max_x, max_y);
-
-        //Fills the frame with transparent color. This is useful when the x and y position are negative
-        memset(frame.GetData(), 0, frame.GetLenght());
-
-        for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-        {
-            SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
-
-            auto size = sprite_sizes[oam.size + (oam.shape*4)];
-            auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
-            uint16_t tile_count = tile_size.first*tile_size.second;            
-
-            uint16_t tile_x = positions[oam_i].first / 8;
-            uint16_t tile_y = positions[oam_i].second / 8;
-
-            uint16_t tile_x_start = tile_x;
-
-            AnimRange tile_range;
-            tile_range.start = info.tile.start + oam.tile;
-            tile_range.length = tile_count;                        
-
-            for(size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
-            {
-                frame.BlitTile(m_Tiles[tile_i+tile_range.start], tile_x, tile_y);
-
-                tile_x++;
-
-                if(tile_x == tile_size.first+tile_x_start)
-                {
-                    tile_x = positions[oam_i].first / 8;
-                    tile_y ++;
-                }
-            }     
-        }
-
-        m_Frames.push_back(frame);
+        GenerateFrame(i);
     }
-
 }

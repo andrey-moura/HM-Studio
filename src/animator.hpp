@@ -55,8 +55,7 @@ struct SpriteAttribute
 class Animator
 {
 private:
-    std::vector<AnimRange> m_AnimRanges;
-    uint16_t m_FrameCount = 0;
+    std::vector<AnimRange> m_AnimRanges;    
     std::vector<FrameInfo> m_FrameInfos;    
     std::vector<Graphics> m_Frames;
     std::vector<SpriteAttribute> m_Attributes;
@@ -68,6 +67,7 @@ public:
     void LoadFromFile(wxFile& file);
     void WriteToFile(wxFile& file);    
 
+    void GenerateFrame(size_t n);
     void GenerateFrames();
 
     uint32_t GetLength() const;    

@@ -64,6 +64,8 @@ void Graphics::Create(uint32_t width, uint32_t height, uint8_t bpp, bool reverse
 
 	SetBpp(bpp);
 
+	delete[] m_pRawData;
+
 	m_pRawData = new uint8_t[GetLenght()];
 }
 
