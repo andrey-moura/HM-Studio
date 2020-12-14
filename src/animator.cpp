@@ -249,22 +249,44 @@ void Animator::GenerateFrames()
         uint16_t max_x = 0;
         uint16_t max_y = 0; 
 
+        std::vector<std::pair<int, int>> positions;
+        std::pair<int, int> minor_pos;
+
+        for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+        {
+            SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];            
+
+            positions.push_back({ oam.x, oam.y });
+        }        
+
+        for (auto& pos : positions)
+        {            
+            minor_pos.first = std::min(minor_pos.first, pos.first);
+            minor_pos.second = std::min(minor_pos.second, pos.second);
+        }
+
+        //minor_pos will be {0, 0} and all positions are relative to it.
+        for (auto& pos : positions)
+        {
+            pos.first -= minor_pos.first;
+            pos.second -= minor_pos.second;
+        }
+
+        //the max_x and max_y position. aka width and height
         for(size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
         {
             SpriteAttribute& oam = m_Attributes[oam_i+info.oam.start];
 
-            auto size = sprite_sizes[oam.size + (oam.shape*4)];
-            uint16_t x = oam.x;
-            uint16_t y = oam.y;
+            auto size = sprite_sizes[oam.size + (oam.shape*4)];          
 
-            if(size.first + x > max_x)
+            if(size.first + positions[oam_i].first > max_x)
             {
-                max_x = size.first + x;
+                max_x = size.first + positions[oam_i].first;
             }
 
-            if(size.second + y > max_y)
+            if(size.second + positions[oam_i].second > max_y)
             {
-                max_y = size.second + y;
+                max_y = size.second + positions[oam_i].second;
             }
         }
 
@@ -281,8 +303,8 @@ void Animator::GenerateFrames()
             auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
             uint16_t tile_count = tile_size.first*tile_size.second;            
 
-            uint16_t tile_x = oam.x / 8;
-            uint16_t tile_y = oam.y / 8;
+            uint16_t tile_x = positions[oam_i].first / 8;
+            uint16_t tile_y = positions[oam_i].second / 8;
 
             uint16_t tile_x_start = tile_x;
 
@@ -298,7 +320,7 @@ void Animator::GenerateFrames()
 
                 if(tile_x == tile_size.first+tile_x_start)
                 {
-                    tile_x = oam.x / 8;
+                    tile_x = positions[oam_i].first / 8;
                     tile_y ++;
                 }
             }     
@@ -306,4 +328,5 @@ void Animator::GenerateFrames()
 
         m_Frames.push_back(frame);
     }
+
 }

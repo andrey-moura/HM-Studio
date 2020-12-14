@@ -37,11 +37,11 @@ struct FrameInfo
 
 struct SpriteAttribute
 {
-    unsigned y : 8;
+    signed y : 8;
     unsigned : 6;
     unsigned shape : 2;
 
-    unsigned x : 9;
+    signed x : 9;
     unsigned : 5;
     unsigned size : 2;
 
@@ -74,7 +74,9 @@ public:
 
     Graphics& GetFrame(size_t n) { return m_Frames[n]; }
     std::vector<Graphics>& GetFrames() { return m_Frames; }
+
     FrameInfo& GetFrameInfo(size_t n) { return m_FrameInfos[n]; }
+    std::vector<FrameInfo>& GetFramesInfo() { return m_FrameInfos; }
 
     size_t GetTileCount() { return m_Tiles.size(); }
     Graphics& GetTile(size_t n) { return m_Tiles[n]; }    
