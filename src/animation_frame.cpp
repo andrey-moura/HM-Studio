@@ -798,7 +798,7 @@ void AnimationEditorFrame::OnExportAnimationClick(wxCommandEvent& event)
     }
 
     GifWriter g;
-    GifBegin(&g, path.ToStdString().c_str(), width, height, 0, 0xffff);
+    GifBegin(&g, path.ToStdString().c_str(), width, height, 0);
 
     for (size_t anim_i = 0; anim_i < animRange.length; ++anim_i)
     {
