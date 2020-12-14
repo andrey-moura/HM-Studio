@@ -9,6 +9,8 @@ public:
     AnimatorEditor(const id& id);
 private:
     Animator m_Animator;
+    std::vector<uint32_t> m_References;
+
     std::vector<uint32_t> m_Animators;
     wxString m_PathFormat;
     uint32_t m_Offset;
