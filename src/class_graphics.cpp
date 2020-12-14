@@ -40,6 +40,9 @@ Graphics::~Graphics()
 
 void Graphics::SetBpp(uint8_t bpp)
 {	
+	if (!bpp)
+		return;
+
 	m_Bpp = bpp;
 	m_PixelsPerByte = 8/bpp;
 	m_Mask = (1 << m_Bpp) - 1;
