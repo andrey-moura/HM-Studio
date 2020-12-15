@@ -48,7 +48,7 @@ wxString AnimatorEditor::FormatPath()
 
 bool AnimatorEditor::Open(uint32_t number)
 {
-    if(number > m_Animators.size()-1)
+    if(number > m_Animators.size()-1 || !m_Animators.size())
     {
         return false;
     }
@@ -62,7 +62,7 @@ bool AnimatorEditor::Open(uint32_t number)
 
     file.Read(&m_OldLenght, sizeof(uint32_t));
     
-    size_t refCount;
+    uint32_t refCount;
     file.Read(&refCount, sizeof(uint32_t));
 
     m_References.resize(refCount);
