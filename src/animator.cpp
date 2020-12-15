@@ -274,7 +274,7 @@ void Animator::GenerateFrame(size_t n)
     //Fills the frame with transparent color. This is useful when the x and y position are negative
     memset(m_Frames[n].GetData(), 0, m_Frames[n].GetLenght());
 
-    for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
+     for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
     {
         SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
 

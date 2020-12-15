@@ -2,6 +2,7 @@
 
 #include <wx/textdlg.h>
 #include <wx/graphics.h>
+#include <wx/spinctrl.h>
 
 #include <gif-h/gif.h>
 #include <moon/wx/bitmap.hpp>
@@ -19,6 +20,7 @@ public:
     {
         CreateGUIControls();
         UpdatePieces();
+        UpdatePieceInfo();
 
         m_pBitmapViewer->Bind(wxEVT_LEFT_DOWN, &FramePiecesEditor::OnPieceLeftDown, this);
     }
@@ -31,26 +33,72 @@ private:
     std::vector<wxRect> m_Pieces;
 private:
     wxBitmapView* m_pBitmapViewer;
+    wxSpinCtrl* m_pSizeSpin;
+    wxSpinCtrl* m_pShapeSpin;
 private:
-    void OnPieceLeftDown(wxMouseEvent& event)
+    void UpdateTileRange(std::pair<uint16_t, uint16_t> old_size)
     {
-        wxPoint mousePos = event.GetPosition();
+        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);        
 
-        for (size_t i = 0; i < m_Pieces.size(); ++i)
+        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start+m_CurrentPiece);
+
+        auto sprite_sizes = Animator::GetSizeList();
+
+        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+        auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
+        uint16_t tile_count = tile_size.first * tile_size.second;
+
+        size_t old_count = (old_size.first/8)*(old_size.second/8);
+
+        int diff = tile_count - old_count;
+
+        if(diff == 0)
+            return;
+
+        for(size_t i = m_CurrentPiece+1; i < info.oam.length; ++i)
         {
-            if (m_Pieces[i].Contains(mousePos))
+            SpriteAttribute& _oam = m_Animator.GetAttribute(info.oam.start+i);
+            _oam.tile += diff;
+        }
+
+        auto& tiles = m_Animator.GetTiles();
+
+        if(diff > 0)
+        {
+            Graphics tile;
+            tile.Create(8, 8);
+
+            memset(tile.GetData(), 0, tile.GetLenght());
+
+            for(size_t i = 0; i < diff; ++i)
             {
-                m_CurrentPiece = i;
-                UpdatePieces();
-                break;
+                tiles.insert(info.tile.start+tiles.begin()+oam.tile+old_count, tile);
+            }
+        } else 
+        {
+            for(size_t i = 0; i < diff * -1; ++i)
+            {
+                tiles.erase(info.tile.start+tiles.begin()+oam.tile+tile_count);
             }
         }
 
-        event.Skip();
+        auto& infos = m_Animator.GetFramesInfo();
+
+        for(size_t i = 0; i < infos.size(); ++i)
+        {
+            if(infos[i].tile.start > info.tile.start+oam.tile+old_count-1)
+            {
+                infos[i].tile.start+=diff;
+            }
+        }
+
+        m_Animator.GenerateFrames();
     }
 
     void UpdatePieces()
     {
+        m_Pieces.clear();
+
         Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
         m_Frame = wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)Graphics::ToImage24(frame, m_Animator.GetFramePalette(m_CurrentFrame)));
 
@@ -98,6 +146,75 @@ private:
         }
     }
 
+    void UpdatePieceInfo()
+    {
+        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
+        SpriteAttribute& attr = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);
+        
+        m_pSizeSpin->SetValue(attr.size);
+        m_pShapeSpin->SetValue(attr.shape);
+    }
+
+    void OnSizeChange(wxSpinEvent& event)
+    {
+        event.Skip();
+
+        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
+        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);        
+
+        int value = event.GetValue();
+
+        if(oam.size == value)
+            return;
+
+        auto sprite_sizes = m_Animator.GetSizeList();
+        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+
+        oam.size = value;
+
+        UpdateTileRange(size);
+        UpdatePieces();        
+    }
+
+    void OnShapeChange(wxSpinEvent& event)
+    {
+        event.Skip();
+
+        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
+        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);
+
+        int value = event.GetValue();
+
+        if(oam.shape == value)
+            return;
+
+        oam.shape = value;
+
+        auto sprite_sizes = m_Animator.GetSizeList();
+        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+
+        UpdateTileRange(size);
+        UpdatePieces();
+    }
+
+    void OnPieceLeftDown(wxMouseEvent& event)
+    {
+        wxPoint mousePos = event.GetPosition();
+
+        for (size_t i = 0; i < m_Pieces.size(); ++i)
+        {
+            if (m_Pieces[i].Contains(mousePos))
+            {
+                m_CurrentPiece = i;
+                UpdatePieces();
+                UpdatePieceInfo();
+                break;
+            }
+        }
+
+        event.Skip();
+    }    
+
     void CreateGUIControls()
     {
         m_pBitmapViewer = new wxBitmapView(this, wxID_ANY);
@@ -106,17 +223,24 @@ private:
         wxPanel* right_panel = new wxPanel(this, wxID_ANY);
         wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
 
-        Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
+        m_pSizeSpin = new wxSpinCtrl(right_panel, wxID_ANY);
+        m_pSizeSpin->SetRange(0, 3);
 
         wxBoxSizer* width_sizer = new wxBoxSizer(wxHORIZONTAL);
-        width_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Width:"));        
+        width_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Size:"));        
         width_sizer->AddStretchSpacer(1); //align to right
-        width_sizer->Add(new wxSpinCtrl(right_panel, wxID_ANY, std::to_string(frame.GetWidth())));
+        width_sizer->Add(m_pSizeSpin);
         
+        m_pShapeSpin = new wxSpinCtrl(right_panel, wxID_ANY);
+        m_pShapeSpin->SetRange(0, 2);
+
         wxBoxSizer* height_sizer = new wxBoxSizer(wxHORIZONTAL);
-        height_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Height:"));
+        height_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Shape:"));
         height_sizer->AddStretchSpacer(1); //align to right
-        height_sizer->Add(new wxSpinCtrl(right_panel, wxID_ANY, std::to_string(frame.GetHeight())));
+        height_sizer->Add(m_pShapeSpin);
+
+        m_pSizeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnSizeChange, this);
+        m_pShapeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnShapeChange, this);
 
         right_sizer->Add(width_sizer, 0, wxEXPAND);
         right_sizer->Add(height_sizer, 0, wxEXPAND);
