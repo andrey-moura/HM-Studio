@@ -1,6 +1,7 @@
 #include "animation_frame.hpp"
 
 #include <wx/textdlg.h>
+#include <wx/graphics.h>
 
 #include <gif-h/gif.h>
 #include <moon/wx/bitmap.hpp>
@@ -17,6 +18,9 @@ public:
             m_Animator(animator), m_CurrentFrame(currentFrame)
     {
         CreateGUIControls();
+        UpdatePieces();
+
+        m_pBitmapViewer->Bind(wxEVT_LEFT_DOWN, &FramePiecesEditor::OnPieceLeftDown, this);
     }
 private:
     Animator& m_Animator;
@@ -28,48 +32,101 @@ private:
 private:
     wxBitmapView* m_pBitmapViewer;
 private:
-    void CreateGUIControls()
+    void OnPieceLeftDown(wxMouseEvent& event)
+    {
+        wxPoint mousePos = event.GetPosition();
+
+        for (size_t i = 0; i < m_Pieces.size(); ++i)
+        {
+            if (m_Pieces[i].Contains(mousePos))
+            {
+                m_CurrentPiece = i;
+                UpdatePieces();
+                break;
+            }
+        }
+
+        event.Skip();
+    }
+
+    void UpdatePieces()
     {
         Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
-        m_Frame = wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)Graphics::ToImage24(frame, m_Animator.GetPalette(0)));        
+        m_Frame = wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)Graphics::ToImage24(frame, m_Animator.GetFramePalette(m_CurrentFrame)));
 
         FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
 
         auto sprite_sizes = Animator::GetSizeList();
 
+        auto positions = m_Animator.GetPositions(m_CurrentFrame);
+
         for (size_t i = 0; i < info.oam.length; ++i)
         {
             SpriteAttribute& attr = m_Animator.GetAttribute(i + info.oam.start);
-
             auto size = sprite_sizes[attr.size + (attr.shape * 4)];
 
-            m_Pieces.push_back({ wxPoint(attr.x, attr.y), wxSize(size.first, size.second) });
+            m_Pieces.push_back({ wxPoint(positions[i].first, positions[i].second), wxSize(size.first, size.second) });
         }
 
         wxMemoryDC dc(m_Frame);
+
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
         for (size_t i = 0; i < m_Pieces.size(); ++i)
         {
-            wxColour c;
-
             if (m_CurrentPiece == i)
             {
-                c = wxColour(0, 0, 128);
+                wxGraphicsContext* context = wxGraphicsContext::Create(dc);
+
+                if (context)
+                {
+                    context->SetPen(*wxTRANSPARENT_PEN);
+                    context->SetBrush(wxBrush(wxColour(0, 0, 128, 128), wxBRUSHSTYLE_SOLID));
+
+                    context->DrawRectangle(m_Pieces[i].x, m_Pieces[i].y, m_Pieces[i].width, m_Pieces[i].height);
+
+                    delete context;
+                }
             }
             else
             {
-                c = wxColour(128, 0, 0);
+                dc.SetPen(wxPen(wxColour(0, 0, 0, 255), 1, wxPENSTYLE_SOLID));
+                dc.DrawRectangle(m_Pieces[i]);
             }
 
-            wxPen pen(c, 1, wxPENSTYLE_SOLID);
-            dc.DrawRectangle(m_Pieces[i]);
-        }        
+            m_pBitmapViewer->Refresh();
+        }
+    }
 
+    void CreateGUIControls()
+    {
         m_pBitmapViewer = new wxBitmapView(this, wxID_ANY);
         m_pBitmapViewer->SetBitmap(&m_Frame);
 
-        //m_pBitmapViewer->SetMinSize()
+        wxPanel* right_panel = new wxPanel(this, wxID_ANY);
+        wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
+
+        Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
+
+        wxBoxSizer* width_sizer = new wxBoxSizer(wxHORIZONTAL);
+        width_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Width:"));        
+        width_sizer->AddStretchSpacer(1); //align to right
+        width_sizer->Add(new wxSpinCtrl(right_panel, wxID_ANY, std::to_string(frame.GetWidth())));
+        
+        wxBoxSizer* height_sizer = new wxBoxSizer(wxHORIZONTAL);
+        height_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Height:"));
+        height_sizer->AddStretchSpacer(1); //align to right
+        height_sizer->Add(new wxSpinCtrl(right_panel, wxID_ANY, std::to_string(frame.GetHeight())));
+
+        right_sizer->Add(width_sizer, 0, wxEXPAND);
+        right_sizer->Add(height_sizer, 0, wxEXPAND);
+        right_panel->SetSizer(right_sizer);
+
+        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(m_pBitmapViewer, 1, wxEXPAND);
+        sizer->Add(right_panel);
+
+        SetSizer(sizer);
     }
 };
 
@@ -782,11 +839,11 @@ void AnimationEditorFrame::OnExportAnimationClick(wxCommandEvent& event)
         return;
 
     Animator& animator = m_pAnimatorEditor->GetAnimator();
-    auto& animRange = animator.GetAnimRange(m_CurrentAnimation);
+    auto animRange = animator.GetAnimRange(m_CurrentAnimation);
 
     auto& instrs = animator.GetInstructions();    
-
-    uint32_t width = 0, height = 0;    
+    
+    size_t width = 0, height = 0;    
 
     //Find largest frame
     for (size_t i = 0; i < animRange.length; ++i)

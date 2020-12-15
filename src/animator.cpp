@@ -309,7 +309,7 @@ void Animator::GenerateFrame(size_t n)
 void Animator::GenerateFrames()
 {
     m_Frames.clear();
-    m_Frames.resize(m_FrameInfos.size());
+    m_Frames.resize(m_FrameInfos.size(), Graphics(0, 0, 0));
 
     for(size_t i = 0; i < m_FrameInfos.size(); ++i)    
     {   
@@ -328,7 +328,7 @@ std::vector<std::pair<int, int>> Animator::GetPositions(size_t n)
     {
         SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
 
-        positions.push_back({ oam.x, oam.y });
+        positions.push_back({ (int)oam.x, (int)oam.y });
 
         minor_pos.first = std::min(minor_pos.first, oam.x);
         minor_pos.second = std::min(minor_pos.second, oam.y);
