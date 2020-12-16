@@ -48,7 +48,7 @@ void Animator::LoadFromFile(wxFile& file)
     
     uint32_t frameCount;
     file.Read(&frameCount, sizeof(uint32_t));
-
+    
     m_FrameInfos.resize(frameCount);
 
     for(size_t i = 0; i < frameCount; ++i)
@@ -110,6 +110,80 @@ void Animator::LoadFromFile(wxFile& file)
     for(size_t i = 0; i < animInsrCount; ++i)
     {
         file.Read(&m_Instructions[i], sizeof(AnimInstruction));
+    }
+
+    m_Frames2.reserve(frameCount);    
+    
+    for(size_t frame_index = 0; frame_index < m_FrameInfos.size(); ++frame_index)    
+    {
+        std::vector<std::pair<int, int>> positions = GetPositions(frame_index);
+
+        int max_x = 0;
+        int max_y = 0;
+
+        //the max_x and max_y position. aka width and height
+        for (size_t oam_index = 0; oam_index < m_FrameInfos[frame_index].oam.length; ++oam_index)
+        {
+            SpriteAttribute& oam = m_Attributes[oam_index + m_FrameInfos[frame_index].oam.start];
+
+            auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+
+            if (size.first + positions[oam_index].first > max_x)
+            {
+                max_x = size.first + positions[oam_index].first;
+            }
+
+            if (size.second + positions[oam_index].second > max_y)
+            {
+                max_y = size.second + positions[oam_index].second;
+            }
+        }        
+
+        Frame frame;
+        frame.x = 0;
+        frame.y = 0;
+
+        frame.w = max_x;
+        frame.h = max_y;
+
+        frame.pieces.resize(m_FrameInfos[frame_index].oam.length);
+
+        for (size_t oam_index = 0; oam_index < m_FrameInfos[frame_index].oam.length; ++oam_index)
+        {
+            SpriteAttribute& oam = m_Attributes[oam_index + m_FrameInfos[frame_index].oam.start];
+
+            frame.pieces[oam_index].x = positions[oam_index].first;
+            frame.pieces[oam_index].y = positions[oam_index].second;
+            frame.pieces[oam_index].palette = m_Palettes[oam.palette+m_FrameInfos[frame_index].color.start];
+
+            auto size = sprite_sizes[oam.size + (oam.shape * 4)];
+
+            frame.pieces[oam_index].graphics.Create(size.first, size.second);
+
+            AnimRange tile_range;
+            tile_range.start = oam.tile + m_FrameInfos[frame_index].tile.start;
+            tile_range.length = (size.first/8)*(size.second/8);
+
+            int max_tile_x = size.second / 8;
+
+            int x = 0;
+            int y = 0;
+
+            for(size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
+            {
+                frame.pieces[oam_index].graphics.BlitTile(m_Tiles[tile_i+tile_range.start], x, y);
+
+                x++;
+
+                if(x == max_tile_x)
+                {
+                    x = 0;
+                    y++;
+                }
+            }
+        }
+
+        m_Frames2.push_back(frame);
     }
 
     GenerateFrames();    

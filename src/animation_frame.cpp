@@ -756,17 +756,28 @@ void AnimationEditorFrame::UpdateFrame()
     AnimRange range = m_pAnimatorEditor->GetAnimator().GetAnimRange(m_CurrentAnimation);
     
     uint32_t cur_instruction = range.start+m_CurrentInstruction;
-    AnimInstruction instruction = m_pAnimatorEditor->GetAnimator().GetInstruction(cur_instruction);        
+    AnimInstruction instruction = m_pAnimatorEditor->GetAnimator().GetInstruction(cur_instruction);            
 
-    Graphics& frame = m_pAnimatorEditor->GetAnimator().GetFrame(instruction.frame);
+    Frame& frame = m_pAnimatorEditor->GetAnimator().m_Frames2[instruction.frame];
+
+    if( !m_Bitmap.IsOk() || frame.w != m_Bitmap.GetWidth() || frame.h != m_Bitmap.GetHeight() )
+    {
+        m_Bitmap.Create(frame.w, frame.h);
+    }
+
+    wxMemoryDC dc(m_Bitmap);
+
+    for(const FramePiece& piece : frame.pieces)
+    {
+        wxBitmap pieceBitmap(wxImage(piece.graphics.GetWidth(), piece.graphics.GetHeight(), (uint8_t*)Graphics::ToImage24(piece.graphics, piece.palette)));
+
+        dc.DrawBitmap(pieceBitmap, piece.x, piece.y);
+    }
 
     if(instruction.time != 0)
     {        
         m_Timer.Start(instruction.time*16, true);
     }
-
-    m_pAnimationViewer->SetPalette(&m_pAnimatorEditor->GetAnimator().GetFramePalette(instruction.frame));
-    m_pAnimationViewer->SetGraphics(&frame);    
 
     m_CurrentInstruction++;  
 
@@ -774,6 +785,8 @@ void AnimationEditorFrame::UpdateFrame()
     {
         m_CurrentInstruction = 0;
     }    
+
+    m_pAnimationViewer->Refresh();
 }
 
 void AnimationEditorFrame::FlushTilePalette()
@@ -1066,8 +1079,9 @@ void AnimationEditorFrame::CreateGUIControls()
 
     CreateMyToolBar(true, true, true, true, true);
 
-    m_pAnimationViewer = new GraphicsView(this);
+    m_pAnimationViewer = new wxBitmapView(this, wxID_ANY);
     m_pAnimationViewer->SetMinSize(wxSize(128, 128));
+    m_pAnimationViewer->SetBitmap(&m_Bitmap);
 
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_pAnimationViewer, 1, wxEXPAND);

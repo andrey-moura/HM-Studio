@@ -18,6 +18,7 @@ public:
     AnimationEditorFrame(const id& id);
 private:
     AnimatorEditor* m_pAnimatorEditor;
+    wxBitmap m_Bitmap;
     wxBitmap m_TilePalette;
     wxBitmap m_Frame;    
     uint32_t m_CurrentAnimation;
@@ -45,7 +46,7 @@ private:
     void OnExportAnimationClick(wxCommandEvent& event);
     void OnTimer(wxTimerEvent& event);
 private:
-    GraphicsView* m_pAnimationViewer = nullptr;    
+    wxBitmapView* m_pAnimationViewer = nullptr;    
     wxSpinCtrl* m_pAnimationStart = nullptr;
     wxSpinCtrl* m_pAnimationLenght = nullptr;
     wxGrid* m_pInstructionList = nullptr;

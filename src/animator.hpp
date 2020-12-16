@@ -52,9 +52,31 @@ struct SpriteAttribute
     unsigned unused : 16;
 };
 
+struct FramePiece
+{
+    Graphics graphics;
+    Palette palette;
+    int x;
+    int y;
+};
+
+struct Frame
+{
+    int x;
+    int y;
+
+    int w;
+    int h;
+
+    std::vector<FramePiece> pieces;
+};
+
 class Animator
 {
+public:
+    std::vector<Frame> m_Frames2;
 private:
+
     std::vector<AnimRange> m_AnimRanges;    
     std::vector<FrameInfo> m_FrameInfos;    
     std::vector<Graphics> m_Frames;
@@ -63,7 +85,7 @@ private:
     std::vector<Palette> m_Palettes;
     std::vector<AnimAff> m_Affines;
     std::vector<AnimInstruction> m_Instructions;    
-public:
+public:    
     void LoadFromFile(wxFile& file);
     void WriteToFile(wxFile& file);    
 
