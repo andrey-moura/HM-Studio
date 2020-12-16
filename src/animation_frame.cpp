@@ -178,7 +178,7 @@ private:
         if(oam.size == value)
             return;
 
-        auto sprite_sizes = m_Animator.GetSizeList();
+        auto sprite_sizes = Animator::GetSizeList();
         auto size = sprite_sizes[oam.size + (oam.shape * 4)];
 
         oam.size = value;
@@ -202,7 +202,7 @@ private:
 
         oam.shape = value;
 
-        auto sprite_sizes = m_Animator.GetSizeList();
+        auto sprite_sizes = Animator::GetSizeList();
         auto size = sprite_sizes[oam.size + (oam.shape * 4)];
 
         UpdateTileRange(size);
