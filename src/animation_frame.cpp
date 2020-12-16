@@ -33,8 +33,11 @@ private:
     std::vector<wxRect> m_Pieces;
 private:
     wxBitmapView* m_pBitmapViewer;
+
     wxSpinCtrl* m_pSizeSpin;
     wxSpinCtrl* m_pShapeSpin;
+
+    wxStaticText* m_pSizeText;
 private:
     void UpdateTileRange(std::pair<uint16_t, uint16_t> old_size)
     {
@@ -153,6 +156,14 @@ private:
         
         m_pSizeSpin->SetValue(attr.size);
         m_pShapeSpin->SetValue(attr.shape);
+
+        auto sprite_sizes = Animator::GetSizeList();
+        auto size = sprite_sizes[attr.size + (attr.shape * 4)];
+
+        wxString size_text;
+        size_text << "(" << size.first << "x" << size.second << ")";
+
+        m_pSizeText->SetLabel(size_text);
     }
 
     void OnSizeChange(wxSpinEvent& event)
@@ -173,7 +184,8 @@ private:
         oam.size = value;
 
         UpdateTileRange(size);
-        UpdatePieces();        
+        UpdatePieces();
+        UpdatePieceInfo();
     }
 
     void OnShapeChange(wxSpinEvent& event)
@@ -195,6 +207,7 @@ private:
 
         UpdateTileRange(size);
         UpdatePieces();
+        UpdatePieceInfo();
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -242,8 +255,11 @@ private:
         m_pSizeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnSizeChange, this);
         m_pShapeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnShapeChange, this);
 
+        m_pSizeText = new wxStaticText(right_panel, wxID_ANY, wxEmptyString);
+
         right_sizer->Add(width_sizer, 0, wxEXPAND);
         right_sizer->Add(height_sizer, 0, wxEXPAND);
+        right_sizer->Add(m_pSizeText);
         right_panel->SetSizer(right_sizer);
 
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
