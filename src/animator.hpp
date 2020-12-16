@@ -72,14 +72,12 @@ struct Frame
 };
 
 class Animator
-{
+{    
 public:
-    std::vector<Frame> m_Frames2;
+    std::vector<Frame> m_Frames;
 private:
-
     std::vector<AnimRange> m_AnimRanges;    
-    std::vector<FrameInfo> m_FrameInfos;    
-    std::vector<Graphics> m_Frames;
+    std::vector<FrameInfo> m_FrameInfos;        
     std::vector<SpriteAttribute> m_Attributes;
     std::vector<Graphics> m_Tiles;
     std::vector<Palette> m_Palettes;
@@ -92,10 +90,10 @@ public:
     void GenerateFrame(size_t n);
     void GenerateFrames();
 
-    uint32_t GetLength() const;    
+    Frame& GetFrame(uint32_t n) { return m_Frames[n]; }
+    std::vector<Frame>& GetFrames() { return m_Frames; }
 
-    Graphics& GetFrame(size_t n) { return m_Frames[n]; }
-    std::vector<Graphics>& GetFrames() { return m_Frames; }
+    uint32_t GetLength() const;    
 
     FrameInfo& GetFrameInfo(size_t n) { return m_FrameInfos[n]; }
     std::vector<FrameInfo>& GetFramesInfo() { return m_FrameInfos; }

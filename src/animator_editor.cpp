@@ -186,3 +186,20 @@ void AnimatorEditor::InsertFile()
 
     m_RomTranslated.Flush();
 }
+
+wxBitmap AnimatorEditor::MountFrame(size_t n)
+{
+    Frame& frame = m_Animator.GetFrame(n);
+
+    wxBitmap bitmap(frame.w, frame.h);
+
+    wxMemoryDC dc(bitmap);
+
+    for(FramePiece& piece : frame.pieces)
+    {
+        wxBitmap bmp = wxBitmap(wxImage(piece.graphics.GetWidth(), piece.graphics.GetHeight(), (uint8_t*)(Graphics::ToImage24(piece.graphics, piece.palette)))); 
+        dc.DrawBitmap(bmp, piece.x, piece.y);
+    }
+
+    return bitmap;
+}

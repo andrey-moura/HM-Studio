@@ -14,10 +14,10 @@
 class FramePiecesEditor : public wxFrame
 {
 public:
-    FramePiecesEditor(Animator& animator, size_t currentFrame)
+    FramePiecesEditor(AnimatorEditor* editor, size_t currentFrame)
         : wxFrame(nullptr, wxID_ANY, L"Frame Pieces Editor"),
-            m_Animator(animator), m_CurrentFrame(currentFrame)
-    {
+            m_pEditor(editor), m_CurrentFrame(currentFrame), m_Animator(editor->GetAnimator())
+    {        
         CreateGUIControls();
         UpdatePieces();
         UpdatePieceInfo();
@@ -26,6 +26,8 @@ public:
     }
 private:
     Animator& m_Animator;
+    AnimatorEditor* m_pEditor;
+
     size_t m_CurrentFrame = 0;
     size_t m_CurrentPiece = 0;
     wxBitmap m_Frame;
@@ -39,86 +41,16 @@ private:
 
     wxStaticText* m_pSizeText;
 private:
-    void UpdateTileRange(std::pair<uint16_t, uint16_t> old_size)
-    {
-        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);        
-
-        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start+m_CurrentPiece);
-
-        auto sprite_sizes = Animator::GetSizeList();
-
-        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
-        auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
-        uint16_t tile_count = tile_size.first * tile_size.second;
-
-        size_t old_count = (old_size.first/8)*(old_size.second/8);
-
-        int diff = tile_count - old_count;
-
-        if(diff == 0)
-            return;
-
-        for(size_t i = m_CurrentPiece+1; i < info.oam.length; ++i)
-        {
-            SpriteAttribute& _oam = m_Animator.GetAttribute(info.oam.start+i);
-            _oam.tile += diff;
-        }
-
-        auto& tiles = m_Animator.GetTiles();
-
-        if(diff > 0)
-        {
-            Graphics tile;
-            tile.Create(8, 8);
-
-            memset(tile.GetData(), 0, tile.GetLenght());
-
-            for(size_t i = 0; i < diff; ++i)
-            {
-                tiles.insert(info.tile.start+tiles.begin()+oam.tile+old_count, tile);
-            }
-        } else 
-        {
-            for(size_t i = 0; i < diff * -1; ++i)
-            {
-                tiles.erase(info.tile.start+tiles.begin()+oam.tile+tile_count);
-            }
-        }
-
-        auto& infos = m_Animator.GetFramesInfo();
-
-        for(size_t i = 0; i < infos.size(); ++i)
-        {
-            if(infos[i].tile.start > info.tile.start+oam.tile+old_count-1)
-            {
-                infos[i].tile.start+=diff;
-            }
-        }
-
-        info.tile.length += diff;
-
-        m_Animator.GenerateFrames();
-    }
-
     void UpdatePieces()
     {
-        m_Pieces.clear();
+        m_Pieces.clear();        
+        m_Frame = m_pEditor->MountFrame(m_CurrentFrame);
 
-        Graphics& frame = m_Animator.GetFrame(m_CurrentFrame);
-        m_Frame = wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)Graphics::ToImage24(frame, m_Animator.GetFramePalette(m_CurrentFrame)));
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
 
-        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
-
-        auto sprite_sizes = Animator::GetSizeList();
-
-        auto positions = m_Animator.GetPositions(m_CurrentFrame);
-
-        for (size_t i = 0; i < info.oam.length; ++i)
+        for(FramePiece& piece : frame.pieces)
         {
-            SpriteAttribute& attr = m_Animator.GetAttribute(i + info.oam.start);
-            auto size = sprite_sizes[attr.size + (attr.shape * 4)];
-
-            m_Pieces.push_back({ wxPoint(positions[i].first, positions[i].second), wxSize(size.first, size.second) });
+            m_Pieces.push_back(wxRect(piece.x, piece.y, piece.graphics.GetWidth(), piece.graphics.GetHeight()));
         }
 
         wxMemoryDC dc(m_Frame);
@@ -171,45 +103,11 @@ private:
     void OnSizeChange(wxSpinEvent& event)
     {
         event.Skip();
-
-        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
-        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);        
-
-        int value = event.GetValue();
-
-        if(oam.size == value)
-            return;
-
-        auto sprite_sizes = Animator::GetSizeList();
-        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
-
-        oam.size = value;
-
-        UpdateTileRange(size);
-        UpdatePieces();
-        UpdatePieceInfo();
     }
 
     void OnShapeChange(wxSpinEvent& event)
     {
         event.Skip();
-
-        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
-        SpriteAttribute& oam = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);
-
-        int value = event.GetValue();
-
-        if(oam.shape == value)
-            return;
-
-        oam.shape = value;
-
-        auto sprite_sizes = Animator::GetSizeList();
-        auto size = sprite_sizes[oam.size + (oam.shape * 4)];
-
-        UpdateTileRange(size);
-        UpdatePieces();
-        UpdatePieceInfo();
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -280,10 +178,11 @@ class FramesEditorFrame : public wxFrame
 {
 private:
     Animator& m_Animator;
+    AnimatorEditor* m_pEditor;
     uint16_t m_SelectedFrame = 0;
 public:
-    FramesEditorFrame(Animator& animator) :
-        wxFrame(nullptr, wxID_ANY, L"Edit Frames"), m_Animator(animator)
+    FramesEditorFrame(AnimatorEditor* editor) :
+        wxFrame(nullptr, wxID_ANY, L"Edit Frames"), m_Animator(editor->GetAnimator()), m_pEditor(editor)
     {
         wxMenu* menuFrame = new wxMenu();
         Bind(wxEVT_MENU, &FramesEditorFrame::OnSwapFrameClick, this, menuFrame->Append(wxID_ANY, L"Swap tiles...")->GetId());
@@ -350,7 +249,7 @@ public:
 
     void UpdateFrame(size_t i)
     {
-        wxBitmap frame = GraphicsView::ConvertToBitmap(m_Animator.GetFrame(i), m_Animator.GetFramePalette(i));
+        wxBitmap frame = m_pEditor->MountFrame(i);
 
         if(i == m_SelectedFrame)
         {
@@ -441,8 +340,8 @@ private:
             return;
         }    
 
-        Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
-        if(bitmap.GetWidth() != frame.GetWidth() || bitmap.GetHeight() != frame.GetHeight())
+        Frame& frame = m_Animator.GetFrame(m_SelectedFrame);
+        if(bitmap.GetWidth() != frame.w || bitmap.GetHeight() != frame.h)
         {
             wxMessageBox(L"The loaded image don't match the frame size", L"Error!", wxICON_ERROR);
             return;
@@ -469,91 +368,35 @@ private:
             pieces.push_back(bitmap.GetSubBitmap(rect));
         }
 
-        std::vector<wxBitmap> tiles;
-        tiles.reserve((frame.GetWidth()/8)*(frame.GetHeight()/8));
-
-        wxRect rect { 0, 0, 8, 8 };
-
-        for(size_t i = 0; i < pieces.size(); ++i)
+        for(size_t i = 0; i < pieces.size(); ++i)        
         {
-            while(rect.y < pieces[i].GetHeight())
-            {
-                while(rect.x < pieces[i].GetWidth())
-                {
-                    tiles.push_back(pieces[i].GetSubBitmap(rect));
-                    rect.x += 8;
-                }
-
-                rect.x = 0;
-                rect.y += 8;
-            }
-
-            rect.SetPosition({0,0});
-        }        
-
-        Palette& pal = m_Animator.GetFramePalette(m_SelectedFrame);
-
-        bool wrong_color = false;
-
-        std::vector<Graphics> gtiles;
-
-        for(wxBitmap& tile : tiles)
-        {
-            Graphics gtile;
-            gtile.Create(8, 8);
-
             size_t cur_pixel = 0;
 
-            Moon::wxWidgets::Bitmap::for_each_pixel(tile, [&pal, &wrong_color, &gtile, &cur_pixel](
+            Moon::wxWidgets::Bitmap::for_each_pixel(pieces[i], [&i, &frame, &cur_pixel](
                 const uint8_t& r,
                 const uint8_t& g,
                 const uint8_t& b,
                 uint8_t a)
                 {
+                    size_t p = frame.pieces[i].palette.find_color({r, g, b});
 
-                if(wrong_color)
-                    return;
-                
-                Color c {r, g, b};
-
-                size_t p = pal.find_color(c);
-
-                if(p == std::string::npos)
-                {
-                    wrong_color = true;                
-                    return;
-                }
-
-                gtile.SetPixel(cur_pixel, p);
-                ++cur_pixel;
+                    if(p == std::string::npos)
+                    {
+                        //Todo
+                        //nearest color
+                    } else                     
+                    {
+                        frame.pieces[i].graphics.SetPixel(p, cur_pixel);
+                    }                    
                 });
-
-            if(wrong_color)            
-            {
-                wxMessageBox("The loaded image has colors that are not in the palette.", L"Error", wxICON_ERROR);
-                return;
-            }
-
-            gtiles.push_back(gtile);
         }
-
-        AnimRange tile_range = info.tile;
-
-        auto& anim_tiles =  m_Animator.GetTiles();
-
-        for(size_t i = 0; i < tile_range.length; ++i)
-        {
-            anim_tiles[i+tile_range.start] = gtiles[i];
-        }
-
-         m_Animator.GenerateFrames();
         
         UpdateFrame(m_SelectedFrame);
     }
 
     void OnEditPiecesClick(wxCommandEvent& event)
     {
-        FramePiecesEditor* frame = new FramePiecesEditor(m_Animator, m_SelectedFrame);
+        FramePiecesEditor* frame = new FramePiecesEditor(m_pEditor, m_SelectedFrame);
         frame->Show();
 
         event.Skip();
@@ -616,12 +459,8 @@ private:
             return;
         }        
 
-        const Graphics& frame = m_Animator.GetFrame(m_SelectedFrame);
-
-        Color* colors = Graphics::ToImage24(frame,  m_Animator.GetFramePalette(m_SelectedFrame));        
-
-        //~wxImage takes care of deleting colors
-        wxBitmap(wxImage(frame.GetWidth(), frame.GetHeight(), (unsigned char*)colors)).SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
+        wxBitmap bmp = m_pEditor->MountFrame(m_SelectedFrame);
+        bmp.SaveFile(path, wxBitmapType::wxBITMAP_TYPE_PNG);
     }
 };
 
@@ -758,21 +597,7 @@ void AnimationEditorFrame::UpdateFrame()
     uint32_t cur_instruction = range.start+m_CurrentInstruction;
     AnimInstruction instruction = m_pAnimatorEditor->GetAnimator().GetInstruction(cur_instruction);            
 
-    Frame& frame = m_pAnimatorEditor->GetAnimator().m_Frames2[instruction.frame];
-
-    if( !m_Bitmap.IsOk() || frame.w != m_Bitmap.GetWidth() || frame.h != m_Bitmap.GetHeight() )
-    {
-        m_Bitmap.Create(frame.w, frame.h);
-    }
-
-    wxMemoryDC dc(m_Bitmap);
-
-    for(const FramePiece& piece : frame.pieces)
-    {
-        wxBitmap pieceBitmap(wxImage(piece.graphics.GetWidth(), piece.graphics.GetHeight(), (uint8_t*)Graphics::ToImage24(piece.graphics, piece.palette)));
-
-        dc.DrawBitmap(pieceBitmap, piece.x, piece.y);
-    }
+    m_Frame = m_pAnimatorEditor->MountFrame(instruction.frame);
 
     if(instruction.time != 0)
     {        
@@ -786,7 +611,7 @@ void AnimationEditorFrame::UpdateFrame()
         m_CurrentInstruction = 0;
     }    
 
-    m_pAnimationViewer->Refresh();
+    m_pAnimationViewer->SetBitmap(&m_Frame);
 }
 
 void AnimationEditorFrame::FlushTilePalette()
@@ -913,7 +738,7 @@ void AnimationEditorFrame::OnCellChanged(wxGridEvent& event)
 
 void AnimationEditorFrame::OnEditAnimFrameClick(wxCommandEvent& event) 
 {
-    FramesEditorFrame* frame = new FramesEditorFrame(m_pAnimatorEditor->GetAnimator());
+    FramesEditorFrame* frame = new FramesEditorFrame(m_pAnimatorEditor);
     frame->Show();
 
     event.Skip();
@@ -1022,33 +847,17 @@ void AnimationEditorFrame::OnExportAnimationClick(wxCommandEvent& event)
     auto animRange = animator.GetAnimRange(m_CurrentAnimation);
 
     auto& instrs = animator.GetInstructions();    
-    
-    size_t width = 0, height = 0;    
-
-    //Find largest frame
-    for (size_t i = 0; i < animRange.length; ++i)
-    {
-        Graphics& frame = animator.GetFrame(animRange.start + i);
-
-        width = std::max(frame.GetWidth(), width);
-        height = std::max(frame.GetHeight(), height);
-    }
 
     GifWriter g;
-    GifBegin(&g, path.ToStdString().c_str(), width, height, 0);
+    GifBegin(&g, path.ToStdString().c_str(), 0, 0, 0);
 
     for (size_t anim_i = 0; anim_i < animRange.length; ++anim_i)
     {
         AnimInstruction instr = animator.GetInstruction(animRange.start + anim_i);
 
-        Graphics& frame = animator.GetFrame(instr.frame);
-        Palette& pal = animator.GetFramePalette(instr.frame);
-
-        uint8_t * image = Graphics::ToImage32(frame, pal);
+        wxImage img = m_pAnimatorEditor->MountFrame(instr.frame).ConvertToImage();
         
-        GifWriteFrame(&g, image, frame.GetWidth(), frame.GetHeight(), (instr.time*16)/10);
-
-        delete[] image;
+        GifWriteFrame(&g, img.GetData(), img.GetWidth(), img.GetHeight(), (instr.time*16)/10);        
     }
 
     GifEnd(&g);

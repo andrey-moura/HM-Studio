@@ -15,12 +15,14 @@ private:
     wxString m_PathFormat;
     uint32_t m_Offset;
 
-    uint32_t m_OldLenght = 0;
+    uint32_t m_OldLenght = 0;    
 public:
     virtual bool Open(uint32_t number) override;
     void OpenNew(uint32_t offset);
     virtual void SaveFile() override;
     virtual void InsertFile() override;
+public:
+    wxBitmap MountFrame(size_t n);
 
     wxString FormatPath(const uint32_t& offset);
     wxString FormatPath();
