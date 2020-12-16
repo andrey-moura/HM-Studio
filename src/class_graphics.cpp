@@ -2,15 +2,7 @@
 
 size_t Palette::find_color(const Color& c) const
 {
-	for(size_t i = 0; i < size(); ++i)
-	{
-		if(at(0) == c)
-		{
-			return i;
-		}
-	}
-
-	return std::string::npos;
+	return std::find(begin(), end(), c) - begin();
 }
 
 //-------------------------------------------------//

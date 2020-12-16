@@ -95,6 +95,8 @@ private:
             }
         }
 
+        info.tile.length += diff;
+
         m_Animator.GenerateFrames();
     }
 
@@ -446,22 +448,48 @@ private:
             return;
         }
 
+        std::vector<wxBitmap> pieces;
+        auto positions = m_Animator.GetPositions(m_SelectedFrame);
+
+        FrameInfo info =  m_Animator.GetFrameInfo(m_SelectedFrame);
+
+        auto sprite_sizes = Animator::GetSizeList();
+
+        for(size_t i = 0; i < info.oam.length; ++i)        
+        {
+            wxRect rect;
+            rect.SetPosition({positions[i].first, positions[i].second});
+
+            SpriteAttribute attr = m_Animator.GetAttribute(i+info.oam.start);
+
+            auto size = sprite_sizes[attr.size + (attr.shape * 4)];            
+
+            rect.SetSize({ size.first, size.second });
+
+            pieces.push_back(bitmap.GetSubBitmap(rect));
+        }
+
         std::vector<wxBitmap> tiles;
         tiles.reserve((frame.GetWidth()/8)*(frame.GetHeight()/8));
 
         wxRect rect { 0, 0, 8, 8 };
 
-        while(rect.y < frame.GetHeight())
+        for(size_t i = 0; i < pieces.size(); ++i)
         {
-            while(rect.x < frame.GetWidth())
+            while(rect.y < pieces[i].GetHeight())
             {
-                tiles.push_back(bitmap.GetSubBitmap(rect));
-                rect.x += 8;
+                while(rect.x < pieces[i].GetWidth())
+                {
+                    tiles.push_back(pieces[i].GetSubBitmap(rect));
+                    rect.x += 8;
+                }
+
+                rect.x = 0;
+                rect.y += 8;
             }
 
-            rect.x = 0;
-            rect.y += 8;
-        }
+            rect.SetPosition({0,0});
+        }        
 
         Palette& pal = m_Animator.GetFramePalette(m_SelectedFrame);
 
@@ -509,7 +537,6 @@ private:
             gtiles.push_back(gtile);
         }
 
-        FrameInfo info =  m_Animator.GetFrameInfo(m_SelectedFrame);
         AnimRange tile_range = info.tile;
 
         auto& anim_tiles =  m_Animator.GetTiles();
