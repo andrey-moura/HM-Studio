@@ -74,8 +74,6 @@ public:
 	void SetPixel(size_t n, uint8_t p);
 	void SetPixel(size_t x, size_t y, uint8_t p);
 
-	void SetWidth(uint32_t width);
-	void SetHeight(uint32_t height);	
 	void SetBpp(uint8_t bpp);
 	void SetPlanar(bool planar);
 	void SetReversed(bool reversed);		
@@ -92,7 +90,7 @@ public:
 	//same palette and the palette don't have duplicated colors.
 	//Bpp difference don't necessary means that Graphics are not equal.
 	bool operator==(const Graphics& other) const;
-	void operator=(const Graphics& other);
+	Graphics& operator=(const Graphics& other);
 public:
 	static Color* ToImage24(const Graphics& graphics, const Palette& palette);
 	static uint8_t* ToImage32(const Graphics& graphics, const Palette& palette);

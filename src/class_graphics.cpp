@@ -76,6 +76,11 @@ void Graphics::BlitTile(const Graphics& tile, const uint32_t& tile_x, const uint
 		return;
 	}	
 
+	if (tile_x > 100 || tile_y > 100)
+	{
+		std::string();
+	}
+
 	size_t n = tile_x * 64;
 	n += tile_y * (64*(m_Width/8));
 
@@ -161,18 +166,25 @@ bool Graphics::operator==(const Graphics& other) const
 	}
 }
 
-void Graphics::operator=(const Graphics& other)
+Graphics& Graphics::operator=(const Graphics& other)
 {
+	m_Width = other.GetWidth();
+	m_Height = other.GetHeight();
+	SetPlanar(other.IsPlanar());
+	SetReversed(other.IsReversed());
+
 	SetBpp(other.GetBpp());
 
 	if(!other.GetData())
-		return;
+		return *this;
 
 	uint32_t lenght = GetLenght();
 
 	m_pRawData = new uint8_t[lenght];
 
 	memcpy(m_pRawData, other.GetData(), GetLenght());
+
+	return *this;
 }
 
 Color* Graphics::ToImage24(const Graphics& graphics, const Palette& palette)
