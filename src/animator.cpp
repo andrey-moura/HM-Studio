@@ -164,7 +164,7 @@ void Animator::LoadFromFile(wxFile& file)
             tile_range.start = oam.tile + m_FrameInfos[frame_index].tile.start;
             tile_range.length = (size.first/8)*(size.second/8);
 
-            int max_tile_x = size.second / 8;
+            int max_tile_x = size.first / 8;
 
             int x = 0;
             int y = 0;
