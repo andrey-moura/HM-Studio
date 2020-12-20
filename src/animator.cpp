@@ -182,9 +182,7 @@ void Animator::LoadFromFile(wxFile& file)
         }
 
         m_Frames.push_back(frame);
-    }
-
-    GenerateFrames();    
+    }    
 }
 
 void Animator::WriteToFile(wxFile& file)
@@ -309,84 +307,6 @@ Palette& Animator::GetFramePalette(size_t n)
     FrameInfo& info = m_FrameInfos[n];
 
     return m_Palettes[info.color.start + m_Attributes[info.oam.start].palette];
-}
-
-void Animator::GenerateFrame(size_t n)
-{
-    // FrameInfo& info = GetFrameInfo(n);
-
-    // uint16_t max_x = 0;
-    // uint16_t max_y = 0;
-
-    // std::vector<std::pair<int, int>> positions = GetPositions(n);        
-
-    // //the max_x and max_y position. aka width and height
-    // for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-    // {
-    //     SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
-
-    //     auto size = sprite_sizes[oam.size + (oam.shape * 4)];
-
-    //     if (size.first + positions[oam_i].first > max_x)
-    //     {
-    //         max_x = size.first + positions[oam_i].first;
-    //     }
-
-    //     if (size.second + positions[oam_i].second > max_y)
-    //     {
-    //         max_y = size.second + positions[oam_i].second;
-    //     }
-    // }
-
-    // if (max_x != m_Frames[n].GetWidth() || max_y != m_Frames[n].GetHeight())
-    // {
-    //     m_Frames[n].Create(max_x, max_y);
-    // }    
-
-    // //Fills the frame with transparent color. This is useful when the x and y position are negative
-    // memset(m_Frames[n].GetData(), 0, m_Frames[n].GetLenght());
-
-    //  for (size_t oam_i = 0; oam_i < info.oam.length; ++oam_i)
-    // {
-    //     SpriteAttribute& oam = m_Attributes[oam_i + info.oam.start];
-
-    //     auto size = sprite_sizes[oam.size + (oam.shape * 4)];
-    //     auto tile_size = std::pair<uint16_t, uint16_t>(size.first / 8, size.second / 8);
-    //     uint16_t tile_count = tile_size.first * tile_size.second;
-
-    //     uint16_t tile_x = positions[oam_i].first / 8;
-    //     uint16_t tile_y = positions[oam_i].second / 8;
-
-    //     uint16_t tile_x_start = tile_x;
-
-    //     AnimRange tile_range;
-    //     tile_range.start = info.tile.start + oam.tile;
-    //     tile_range.length = tile_count;
-
-    //     for (size_t tile_i = 0; tile_i < tile_range.length; ++tile_i)
-    //     {
-    //         m_Frames[n].BlitTile(m_Tiles[tile_i + tile_range.start], tile_x, tile_y);
-
-    //         tile_x++;
-
-    //         if (tile_x == tile_size.first + tile_x_start)
-    //         {
-    //             tile_x = positions[oam_i].first / 8;
-    //             tile_y++;
-    //         }
-    //     }
-    // }    
-}
-
-void Animator::GenerateFrames()
-{
-    // m_Frames.clear();
-    // m_Frames.resize(m_FrameInfos.size(), Graphics(0, 0, 0));
-
-    // for(size_t i = 0; i < m_FrameInfos.size(); ++i)    
-    // {   
-    //     GenerateFrame(i);
-    // }
 }
 
 std::vector<std::pair<int, int>> Animator::GetPositions(size_t n, int* frame_x, int* frame_y)

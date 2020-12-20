@@ -99,9 +99,6 @@ public:
     void LoadFromFile(wxFile& file);
     void WriteToFile(wxFile& file);    
 
-    void GenerateFrame(size_t n);
-    void GenerateFrames();
-
     Frame& GetFrame(uint32_t n) { return m_Frames[n]; }
     std::vector<Frame>& GetFrames() { return m_Frames; }
 

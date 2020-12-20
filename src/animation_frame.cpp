@@ -505,9 +505,7 @@ private:
             
             tile.SetData(other_tile.GetData());            
             other_tile.SetData(data);
-        }
-
-        m_Animator.GenerateFrames();
+        }        
 
         m_pFramesWindows->SetScrollPos(wxVERTICAL, 0);
         UpdateFrame(m_SelectedFrame);
