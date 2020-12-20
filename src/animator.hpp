@@ -69,6 +69,18 @@ struct Frame
     int h;
 
     std::vector<FramePiece> pieces;
+
+    void update_size()
+    {
+        w = 0;
+        h = 0;
+
+        for (FramePiece& piece : pieces)
+        {
+            w = std::max(w, piece.x + (int)piece.graphics.GetWidth());
+            h = std::max(w, piece.y + (int)piece.graphics.GetHeight());
+        }
+    }
 };
 
 class Animator
@@ -116,7 +128,7 @@ public:
     AnimInstruction GetInstruction(size_t n) { return m_Instructions[n]; }
     std::vector<AnimInstruction>& GetInstructions() { return m_Instructions; }    
 
-    std::vector<std::pair<int, int>> GetPositions(size_t n);
+    std::vector<std::pair<int, int>> GetPositions(size_t n, int* frame_x = nullptr, int* frame_y = nullptr);
 public:
     static std::pair<uint16_t, uint16_t>* GetSizeList();
     static uint32_t FindAnimatorOffset(wxFile& file);

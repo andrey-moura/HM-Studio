@@ -33,13 +33,11 @@ private:
     wxBitmap m_Frame;
 
     std::vector<wxRect> m_Pieces;
+
+    wxArrayString m_Sizes;
 private:
     wxBitmapView* m_pBitmapViewer;
-
-    wxSpinCtrl* m_pSizeSpin;
-    wxSpinCtrl* m_pShapeSpin;
-
-    wxStaticText* m_pSizeText;
+    wxChoice* m_pSizeChoice;
 private:
     void UpdatePieces()
     {
@@ -86,28 +84,18 @@ private:
     void UpdatePieceInfo()
     {
         FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
-        SpriteAttribute& attr = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);
-        
-        m_pSizeSpin->SetValue(attr.size);
-        m_pShapeSpin->SetValue(attr.shape);
+        SpriteAttribute& attr = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);             
 
         auto sprite_sizes = Animator::GetSizeList();
         auto size = sprite_sizes[attr.size + (attr.shape * 4)];
 
-        wxString size_text;
-        size_text << "(" << size.first << "x" << size.second << ")";
-
-        m_pSizeText->SetLabel(size_text);
-    }
-
-    void OnSizeChange(wxSpinEvent& event)
-    {
-        event.Skip();
-    }
-
-    void OnShapeChange(wxSpinEvent& event)
-    {
-        event.Skip();
+        for (size_t i = 0; i < m_Sizes.size(); ++i)
+        {
+            if (size.first == sprite_sizes[i].first && size.second == sprite_sizes[i].second)
+            {
+                m_pSizeChoice->SetSelection(i);
+            }
+        }        
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -128,6 +116,67 @@ private:
         event.Skip();
     }    
 
+    void OnSizeChange(wxCommandEvent& event)
+    {        
+        wxString dimensions = event.GetString();
+
+        wxSize new_size = { std::stoi(dimensions.ToStdWstring()), std::stoi(dimensions.substr(dimensions.find(L'x')+1).ToStdWstring()) };
+
+        auto sprite_list = Animator::GetSizeList();
+
+        int shape;
+        int size;
+
+        for (shape = 0; shape < 3; ++shape)
+        {
+            for (size = 0; size < 4; ++size)
+            {
+                auto& cur_size = sprite_list[(shape * 4) + size];
+
+                if (cur_size.first == new_size.x && cur_size.second == new_size.y)
+                {
+                    goto endloop;
+                }
+            }
+        }
+
+endloop:
+
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];
+
+        Graphics new_piece;
+        new_piece.Create(new_size.x, new_size.y);
+
+        int blit_x = std::min(new_size.x, (int)piece.graphics.GetWidth());
+        int blit_y = std::min(new_size.y, (int)piece.graphics.GetHeight());
+
+        int blit_tile_x = blit_x / 8;
+        int blit_tile_y = blit_y / 8;
+
+        int x = 0, y = 0;
+
+        while (y < blit_tile_y)
+        {
+            while (x < blit_tile_x)
+            {
+                new_piece.BlitTile(piece.graphics.GetTile(x, y), x, y);
+
+                x++;
+            }
+
+            x = 0;
+            ++y;
+        }
+
+        piece.graphics = new_piece;
+        frame.update_size();
+
+        UpdatePieces();
+
+        event.Skip();
+    }
+
     void CreateGUIControls()
     {
         m_pBitmapViewer = new wxBitmapView(this, wxID_ANY);
@@ -135,31 +184,20 @@ private:
 
         wxPanel* right_panel = new wxPanel(this, wxID_ANY);
         wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
-
-        m_pSizeSpin = new wxSpinCtrl(right_panel, wxID_ANY);
-        m_pSizeSpin->SetRange(0, 3);
-
-        wxBoxSizer* width_sizer = new wxBoxSizer(wxHORIZONTAL);
-        width_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Size:"));        
-        width_sizer->AddStretchSpacer(1); //align to right
-        width_sizer->Add(m_pSizeSpin);
         
-        m_pShapeSpin = new wxSpinCtrl(right_panel, wxID_ANY);
-        m_pShapeSpin->SetRange(0, 2);
+        auto sizes = m_Animator.GetSizeList();
 
-        wxBoxSizer* height_sizer = new wxBoxSizer(wxHORIZONTAL);
-        height_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Shape:"));
-        height_sizer->AddStretchSpacer(1); //align to right
-        height_sizer->Add(m_pShapeSpin);
+        for (size_t i = 0; i < 12; ++i)
+        {
+            m_Sizes.push_back(std::to_wstring(sizes[i].first) + L"x" + std::to_wstring(sizes[i].second));
+        }        
 
-        m_pSizeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnSizeChange, this);
-        m_pShapeSpin->Bind(wxEVT_SPINCTRL, &FramePiecesEditor::OnShapeChange, this);
+        m_pSizeChoice = new wxChoice(right_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_Sizes);
+        m_pSizeChoice->Bind(wxEVT_CHOICE, &FramePiecesEditor::OnSizeChange, this);
 
-        m_pSizeText = new wxStaticText(right_panel, wxID_ANY, wxEmptyString);
+        UpdatePieceInfo();
 
-        right_sizer->Add(width_sizer, 0, wxEXPAND);
-        right_sizer->Add(height_sizer, 0, wxEXPAND);
-        right_sizer->Add(m_pSizeText);
+        right_sizer->Add(m_pSizeChoice);
         right_panel->SetSizer(right_sizer);
 
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);

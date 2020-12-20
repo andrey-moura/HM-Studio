@@ -71,20 +71,28 @@ void Graphics::Blit(const Graphics& other, const uint32_t& x, const uint32_t& y)
 
 void Graphics::BlitTile(const Graphics& tile, const uint32_t& tile_x, const uint32_t& tile_y)
 {
-	if(tile.GetBpp() != GetBpp())
-	{
-		return;
-	}	
-
-	if (tile_x > 100 || tile_y > 100)
-	{
-		std::string();
-	}
-
 	size_t n = tile_x * 64;
 	n += tile_y * (64*(m_Width/8));
 
-	memcpy(m_pRawData+(n/m_PixelsPerByte), tile.m_pRawData, 64/m_PixelsPerByte);
+	BlitTile(tile, n/m_PixelsPerByte);
+}
+
+void Graphics::BlitTile(const Graphics& tile, const size_t& pos)
+{
+	memcpy(m_pRawData + pos, tile.m_pRawData, 64 / m_PixelsPerByte);
+}
+
+Graphics Graphics::GetTile(int tile_x, int tile_y)
+{
+	Graphics tile;
+	tile.Create(8, 8);
+
+	size_t n = tile_x * 64;
+	n += tile_y * (64 * (m_Width / 8));
+
+	memcpy(tile.GetData(), GetData() + (n / m_PixelsPerByte), 64 / m_PixelsPerByte);
+
+	return tile;
 }
 
 uint8_t Graphics::GetPixel(size_t n) const

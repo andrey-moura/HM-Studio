@@ -116,7 +116,9 @@ void Animator::LoadFromFile(wxFile& file)
     
     for(size_t frame_index = 0; frame_index < m_FrameInfos.size(); ++frame_index)    
     {
-        std::vector<std::pair<int, int>> positions = GetPositions(frame_index);
+        Frame frame;
+
+        std::vector<std::pair<int, int>> positions = GetPositions(frame_index, &frame.x, &frame.y);
 
         int max_x = 0;
         int max_y = 0;
@@ -137,11 +139,7 @@ void Animator::LoadFromFile(wxFile& file)
             {
                 max_y = size.second + positions[oam_index].second;
             }
-        }        
-
-        Frame frame;
-        frame.x = 0;
-        frame.y = 0;
+        }                
 
         frame.w = max_x;
         frame.h = max_y;
@@ -391,7 +389,7 @@ void Animator::GenerateFrames()
     // }
 }
 
-std::vector<std::pair<int, int>> Animator::GetPositions(size_t n)
+std::vector<std::pair<int, int>> Animator::GetPositions(size_t n, int* frame_x, int* frame_y)
 {
     std::vector<std::pair<int, int>> positions;
     std::pair<int, int> minor_pos;
@@ -407,6 +405,16 @@ std::vector<std::pair<int, int>> Animator::GetPositions(size_t n)
         minor_pos.first = std::min(minor_pos.first, oam.x);
         minor_pos.second = std::min(minor_pos.second, oam.y);
     }    
+
+    if (frame_x != nullptr)
+    {
+        *frame_x = minor_pos.first;
+    } 
+
+    if (frame_y != nullptr)
+    {
+        *frame_y = minor_pos.second;
+    }
 
     if (minor_pos.first == 0 && minor_pos.second == 0)
         return positions;

@@ -82,9 +82,13 @@ public:
 
 	//Blit a Graphics at x and y coordinates
 	void Blit(const Graphics& other, const uint32_t& x, const uint32_t& y);
-	//Blit a tile (8x8 Graphics) at tile-x*8 and tile-y*8 coordinates
+	//Blit a tile (8x8 Graphics) at tile-x*8 and tile-y*8 coordinates.
 	//This is faster than Blit.
 	void BlitTile(const Graphics& tile, const uint32_t& tile_x, const uint32_t& tile_y);
+	//Blit a tile (8x8 Graphics) at pos. This is faster than Blit.
+	void BlitTile(const Graphics& tile, const size_t& pos);
+	//Get a tile of this graphics as another graphics
+	Graphics GetTile(int tile_x, int tile_y);
 public:
 	//Compare two Graphics. This compare the palette index, so assume both use
 	//same palette and the palette don't have duplicated colors.
