@@ -83,15 +83,14 @@ private:
 
     void UpdatePieceInfo()
     {
-        FrameInfo& info = m_Animator.GetFrameInfo(m_CurrentFrame);
-        SpriteAttribute& attr = m_Animator.GetAttribute(info.oam.start + m_CurrentPiece);             
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];
 
-        auto sprite_sizes = Animator::GetSizeList();
-        auto size = sprite_sizes[attr.size + (attr.shape * 4)];
+        auto sprite_sizes = Animator::GetSizeList();        
 
         for (size_t i = 0; i < m_Sizes.size(); ++i)
         {
-            if (size.first == sprite_sizes[i].first && size.second == sprite_sizes[i].second)
+            if (piece.graphics.GetWidth() == sprite_sizes[i].first && piece.graphics.GetHeight() == sprite_sizes[i].second)
             {
                 m_pSizeChoice->SetSelection(i);
             }
@@ -177,8 +176,37 @@ endloop:
         event.Skip();
     }
 
+    void OnAddPiece(wxCommandEvent& event)
+    {
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece new_piece;
+
+        new_piece.x = frame.w;
+        new_piece.y = 0;
+
+        new_piece.graphics.Create(8, 8);
+        new_piece.palette = frame.pieces[0].palette;
+
+        frame.pieces.push_back(new_piece);
+
+        frame.w += 8;
+        frame.h += 8;
+
+        UpdatePieces();
+
+        event.Skip();
+    }
+
     void CreateGUIControls()
     {
+        wxMenu* menuPieces = new wxMenu();
+        Bind(wxEVT_MENU, &FramePiecesEditor::OnAddPiece, this, menuPieces->Append(wxID_ANY, L"Add Piece")->GetId());
+
+        wxMenuBar* menuBar = new wxMenuBar();
+        menuBar->Append(menuPieces, L"Pieces");
+
+        SetMenuBar(menuBar);
+
         m_pBitmapViewer = new wxBitmapView(this, wxID_ANY);
         m_pBitmapViewer->SetBitmap(&m_Frame);
 
