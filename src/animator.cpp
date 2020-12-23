@@ -34,6 +34,173 @@ uint32_t Animator::GetLength() const
     return size; 
 }
 
+size_t find_palette(const std::vector<Palette>& palettes, const Palette& palette)
+{
+    for(size_t i = 0; i < palettes.size(); ++i)
+    {
+        if(palettes[i] == palette)
+        {
+            return i;
+        }
+    }
+
+    return std::string::npos;
+}
+
+void Animator::Flush()
+{
+    m_Tiles.clear();
+    m_FrameInfos.clear();
+    m_Affines.clear();
+    m_Palettes.clear();
+    m_Attributes.clear();
+
+    Graphics lastTile;    
+
+    for(size_t frame_i = 0; frame_i < m_Frames.size(); ++frame_i)
+    {
+        Frame& frame = m_Frames[frame_i];
+        FrameInfo info;
+
+        info.tile.start = m_Tiles.size();
+        info.tile.length = (frame.w/8)*(frame.h/8);
+
+        info.affine.start = 0;
+        info.affine.length = 0;
+
+        int tile_count = 0;
+
+        info.oam.start = m_Attributes.size();
+        info.oam.length = frame.pieces.size();        
+
+        info.color.start = m_Palettes.size();
+        info.color.length = frame.pieces.size();
+
+        int palette_count = 0;
+
+        bool zero_palette = false;        
+
+        if(info.oam.length == 1)
+        {
+            size_t pos = find_palette(m_Palettes, frame.pieces[0].palette);
+
+            if(pos == std::string::npos)
+            {
+                info.color.start = m_Palettes.size();
+                m_Palettes.push_back(frame.pieces[0].palette);
+            } else 
+            {
+                info.color.start = pos;
+            }
+
+            info.color.length = 1;
+            zero_palette = true;
+        } else
+        {
+            std::vector<Palette> palettes;
+
+            for(FramePiece& piece : frame.pieces)
+            {
+                palettes.push_back(piece.palette);
+            }
+
+            Palette& first_palette = palettes[0];
+            bool has_diferrence = false;
+
+            for(size_t i = 1; i < palettes.size(); ++i)
+            {
+                if(palettes[i] != first_palette)
+                {
+                    has_diferrence = true;
+                    break;
+                }
+            }
+
+            if(has_diferrence)
+            {
+                auto it = std::search(m_Palettes.begin(), m_Palettes.end(), palettes.begin(), palettes.end());
+
+                if(it == m_Palettes.end())
+                {
+                    info.color.start = m_Palettes.size();
+                    m_Palettes.insert(m_Palettes.end(), palettes.begin(), palettes.end());
+                } else 
+                {
+                    info.color.start = it-m_Palettes.begin();                
+                }
+
+                zero_palette = false;
+            }
+            else 
+            {
+                size_t pos = find_palette(m_Palettes, frame.pieces[0].palette);
+
+                if(pos == std::string::npos)
+                {
+                    info.color.start = m_Palettes.size();
+                    m_Palettes.push_back(frame.pieces[0].palette);                
+                } else 
+                {
+                    info.color.start = pos;
+                }
+
+                info.color.length = 1;
+
+                zero_palette = true;
+            }
+        }
+
+        //Find matching palette
+
+        for(FramePiece& piece : frame.pieces)
+        {
+            SpriteAttribute attr;      
+            memset(&attr, 0, sizeof(SpriteAttribute));            
+
+            std::pair shape_size = Animator::ToShapeAndSize(piece.graphics.GetWidth(), piece.graphics.GetHeight());
+
+            attr.shape = shape_size.first;
+            attr.size = shape_size.second;
+
+            attr.tile = tile_count;
+            
+            attr.x = piece.x + frame.x;
+            attr.y = piece.y + frame.y;
+
+            attr.palette = palette_count;
+
+            if(!zero_palette)
+                ++palette_count;
+            
+            m_Attributes.push_back(attr);
+
+            int x = 0;
+            int y = 0;
+
+            int max_x = piece.graphics.GetWidth() / 8;
+            int max_y = piece.graphics.GetHeight() / 8;
+
+            tile_count += max_x * max_y;
+
+            while(y < max_y)
+            {
+                while(x < max_x)
+                {
+                    Graphics tile = piece.graphics.GetTile(x, y);
+                    ++x;
+                    
+                    m_Tiles.push_back(tile);
+                }
+
+                x = 0;
+                y++;
+            }
+        }
+
+        m_FrameInfos.push_back(info);
+    }
+}
+
 void Animator::LoadFromFile(wxFile& file)
 {
     uint32_t animCount;
@@ -347,4 +514,22 @@ std::vector<std::pair<int, int>> Animator::GetPositions(size_t n, int* frame_x, 
     }
 
     return positions;
+}
+
+std::pair<uint8_t, uint8_t> Animator::ToShapeAndSize(int width, int height)
+{   
+    auto size_list = Animator::GetSizeList();
+
+    for (int shape = 0; shape < 3; ++shape)
+    {
+        for (int size = 0; size < 4; ++size)
+        {
+            auto& cur_size = size_list[(shape * 4) + size];
+
+            if (cur_size.first == width && cur_size.second == height)
+            {
+                return std::pair<uint8_t, uint8_t>(shape, size);
+            }
+        }
+    }
 }

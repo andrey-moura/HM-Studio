@@ -133,6 +133,7 @@ void AnimatorEditor::SaveFile()
         file.Write(&ref, sizeof(uint32_t));
     }
 
+    m_Animator.Flush();
     m_Animator.WriteToFile(file);
 }
 
@@ -144,6 +145,8 @@ void AnimatorEditor::InsertFile()
     uint32_t insert_offset = m_Offset;
 
     uint32_t fill = 0;
+
+    m_Animator.Flush();
 
     if(move)
     {

@@ -42,7 +42,9 @@ struct SpriteAttribute
     unsigned shape : 2;
 
     signed x : 9;
-    unsigned : 5;
+    unsigned : 3;
+    unsigned hflip : 1;
+    unsigned vflip : 1;
     unsigned size : 2;
 
     unsigned tile : 10;
@@ -99,6 +101,8 @@ public:
     void LoadFromFile(wxFile& file);
     void WriteToFile(wxFile& file);    
 
+    void Flush();
+
     Frame& GetFrame(uint32_t n) { return m_Frames[n]; }
     std::vector<Frame>& GetFrames() { return m_Frames; }
 
@@ -129,4 +133,5 @@ public:
 public:
     static std::pair<uint16_t, uint16_t>* GetSizeList();
     static uint32_t FindAnimatorOffset(wxFile& file);
+    static std::pair<uint8_t, uint8_t> ToShapeAndSize(int width, int height);
 };

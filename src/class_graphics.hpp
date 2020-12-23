@@ -94,6 +94,7 @@ public:
 	//same palette and the palette don't have duplicated colors.
 	//Bpp difference don't necessary means that Graphics are not equal.
 	bool operator==(const Graphics& other) const;
+	bool operator!=(const Graphics& other) const;
 	Graphics& operator=(const Graphics& other);
 public:
 	static Color* ToImage24(const Graphics& graphics, const Palette& palette);

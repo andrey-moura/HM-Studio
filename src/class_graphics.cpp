@@ -174,6 +174,11 @@ bool Graphics::operator==(const Graphics& other) const
 	}
 }
 
+bool Graphics::operator!=(const Graphics& other) const
+{
+	return !(other == *this);
+}
+
 Graphics& Graphics::operator=(const Graphics& other)
 {
 	m_Width = other.GetWidth();

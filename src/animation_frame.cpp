@@ -123,24 +123,6 @@ private:
 
         auto sprite_list = Animator::GetSizeList();
 
-        int shape;
-        int size;
-
-        for (shape = 0; shape < 3; ++shape)
-        {
-            for (size = 0; size < 4; ++size)
-            {
-                auto& cur_size = sprite_list[(shape * 4) + size];
-
-                if (cur_size.first == new_size.x && cur_size.second == new_size.y)
-                {
-                    goto endloop;
-                }
-            }
-        }
-
-endloop:
-
         Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
         FramePiece& piece = frame.pieces[m_CurrentPiece];
 
