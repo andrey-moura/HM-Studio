@@ -152,6 +152,8 @@ void Animator::Flush()
         for(FramePiece& piece : frame.pieces)
         {
             SpriteAttribute attr;
+            attr.vflip = false;
+            attr.hflip = false;
 
             std::pair shape_size = Animator::ToShapeAndSize(piece.graphics.GetWidth(), piece.graphics.GetHeight());
 
