@@ -38,6 +38,9 @@ private:
 private:
     wxBitmapView* m_pBitmapViewer;
     wxChoice* m_pSizeChoice;
+
+    wxTextCtrl* m_pXInput;
+    wxTextCtrl* m_pYInput;
 private:
     void UpdatePieces()
     {
@@ -86,7 +89,7 @@ private:
         Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
         FramePiece& piece = frame.pieces[m_CurrentPiece];
 
-        auto sprite_sizes = Animator::GetSizeList();        
+        auto sprite_sizes = Animator::GetSizeList();
 
         for (size_t i = 0; i < m_Sizes.size(); ++i)
         {
@@ -94,7 +97,10 @@ private:
             {
                 m_pSizeChoice->SetSelection(i);
             }
-        }        
+        }
+
+        m_pXInput->SetValue(std::to_wstring(piece.x));
+        m_pYInput->SetValue(std::to_wstring(piece.y));
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -158,6 +164,30 @@ private:
         event.Skip();
     }
 
+    void OnPositionEnter(wxCommandEvent& event)
+    {
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];
+
+        wxString str = event.GetString();
+
+        int value = std::stoi(str.ToStdWstring());
+
+        if(event.GetEventObject() == m_pXInput)
+        {
+            piece.x =  value;
+        } else 
+        {
+            piece.y =  value;
+        }
+
+        frame.update_size();
+
+        UpdatePieces();
+
+        event.Skip();
+    }
+
     void OnAddPiece(wxCommandEvent& event)
     {
         Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
@@ -205,10 +235,26 @@ private:
         m_pSizeChoice = new wxChoice(right_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_Sizes);
         m_pSizeChoice->Bind(wxEVT_CHOICE, &FramePiecesEditor::OnSizeChange, this);
 
+        m_pXInput = new wxTextCtrl(right_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        m_pYInput = new wxTextCtrl(right_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+
+        m_pXInput->SetMinSize(wxSize(32, -1));
+        m_pYInput->SetMinSize(wxSize(32, -1));
+
+        m_pXInput->Bind(wxEVT_TEXT_ENTER, &FramePiecesEditor::OnPositionEnter, this);
+        m_pYInput->Bind(wxEVT_TEXT_ENTER, &FramePiecesEditor::OnPositionEnter, this);
+
+        wxBoxSizer* position_sizer = new wxBoxSizer(wxHORIZONTAL);
+        position_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"X:"));
+        position_sizer->Add(m_pXInput);
+        position_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Y:"));
+        position_sizer->Add(m_pYInput);
+
         UpdatePieceInfo();
 
         right_sizer->Add(m_pSizeChoice);
-        right_panel->SetSizer(right_sizer);
+        right_sizer->Add(position_sizer);
+        right_panel->SetSizer(right_sizer);        
 
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_pBitmapViewer, 1, wxEXPAND);
