@@ -99,8 +99,8 @@ private:
             }
         }
 
-        m_pXInput->SetValue(std::to_wstring(piece.x));
-        m_pYInput->SetValue(std::to_wstring(piece.y));
+        m_pXInput->SetValue(std::to_wstring(piece.x+frame.x));
+        m_pYInput->SetValue(std::to_wstring(piece.y+frame.y));
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -171,19 +171,38 @@ private:
 
         wxString str = event.GetString();
 
-        int value = std::stoi(str.ToStdWstring());
+        int value = std::stoi(str.ToStdWstring());                
 
         if(event.GetEventObject() == m_pXInput)
         {
-            piece.x =  value;
+            if(value < frame.x)
+            {
+                frame.x = value;
+                value = 0;
+            } else
+            {
+                value += frame.x;                    
+            }                
+
+            piece.x = value;
         } else 
         {
-            piece.y =  value;
-        }
+            if(value < frame.y)
+            {
+                frame.y = value;
+                value = 0;
+            } else
+            {
+                value += frame.y;                    
+            }                
+
+            piece.y = value;
+        }        
 
         frame.update_size();
 
         UpdatePieces();
+        UpdatePieceInfo();
 
         event.Skip();
     }
