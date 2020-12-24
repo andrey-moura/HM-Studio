@@ -80,7 +80,7 @@ struct Frame
         for (FramePiece& piece : pieces)
         {
             w = std::max(w, piece.x + (int)piece.graphics.GetWidth());
-            h = std::max(w, piece.y + (int)piece.graphics.GetHeight());
+            h = std::max(h, piece.y + (int)piece.graphics.GetHeight());
         }
     }
 };
