@@ -37,21 +37,32 @@ struct FrameInfo
 
 struct SpriteAttribute
 {
+    SpriteAttribute()
+        : unused0(0), unused1(0), unused2(0), unused3(0)
+    {
+        
+    }
+
+    bool operator==(const SpriteAttribute& other) const
+    {
+        return memcmp(this, &other, sizeof(SpriteAttribute)) == 0;
+    }
+
     signed y : 8;
-    unsigned : 6;
+    unsigned unused0 : 6;
     unsigned shape : 2;
 
     signed x : 9;
-    unsigned : 3;
+    unsigned unused1 : 3;
     unsigned hflip : 1;
     unsigned vflip : 1;
     unsigned size : 2;
 
     unsigned tile : 10;
-    unsigned : 2;
+    unsigned unused2 : 2;
     unsigned palette : 4;
 
-    unsigned unused : 16;
+    unsigned unused3 : 16;
 };
 
 struct FramePiece

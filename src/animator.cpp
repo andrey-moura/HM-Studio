@@ -68,10 +68,7 @@ void Animator::Flush()
         info.affine.start = 0;
         info.affine.length = 0;
 
-        int tile_count = 0;
-
-        info.oam.start = m_Attributes.size();
-        info.oam.length = frame.pieces.size();        
+        int tile_count = 0;        
 
         info.color.start = m_Palettes.size();
         info.color.length = frame.pieces.size();
@@ -150,12 +147,11 @@ void Animator::Flush()
             }
         }
 
-        //Find matching palette
+        std::vector<SpriteAttribute> attrs;
 
         for(FramePiece& piece : frame.pieces)
         {
-            SpriteAttribute attr;      
-            memset(&attr, 0, sizeof(SpriteAttribute));            
+            SpriteAttribute attr;
 
             std::pair shape_size = Animator::ToShapeAndSize(piece.graphics.GetWidth(), piece.graphics.GetHeight());
 
@@ -171,8 +167,8 @@ void Animator::Flush()
 
             if(!zero_palette)
                 ++palette_count;
-            
-            m_Attributes.push_back(attr);
+
+            attrs.push_back(attr);
 
             int x = 0;
             int y = 0;
@@ -197,6 +193,18 @@ void Animator::Flush()
             }
         }
 
+        auto it = std::search(m_Attributes.begin(), m_Attributes.end(), attrs.begin(), attrs.end());
+
+        if(it == m_Attributes.end())
+        {
+            info.oam.start = m_Attributes.size();
+            m_Attributes.insert(m_Attributes.end(), attrs.begin(), attrs.end());
+        } else
+        {
+            info.oam.start = it - m_Attributes.begin();
+        }
+
+        info.oam.length = attrs.size();
         m_FrameInfos.push_back(info);
     }
 }
