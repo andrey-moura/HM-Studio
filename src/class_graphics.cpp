@@ -2,7 +2,46 @@
 
 size_t Palette::find_color(const Color& c) const
 {
-	return std::find(begin(), end(), c) - begin();
+	const Color* colors = data();
+
+	for(size_t i = 0; i < size(); ++i)
+	{
+		if(c == colors[i])
+		{
+			return i;
+		}
+	}
+
+	return std::string::npos;
+}
+
+size_t Palette::find_nearest(const Color& c) const
+{
+	const Color* colors = data();
+	size_t nearest;
+	size_t near_diff = std::string::npos;
+
+	for(size_t i = 0; i < size(); ++i)
+	{
+		int diff = 0;
+		diff += std::max(c.red, colors[i].red) - std::min(c.red, colors[i].red);
+		diff += std::max(c.green, colors[i].green) - std::min(c.green, colors[i].green);
+		diff += std::max(c.blue, colors[i].blue) - std::min(c.blue, colors[i].blue);
+
+		if(diff < near_diff)
+		{
+			near_diff = diff;
+			nearest = i;
+		}
+	}
+
+	if(near_diff == std::string::npos)
+	{
+		return std::string::npos;
+	} else 
+	{
+		return nearest;
+	}	
 }
 
 //-------------------------------------------------//

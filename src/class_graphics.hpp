@@ -41,6 +41,7 @@ class Palette : public std::vector<Color>
 {
 public:
 	size_t find_color(const Color& c) const;
+	size_t find_nearest(const Color& c) const;
 };
 
 class Graphics

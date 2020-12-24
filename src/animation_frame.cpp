@@ -441,48 +441,31 @@ private:
             return;
         }
 
-        std::vector<wxBitmap> pieces;
-        auto positions = m_Animator.GetPositions(m_SelectedFrame);
-
-        FrameInfo info =  m_Animator.GetFrameInfo(m_SelectedFrame);
-
-        auto sprite_sizes = Animator::GetSizeList();
-
-        for(size_t i = 0; i < info.oam.length; ++i)        
+        for(FramePiece& piece : frame.pieces)
         {
-            wxRect rect;
-            rect.SetPosition({positions[i].first, positions[i].second});
+            wxBitmap piece_bitmap = bitmap.GetSubBitmap(wxRect(piece.x, piece.y, piece.graphics.GetWidth(), piece.graphics.GetHeight()));
 
-            SpriteAttribute attr = m_Animator.GetAttribute(i+info.oam.start);
+            int cur_pixel = 0;
 
-            auto size = sprite_sizes[attr.size + (attr.shape * 4)];            
-
-            rect.SetSize({ size.first, size.second });
-
-            pieces.push_back(bitmap.GetSubBitmap(rect));
-        }
-
-        for(size_t i = 0; i < pieces.size(); ++i)        
-        {
-            size_t cur_pixel = 0;
-
-            Moon::wxWidgets::Bitmap::for_each_pixel(pieces[i], [&i, &frame, &cur_pixel](
-                const uint8_t& r,
-                const uint8_t& g,
-                const uint8_t& b,
+            Moon::wxWidgets::Bitmap::for_each_pixel(piece_bitmap, [&cur_pixel, &piece](
+                uint8_t& r,
+                uint8_t& g, 
+                uint8_t& b,
                 uint8_t a)
-                {
-                    size_t p = frame.pieces[i].palette.find_color({r, g, b});
+            {
+                Color c { r, g, b };
 
-                    if(p == std::string::npos)
-                    {
-                        //Todo
-                        //nearest color
-                    } else                     
-                    {
-                        frame.pieces[i].graphics.SetPixel(p, cur_pixel);
-                    }                    
-                });
+                size_t pixel = piece.palette.find_color(c);
+
+                if(pixel == std::string::npos)
+                {
+                    pixel = piece.palette.find_nearest(c);                    
+                }
+
+                piece.graphics.SetPixel(cur_pixel, pixel);
+
+                cur_pixel++;
+            });
         }
         
         UpdateFrame(m_SelectedFrame);
