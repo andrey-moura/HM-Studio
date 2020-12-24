@@ -139,14 +139,14 @@ void AnimatorEditor::SaveFile()
 
 void AnimatorEditor::InsertFile()
 {
+    m_Animator.Flush();
+
     uint32_t newLength = m_Animator.GetLength();
     bool move = newLength > m_OldLenght;
 
     uint32_t insert_offset = m_Offset;
 
     uint32_t fill = 0;
-
-    m_Animator.Flush();
 
     if(move)
     {
