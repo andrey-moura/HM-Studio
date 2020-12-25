@@ -228,13 +228,63 @@ private:
         event.Skip();
     }
 
+    void OnExportPalette(wxCommandEvent& event)
+    {
+        //TODO 
+        //Choose a palette format
+
+        event.Skip();
+
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];        
+
+        wxString path = wxSaveFileSelector("Palette file", "pal");
+
+        if(path.empty())
+            return;
+
+        wxFile file;
+        file.Create(path, true);
+        file.Open(path, wxFile::OpenMode::write);
+
+        file.Write(piece.palette.data(), piece.palette.size()*sizeof(Color));
+    }
+
+    void OnImportPalette(wxCommandEvent& event)
+    {
+        //TODO 
+        //Choose a palette format
+
+        event.Skip();
+
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];
+
+        wxString path = wxLoadFileSelector("Palette file", "pal");
+
+        if(path.empty())
+            return;
+
+        wxFile file;        
+        file.Open(path, wxFile::OpenMode::read);
+
+        piece.palette.resize(file.Length()/sizeof(Color));
+
+        file.Read(piece.palette.data(), piece.palette.size()*sizeof(Color));
+    }
+
     void CreateGUIControls()
     {
         wxMenu* menuPieces = new wxMenu();
         Bind(wxEVT_MENU, &FramePiecesEditor::OnAddPiece, this, menuPieces->Append(wxID_ANY, L"Add Piece")->GetId());
 
+        wxMenu* menuPalette = new wxMenu();        
+        Bind(wxEVT_MENU, &FramePiecesEditor::OnExportPalette, this, menuPalette->Append(wxID_ANY, L"Export Palette")->GetId());
+        Bind(wxEVT_MENU, &FramePiecesEditor::OnImportPalette, this, menuPalette->Append(wxID_ANY, L"Import Palette")->GetId());
+
         wxMenuBar* menuBar = new wxMenuBar();
         menuBar->Append(menuPieces, L"Pieces");
+        menuBar->Append(menuPalette, L"Palette");
 
         SetMenuBar(menuBar);
 
