@@ -228,6 +228,24 @@ private:
         event.Skip();
     }
 
+    void OnRemovePiece(wxCommandEvent& event)
+    {
+        event.Skip();
+
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+
+        if(frame.pieces.size() == 1)
+        {
+            wxMessageBox(L"The frame has only one piece. Change the size or delete the frame instead", "Huh?", wxICON_ERROR);
+            return;
+        }        
+
+        frame.pieces.erase(frame.pieces.begin()+m_CurrentPiece);
+        m_CurrentPiece = 0;
+        UpdatePieceInfo();
+        UpdatePieces();
+    }
+
     void OnExportPalette(wxCommandEvent& event)
     {
         //TODO 
@@ -277,6 +295,7 @@ private:
     {
         wxMenu* menuPieces = new wxMenu();
         Bind(wxEVT_MENU, &FramePiecesEditor::OnAddPiece, this, menuPieces->Append(wxID_ANY, L"Add Piece")->GetId());
+        Bind(wxEVT_MENU, &FramePiecesEditor::OnRemovePiece, this, menuPieces->Append(wxID_ANY, L"Remove Piece")->GetId());
 
         wxMenu* menuPalette = new wxMenu();        
         Bind(wxEVT_MENU, &FramePiecesEditor::OnExportPalette, this, menuPalette->Append(wxID_ANY, L"Export Palette")->GetId());
