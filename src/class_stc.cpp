@@ -171,6 +171,12 @@ void STC::OnKeyPress(wxKeyEvent& event)
 
 void STC::OnStyleNeeded(wxStyledTextEvent& event)
 {	
+	ApplyStyle();
+	event.Skip();
+}
+
+void STC::ApplyStyle()
+{
 	if (m_NeedStyle)
 	{
 		size_t start = PositionFromLine(LineFromPosition(m_TypingStart));
@@ -182,8 +188,6 @@ void STC::OnStyleNeeded(wxStyledTextEvent& event)
 
 		m_NeedStyle = false;
 	}
-
-	event.Skip();
 }
 
 void STC::SpellSTC(size_t start, size_t end)

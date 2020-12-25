@@ -85,6 +85,8 @@ public:
 	//Returns the start pos of the line
 	size_t CleanLine(size_t ln);
 	void ReplaceLineText(const wxString& line, size_t ln);
+
+	void ApplyStyle();
 private:	
 	inline void VerifyLineLenght(size_t line);
 	inline void VerifyLineLenghtFromPos(size_t from, size_t to);

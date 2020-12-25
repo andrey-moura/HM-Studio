@@ -1,5 +1,105 @@
 #include "class_script.hpp"
 
+#include <map>
+#include <moon/bit_conv.hpp>
+
+static std::string s_script_operations[] =
+{
+/*	0x00  */ "nop",
+/*	0x01  */ "equ",
+/*	0x02  */ "addequ",
+/*	0x03  */ "subequ",
+/*	0x04  */ "mulequ",
+/*	0x05  */ "divequ",
+/*	0x06  */ "modequ",
+/*	0x07  */ "add",
+/*	0x08  */ "sub",
+/*	0x09  */ "mul",
+/*	0x0A  */ "div",
+/*	0x0B  */ "mod",
+/*	0x0C  */ "and",
+/*	0x0D  */ "or",
+/*	0x0E  */ "inc",
+/*	0x0F  */ "dec",
+/*	0x10  */ "neg",
+/*	0x11  */ "not",
+/*	0x12  */ "cmp",
+/*	0x13  */ "pushm",
+/*	0x14  */ "popm",
+/*	0x15  */ "dup",
+/*	0x16  */ "pop",
+/*	0x17  */ "push",
+/*	0x18  */ "b",
+/*	0x19  */ "blt",
+/*	0x1A  */ "ble",
+/*	0X1B  */ "beq",
+/*	0x1C  */ "bne",
+/*	0x1D  */ "bge",
+/*	0x1E  */ "bgt",
+/*	0x1F  */ "bi",
+/*	0x20  */ "end",
+/*	0x21  */ "call",
+/*	0x22  */ "push16",
+/*	0x23  */ "push8",
+/*	0x24  */ "switch"
+};
+
+static uint8_t s_imm_size[] =
+{
+	/*	0x00  */ 0,
+	/*	0x01  */ 0,
+	/*	0x02  */ 0,
+	/*	0x03  */ 0,
+	/*	0x04  */ 0,
+	/*	0x05  */ 0,
+	/*	0x06  */ 0,
+	/*	0x07  */ 0,
+	/*	0x08  */ 0,
+	/*	0x09  */ 0,
+	/*	0x0A  */ 0,
+	/*	0x0B  */ 0,
+	/*	0x0C  */ 0,
+	/*	0x0D  */ 0,
+	/*	0x0E  */ 0,
+	/*	0x0F  */ 0,
+	/*	0x10  */ 0,
+	/*	0x11  */ 0,
+	/*	0x12  */ 0,
+	/*	0x13  */ 4,
+	/*	0x14  */ 4,
+	/*	0x15  */ 0,
+	/*	0x16  */ 0,
+	/*	0x17  */ 4,
+	/*	0x18  */ 4,
+	/*	0x19  */ 4,
+	/*	0x1A  */ 4,
+	/*	0X1B  */ 4,
+	/*	0x1C  */ 4,
+	/*	0x1D  */ 4,
+	/*	0x1E  */ 4,
+	/*	0x1F  */ 0,
+	/*	0x20  */ 0,
+	/*	0x21  */ 4,
+	/*	0x22  */ 2,
+	/*	0x23  */ 1,
+	/*	0x24  */ 4	
+};
+
+std::string* Script::GetScriptOperations()
+{
+	return s_script_operations;
+}
+
+size_t Script::GetScriptOperationsCount()
+{
+	return 37;
+}
+
+size_t Script::GetOperandSize(size_t i)
+{
+	return s_imm_size[i];
+}
+
 Script::Script(uint8_t* bytes, size_t size)
 {
 	SetData(bytes, size);
@@ -66,6 +166,34 @@ bool Script::CompareCode(const Script& other)
 	if (*m_pStrCount != *(other.m_pStrCount)) return false;
 
 	return true;
+}
+
+std::string Script::GetSrcCode()
+{
+	const unsigned char* start = m_data + 0x18;
+	const unsigned char* end = start + *(m_pSrcCodeLenght + 1);
+	const unsigned char* pos = start;
+
+	std::string output;
+	
+	while (pos != end)
+	{
+		output.append(s_script_operations[*pos]);		
+
+		if (s_imm_size[*pos] != 0)
+		{
+			size_t imm_size = s_imm_size[*pos];
+
+			output.append(" 0x");
+			output.append(Moon::BitConverter::ToHexString(pos + 1, imm_size));
+			pos += imm_size;
+		}
+
+		pos++;
+		output.push_back('\n');
+	}
+
+	return output;
 }
 
 std::vector<std::string> Script::GetText()

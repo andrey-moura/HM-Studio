@@ -35,6 +35,7 @@ private:
 	void OnSetEventClick(wxCommandEvent& event);
 	void SetTextRange();
 	void OnHorizontalModeClick(wxCommandEvent& event);
+	void OnCodeStyleNeeded(wxStyledTextEvent& event);
 //Text save
 	void ConfigureSTC(STC* stc, const RomFile& rom);	
 	size_t GetNumberFromResult(const SearchResult& result);
@@ -83,6 +84,8 @@ private:
 	wxBoxSizer* editor_sizer = nullptr;
 	wxBoxSizer* editor_buttons_sizer = nullptr;
 	STC* tScriptOriginal = nullptr;
+
+	STC* m_pSrcCodeOutput = nullptr;
 
 	wxBoxSizer* global_sizer = nullptr;	
 	FindResultsWindow* m_pFindResultsWindow = nullptr;	

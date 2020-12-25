@@ -314,6 +314,8 @@ void ScriptEditorFrame::UpdateText()
 	m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
 		
 	tScriptTranslated->SetModified(false);
+
+	m_pSrcCodeOutput->SetText(((ScriptEditor*)m_pEditor)->GetScript().GetSrcCode());
 }
 
 void ScriptEditorFrame::CreateGUIControls()
@@ -342,16 +344,32 @@ void ScriptEditorFrame::CreateGUIControls()
 
 	tScriptTranslated = new STC(this, wxID_ANY);
 	tScriptOriginal = new STC(this, wxID_ANY);
+	m_pSrcCodeOutput = new STC(this, wxID_ANY);
+
+	m_pSrcCodeOutput->SetUseSpellChecker(false);
 	tScriptOriginal->SetUseSpellChecker(false);
 	CreateButtonsSizer();
+
+	for (size_t i = 0; i < Script::GetScriptOperationsCount(); ++i)
+	{
+		m_pSrcCodeOutput->AddVar(Script::GetScriptOperations()[i]);
+	}
+
+	m_pSrcCodeOutput->StyleSetFont(5, m_pSrcCodeOutput->GetFont());
+	m_pSrcCodeOutput->StyleSetForeground(5, wxColour(255, 128, 0));
+	m_pSrcCodeOutput->SetMarginType(0, wxSTC_MARGIN_TEXT);
+	m_pSrcCodeOutput->SetMarginCount(1);
+	m_pSrcCodeOutput->SetMarginWidth(0, 72);
+	m_pSrcCodeOutput->Bind(wxEVT_STC_STYLENEEDED, &ScriptEditorFrame::OnCodeStyleNeeded, this);
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(m_pButtonsSizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
 	editor_sizer->Add(tScriptOriginal, 2, wxALL | wxEXPAND, 0);
 
-	global_sizer = new wxBoxSizer(wxVERTICAL);	
-	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);		
+	global_sizer = new wxBoxSizer(wxHORIZONTAL);	
+	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);
+	global_sizer->Add(m_pSrcCodeOutput, 0, wxALL | wxEXPAND, 0);
 
 	CreateMyStatusBar();
 	StatusToStc(tScriptOriginal);
@@ -366,6 +384,62 @@ void ScriptEditorFrame::CreateGUIControls()
 	{
 		SetSizerAndFit(global_sizer);
 		global_sizer->SetSizeHints(this);
+	}
+}
+
+void ScriptEditorFrame::OnCodeStyleNeeded(wxStyledTextEvent& event)
+{
+	m_pSrcCodeOutput->ApplyStyle();
+
+	size_t pos = m_pSrcCodeOutput->FindText(0, m_pSrcCodeOutput->GetTextLength(), L"0x", wxSTC_FIND_MATCHCASE);	
+
+	while (pos != -1)
+	{
+		size_t i = 2;
+		int c = m_pSrcCodeOutput->GetCharAt(pos+2);
+
+		while (isxdigit(c))
+		{
+			++i;
+			c = m_pSrcCodeOutput->GetCharAt(pos + i);
+		}
+
+		m_pSrcCodeOutput->StartStyling(pos);
+		m_pSrcCodeOutput->SetStyling(i, 5);
+
+		pos = m_pSrcCodeOutput->FindText(pos+i, m_pSrcCodeOutput->GetTextLength(), L"0x", wxSTC_FIND_MATCHCASE);
+	}
+
+	size_t lines = m_pSrcCodeOutput->GetLineCount();
+	size_t ln = 0;
+	uint32_t offset = 0;
+
+	while (ln < lines)
+	{
+		m_pSrcCodeOutput->MarginSetText(ln, Moon::BitConverter::ToHexString(offset));
+
+		wxString line = m_pSrcCodeOutput->GetLine(ln);
+		wxString op = line.substr(0, line.find(' '));
+
+		size_t opcode = -1;
+
+		for (size_t i = 0; i < Script::GetScriptOperationsCount(); ++i)
+		{
+			if (Script::GetScriptOperations()[i] == op)
+			{
+				opcode = i;
+				break;
+			}
+		}
+
+		++offset;
+
+		if (opcode != -1)
+		{
+			offset += Script::GetOperandSize(opcode);
+		}
+
+		++ln;
 	}
 }
 

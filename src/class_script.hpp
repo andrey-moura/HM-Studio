@@ -19,6 +19,11 @@ public:
 	void SetData(uint8_t* bytes, size_t size);
 	void SetData(std::vector<uint8_t> bytes);
 	bool CompareCode(const Script& other);
+	std::string GetSrcCode();
+
+	static std::string* GetScriptOperations();
+	static size_t GetScriptOperationsCount();
+	static size_t GetOperandSize(size_t i);
 private:
 	//RIFF
 	uint8_t* m_data = nullptr;
