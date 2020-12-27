@@ -289,6 +289,7 @@ void Animator::LoadFromFile(wxFile& file)
         file.Read(&m_Instructions[i], sizeof(AnimInstruction));
     }
 
+    m_Frames.clear();
     m_Frames.reserve(frameCount);    
     
     for(size_t frame_index = 0; frame_index < m_FrameInfos.size(); ++frame_index)    

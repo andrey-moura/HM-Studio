@@ -1011,16 +1011,48 @@ void AnimationEditorFrame::OnExportAnimationClick(wxCommandEvent& event)
 
     auto& instrs = animator.GetInstructions();    
 
+    int width = 0, height = 0;    
+
+    //Find largest frame
+    for (size_t i = 0; i < animRange.length; ++i)
+    {
+        Frame& frame = animator.GetFrame(animRange.start + i);
+
+        width = std::max(frame.w, width);
+        height = std::max(frame.h, height);
+    }
+
     GifWriter g;
-    GifBegin(&g, path.ToStdString().c_str(), 0, 0, 0);
+    GifBegin(&g, path.ToStdString().c_str(), width, height, 0, 8, false, 0xffff);
 
     for (size_t anim_i = 0; anim_i < animRange.length; ++anim_i)
     {
         AnimInstruction instr = animator.GetInstruction(animRange.start + anim_i);
 
-        wxImage img = m_pAnimatorEditor->MountFrame(instr.frame).ConvertToImage();
+        wxBitmap bitmap = m_pAnimatorEditor->MountFrame(instr.frame);
+
+        //This is very annoying. Gif accepts the image as being 32bits, but it ignores alpha.
+        //Maybe in the future I may write some changes to GifWriteFrame accept 24bits images.
+        //With this, one single conversion from wxBitmap to wxImage will do the job.
+
+        //Holds 32 bits RGBA image
+        std::vector<uint8_t> data;
+        data.reserve((bitmap.GetWidth()*bitmap.GetHeight())*4);
+
+        Moon::wxWidgets::Bitmap::for_each_pixel(bitmap, [&data](
+        const uint8_t& r,
+        const uint8_t& g,
+        const uint8_t& b,
+        const uint8_t& a)
+        {
+            data.push_back(r);
+            data.push_back(g);
+            data.push_back(b);
+            data.push_back(255);
+        });
         
-        GifWriteFrame(&g, img.GetData(), img.GetWidth(), img.GetHeight(), (instr.time*16)/10);        
+        
+        GifWriteFrame(&g, data.data(), bitmap.GetWidth(), bitmap.GetHeight(), (instr.time*16)/10);        
     }
 
     GifEnd(&g);
