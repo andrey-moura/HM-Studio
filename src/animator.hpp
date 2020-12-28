@@ -143,6 +143,6 @@ public:
     std::vector<std::pair<int, int>> GetPositions(size_t n, int* frame_x = nullptr, int* frame_y = nullptr);
 public:
     static std::pair<uint16_t, uint16_t>* GetSizeList();
-    static uint32_t FindAnimatorOffset(wxFile& file);
+    static size_t FindAnimatorOffset(wxFile& file);
     static std::pair<uint8_t, uint8_t> ToShapeAndSize(int width, int height);
 };

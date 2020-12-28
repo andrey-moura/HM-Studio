@@ -424,7 +424,7 @@ void Animator::WriteToFile(wxFile& file)
     }    
 }
 
-uint32_t Animator::FindAnimatorOffset(wxFile& file)
+size_t Animator::FindAnimatorOffset(wxFile& file)
 {
     file.Seek(file.Tell() - 4);
 
@@ -440,6 +440,10 @@ uint32_t Animator::FindAnimatorOffset(wxFile& file)
             break;
 
         ++attrCount;        
+        if(attrCount > 1000)        
+        {
+            return std::string::npos;
+        }
     }
 
     file.Seek(file.Tell()-4);
@@ -455,6 +459,10 @@ uint32_t Animator::FindAnimatorOffset(wxFile& file)
             break;
 
         ++frameCount;        
+        if(frameCount > 1000)        
+        {
+            return std::string::npos;
+        }
     }
 
     file.Seek(file.Tell()-4);
@@ -470,6 +478,10 @@ uint32_t Animator::FindAnimatorOffset(wxFile& file)
             break;
 
         ++animCount;        
+        if(animCount > 1000)        
+        {
+            return std::string::npos;
+        }
     }    
 
     return file.Tell() - 4;

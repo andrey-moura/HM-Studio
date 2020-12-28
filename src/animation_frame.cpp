@@ -674,7 +674,7 @@ void AnimationEditorFrame::OnGoFile()
             }
         }
 
-        uint32_t offset = std::stoi(value.ToStdWstring(), nullptr, 16);
+        size_t offset = std::stoi(value.ToStdWstring(), nullptr, 16);
 
         if(find)
         {            
@@ -683,14 +683,14 @@ void AnimationEditorFrame::OnGoFile()
 
             offset = Animator::FindAnimatorOffset(rom);
 
-            if(offset == 0)
+            if(offset == std::string::npos)
             {
-                wxMessageBox(L"Failed to find the animator.", L"Error,", wxICON_ERROR);
+                wxMessageBox(L"Failed to find the animator.", L"Error", wxICON_ERROR);
                 return;
             } else 
             {
                 if(
-                    wxMessageBox(wxString::Format(L"Found animator at %s. Open?", Moon::BitConverter::ToHexString(offset)), wxString::FromAscii(wxMessageBoxCaptionStr), wxICON_QUESTION | wxYES_NO, this)
+                    wxMessageBox(wxString::Format(L"Found animator at %s. Open?", Moon::BitConverter::ToHexString((uint32_t)offset)), wxString::FromAscii(wxMessageBoxCaptionStr), wxICON_QUESTION | wxYES_NO, this)
                     != wxYES)
                     {
                         return;
