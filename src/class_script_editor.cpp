@@ -39,9 +39,6 @@ bool ScriptEditor::Open(uint32_t number)
 	std::vector<uint8_t> dataOri = Moon::File::ReadAllBytes<uint8_t>(GetPath(number, false));
 
 	Script script(dataOri);
-
-	if (!script.HaveText())	
-		return false;
 		
 	std::vector<uint8_t> data = Moon::File::ReadAllBytes<uint8_t>(GetPath(number, true));
 

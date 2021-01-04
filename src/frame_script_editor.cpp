@@ -1,12 +1,15 @@
 #include "frame_script_editor.hpp"
 
+#include <wx/popupwin.h>
+#include <wx/statline.h>
+
 ScriptEditorFrame::ScriptEditorFrame(id i) : EditorFrame(new ScriptEditor(i))
 {
 	CreateGUIControls();
 	SetupRom(); 
 	ConfigureSTC(tScriptOriginal, m_pEditor->GetRom(false));
 	ConfigureSTC(tScriptTranslated, m_pEditor->GetRom(true));
-	RestoreText();	
+	RestoreText();
 }
 
 ScriptEditorFrame::~ScriptEditorFrame()
@@ -16,7 +19,7 @@ ScriptEditorFrame::~ScriptEditorFrame()
 
 void ScriptEditorFrame::SetupRom()
 {	
-	this->SetTitle("ScriptEditor::" + m_pEditor->GetRom(false).Name);
+	SetTitle("Script Editor");
 
 	wxFileName fn(((ScriptEditor*)m_pEditor)->GetScriptDir());
 	fn.AppendDir("Backup");
@@ -141,7 +144,7 @@ void ScriptEditorFrame::RestoreText()
 void ScriptEditorFrame::OpenScript(size_t index)
 {	
 	m_pEditor->Open(index);
-	UpdateScript();
+	UpdateFile();
 }
 
 void ScriptEditorFrame::SaveScript()
@@ -168,9 +171,9 @@ void ScriptEditorFrame::UpdateScriptDic()
 	tScriptTranslated->AppendDicToMenu("Script", m_DicIndex);
 }
 
-void ScriptEditorFrame::UpdateScript()
+void ScriptEditorFrame::UpdateFile()
 {
-	this->SetTitle(wxString("ScriptEditor::") << m_pEditor->GetRom(false).Name << " - " << m_pEditor->GetNumber());
+	SetTitle("Script " + std::to_string(m_pEditor->GetNumber()));
 		
 	UpdateScriptDic();
 	UpdateText();
@@ -300,22 +303,231 @@ void ScriptEditorFrame::SetTextRange()
 	dialog.ShowModal();	
 }
 
+struct ScriptFunction
+{
+	ScriptFunction(const char* format, bool returns )
+		: format(format), returns(returns)
+		{
+			for(int i = 0; i < strlen(format); ++i)			
+				if (format[i] == '%')
+					++arguments;
+		}
+
+	const char* format;	
+
+	bool returns = false;
+	int arguments = 0;
+};
+
+enum StackType
+{
+	STACK_IMM,
+	STACK_RETURN		
+};
+
+struct StackVar
+{
+	StackVar(uint32_t v)
+		: value(v), type(STACK_IMM)
+	{
+
+	}
+
+	StackVar(const std::string& str)
+		: value(0), type(STACK_RETURN), prototype(str)
+	{
+
+	}
+
+	StackVar()
+		: value(0), type(STACK_IMM)
+	{
+
+	}
+
+	uint32_t value;
+	std::string prototype;
+	StackType type;
+};
+
+using Stack = std::vector<StackVar>;
+
+#include <map>
+
+std::map<uint32_t, ScriptFunction> functions;
+std::map<uint16_t, std::string> sfx;
+
+std::string stack_tostring(const StackVar& var)
+{
+	switch (var.type)
+	{
+	case STACK_IMM:
+		return std::to_string(var.value);
+		break;
+	case STACK_RETURN:
+		return var.prototype;
+	break;
+	default:
+		break;
+	}	
+
+	return "";
+}
+
 void ScriptEditorFrame::UpdateText()
-{	
-	std::string std_translated = ((ScriptEditor*)m_pEditor)->GetCurTranslated();
-	wxString translated(std_translated.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_translated.size());
+{
+	ScriptEditor* editor = (ScriptEditor*)m_pEditor;
 
-	std::string std_original = ((ScriptEditor*)m_pEditor)->GetCurOriginal();
-	wxString original(std_original.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_original.size());
+	if(editor->GetScript().HaveText())
+	{
+		std::string std_translated = ((ScriptEditor*)m_pEditor)->GetCurTranslated();
+		wxString translated(std_translated.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_translated.size());
 
-	tScriptOriginal->SetText(original);
-	tScriptTranslated->SetText(translated);
+		std::string std_original = ((ScriptEditor*)m_pEditor)->GetCurOriginal();
+		wxString original(std_original.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_original.size());
 
-	m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
-		
-	tScriptTranslated->SetModified(false);
+		tScriptOriginal->SetText(original);
+		tScriptTranslated->SetText(translated);
 
-	m_pSrcCodeOutput->SetText(((ScriptEditor*)m_pEditor)->GetScript().GetSrcCode());
+		m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
+			
+		tScriptTranslated->SetModified(false);
+	}	
+
+	m_pSrcCodeOutput->SetText(editor->GetScript().GetSrcCode());
+
+	if(!functions.size())
+	{
+		functions.insert({0x06,  { "get_actor_direction(%x)", true} } );
+		functions.insert({0x1b,  { "play_sfx(0x%x, 0x%x)", false} });
+		functions.insert({0x1f,  { "begin_talk()", false} });
+		functions.insert({0x21,  { "end_talk()", false} });
+		functions.insert({0x22,  { "show_text(0x%x)", false} });
+		functions.insert({0x28,  { "choose_text(0x%x, 0x%x)", false} });
+		functions.insert({0x29,  { "choose_text(0x%x, 0x%x, 0x%x)", false} });
+		functions.insert({0x106, { "fun_106()", false } });
+
+		std::string names;
+
+		for(auto& fun : functions)
+		{
+			std::string_view name = fun.second.format;
+			names += name.substr(0, name.find('('));
+			names += " ";
+		}
+
+		m_pDecompiler->SetKeyWords(1, names);
+	}
+
+	if(!sfx.size())
+	{
+		sfx.insert({0x00A1, "CowMoo"});
+	}
+
+	std::string disasm;	
+
+	const Script& script = editor->GetScript();
+
+	const unsigned char* start = script.GetData() + 0x18;
+	const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x10) + 1;
+	const unsigned char* pos = start;
+	
+	Stack stack;
+
+	char buffer[100];
+
+	StackVar last_cmp[2];
+	
+	while (pos < end)
+	{
+		switch (*pos)
+		{
+		case 0x12: //cmp			
+			last_cmp[0] = stack[stack.size()-2];
+			last_cmp[1] = stack[stack.size()-1];
+			++pos;
+		break;
+		case 0x17: //push
+			pos++;
+			stack.push_back(*(uint32_t*)pos);
+			pos+=4;
+			break;
+		case 0x1B: //beq
+			pos++;
+
+			disasm += "if(" + stack_tostring(last_cmp[0]) + " == " + stack_tostring(last_cmp[1]) + ")";
+			disasm += "\n";
+		break;
+		case 0x21:
+			{
+				pos++;
+
+				uint32_t id = *(uint32_t*)pos;
+
+				auto it = functions.find(id);
+
+				if(it == functions.end())
+				{
+					sprintf(buffer, "fun_%x();\n", id);
+					disasm += buffer;
+				} else
+				{
+					ScriptFunction& function = functions.at(id);					
+
+					switch(function.arguments)
+					{
+						case 0:
+							disasm += function.format;
+						break;
+						case 1:
+							sprintf(buffer, function.format, stack.back());
+							stack.pop_back();							
+						break;
+						case 2:
+							sprintf(buffer, function.format, stack[stack.size()-2], stack[stack.size()-1]);
+							stack.pop_back();
+							stack.pop_back();							
+						break;
+						case 3:
+							sprintf(buffer, function.format, stack[stack.size()-3], stack[stack.size()-2],  stack[stack.size()-1]);
+							stack.pop_back();
+							stack.pop_back();
+							stack.pop_back();							
+						break;
+					}
+
+					if(function.returns)
+					{
+						stack.push_back(std::string(buffer));
+					} else 
+					{
+						disasm += buffer;
+						disasm += "\n";
+					}					
+				}
+								
+				pos+=4;
+			}
+		break;
+		case 0x22: //push16
+			pos++;			
+			stack.push_back(*(uint16_t*)pos);
+			pos+=2;
+			break;
+		case 0x23: //push8
+			pos++;
+			stack.push_back(*pos);
+			pos++;
+		break;
+		default:
+			pos++;
+			break;
+		}		
+	}
+
+	//Testing with MFoMT 350
+
+	m_pDecompiler->SetText(disasm);
 }
 
 void ScriptEditorFrame::CreateGUIControls()
@@ -362,6 +574,19 @@ void ScriptEditorFrame::CreateGUIControls()
 	m_pSrcCodeOutput->SetMarginWidth(0, 72);
 	m_pSrcCodeOutput->Bind(wxEVT_STC_STYLENEEDED, &ScriptEditorFrame::OnCodeStyleNeeded, this);
 
+	m_pDecompiler = new STC(this, wxID_ANY);
+	m_pDecompiler->SetLexer(wxSTC_LEX_CPP);  
+
+	m_pDecompiler->StyleSetForeground(wxSTC_C_COMMENT, wxColour(80, 240, 60));
+	m_pDecompiler->StyleSetForeground(wxSTC_C_WORD, wxColour(0, 0, 255));
+	m_pDecompiler->StyleSetForeground(wxSTC_C_WORD2, wxColour(121, 94, 38));
+	m_pDecompiler->StyleSetForeground(wxSTC_C_STRING, wxColour(165, 57, 130));
+	m_pDecompiler->StyleSetForeground(wxSTC_C_NUMBER, wxColour(255, 128, 0));
+
+	m_pDecompiler->SetKeyWords(0,
+	"bool break case char const continue default delete do else enum"
+    "false for goto if int return truct switch true unsigned void while");	
+
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
 	editor_sizer->Add(m_pButtonsSizer, 0, wxUP | wxBOTTOM | wxEXPAND, 4);
@@ -370,6 +595,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	global_sizer = new wxBoxSizer(wxHORIZONTAL);	
 	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);
 	global_sizer->Add(m_pSrcCodeOutput, 0, wxALL | wxEXPAND, 0);
+	global_sizer->Add(m_pDecompiler, 0, wxALL | wxEXPAND, 0);
 
 	CreateMyStatusBar();
 	StatusToStc(tScriptOriginal);
