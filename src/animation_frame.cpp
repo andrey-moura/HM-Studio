@@ -388,6 +388,7 @@ private:
         }        
 
         frame.pieces.erase(frame.pieces.begin()+m_CurrentPiece);
+        frame.update_size();
         m_CurrentPiece = 0;
         UpdatePieceInfo();
         UpdatePieces();
