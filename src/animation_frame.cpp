@@ -3,9 +3,123 @@
 #include <wx/textdlg.h>
 #include <wx/graphics.h>
 #include <wx/spinctrl.h>
+#include <wx/colordlg.h>
 
 #include <gif-h/gif.h>
 #include <moon/wx/bitmap.hpp>
+
+#include "palctrl.hpp"
+
+//ToDo:
+//Replace PalCtrl
+
+class wxPaletteEvent : public wxNotifyEvent
+{
+public:
+	wxPaletteEvent(wxEventType commandType = wxEVT_NULL, int id = 0)
+        : wxNotifyEvent(commandType, id)
+        {
+
+        }
+
+	wxPaletteEvent(const PaletteEvent& event)
+        : wxNotifyEvent(event)
+        {
+
+        }
+
+	virtual wxEvent* Clone() const override { return new wxPaletteEvent(*this); }
+private:
+    int m_Index = 0;    
+public:
+    int GetIndex() { return m_Index; }
+    void SetIndex(int index) { m_Index = index; }
+
+	wxDECLARE_DYNAMIC_CLASS(wxPaletteEvent);
+};
+
+typedef void (wxEvtHandler::*wxPalEventFunction)(wxPaletteEvent&);
+
+wxIMPLEMENT_DYNAMIC_CLASS(wxPaletteEvent, wxNotifyEvent);
+
+wxDECLARE_EVENT(wxEVT_PAL_COLOR_DCLICK, wxPaletteEvent);
+wxDEFINE_EVENT (wxEVT_PAL_COLOR_DCLICK, wxPaletteEvent);
+
+class PaletteView : public wxWindow
+{
+private:
+    const Palette* m_pPalette = nullptr;
+public:
+    PaletteView(wxWindow* parent, wxWindowID id)
+        : wxWindow(parent, id)
+    {
+        wxSize size = { 16*8, 16*2 };
+
+        SetMinSize(size);
+        SetMaxSize(size);
+        SetSize(size);
+
+        SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_CUSTOM);
+
+        Bind(wxEVT_PAINT, &PaletteView::OnPaintEvent, this); 
+        Bind(wxEVT_LEFT_DCLICK, &PaletteView::OnDoubleClick, this);
+    }
+
+    void SetPalette(const Palette& palette)
+    {
+        m_pPalette = &palette;
+        Refresh();
+    }
+
+    void Draw(wxDC& dc)
+    {
+        if(!m_pPalette || m_pPalette->size() != 16)
+            return;
+
+        wxRect rect {0, 0, 16, 16};
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        const Color* color = m_pPalette->data();
+
+        while(rect.y < 16*2)
+        {        
+            while(rect.x < 16*8)
+            {
+                dc.SetBrush(wxBrush(wxColour(color->red, color->green, color->blue), wxBRUSHSTYLE_SOLID));
+                dc.DrawRectangle(rect);
+                rect.x += rect.width;
+                ++color;
+            }
+
+            rect.x = 0;
+            rect.y += rect.height;
+        }
+    }
+
+    void OnPaintEvent(wxPaintEvent& event)
+    {
+        wxPaintDC dc(this);
+        Draw(dc);
+
+        event.Skip();
+    }
+    
+    void OnDoubleClick(wxMouseEvent& event)
+    {
+        wxPoint position = event.GetPosition();
+
+        int x = position.x / 16;
+        int y = position.y / 16;
+
+        wxPaletteEvent send_event(wxEVT_PAL_COLOR_DCLICK, GetId());
+        send_event.SetEventObject(this);
+        send_event.SetIndex(x+(y*8));
+
+        ProcessWindowEvent(send_event);
+
+        event.Skip();
+    }
+};
 
 //-----------------------------------------------------------------------------------------------//
 //                                      Frame Pieces Editor
@@ -23,6 +137,7 @@ public:
         UpdatePieceInfo();
 
         m_pBitmapViewer->Bind(wxEVT_LEFT_DOWN, &FramePiecesEditor::OnPieceLeftDown, this);
+        m_pPalCtrl->Bind(wxEVT_PAL_COLOR_DCLICK, &FramePiecesEditor::OnColorDoubleClick, this);
     }
 private:
     Animator& m_Animator;
@@ -41,6 +156,8 @@ private:
 
     wxTextCtrl* m_pXInput;
     wxTextCtrl* m_pYInput;
+
+    PaletteView* m_pPalCtrl = nullptr;
 private:
     void UpdatePieces()
     {
@@ -101,6 +218,8 @@ private:
 
         m_pXInput->SetValue(std::to_wstring(piece.x+frame.x));
         m_pYInput->SetValue(std::to_wstring(piece.y+frame.y));
+
+                m_pPalCtrl->SetPalette(piece.palette);
     }
 
     void OnPieceLeftDown(wxMouseEvent& event)
@@ -119,7 +238,35 @@ private:
         }
 
         event.Skip();
-    }    
+    }
+
+    void OnColorDoubleClick(wxPaletteEvent& event)
+    {   
+        Frame& frame = m_Animator.GetFrame(m_CurrentFrame);
+        FramePiece& piece = frame.pieces[m_CurrentPiece];
+
+        int index = event.GetIndex();
+
+        Color oldColor = piece.palette[index];
+
+        wxColourDialog dialog(this);
+
+        wxColourData& data = dialog.GetColourData();
+        data.SetColour({oldColor.red, oldColor.green, oldColor.blue});
+
+        if(dialog.ShowModal() == wxID_OK)
+        {
+            wxColour color = data.GetColour();
+            Color c = { color.Red(), color.Green(), color.Blue() };         
+
+            piece.palette[index] = c;
+
+            m_pPalCtrl->Refresh();
+            UpdatePieces();
+        }
+
+        event.Skip();
+    }
 
     void OnSizeChange(wxCommandEvent& event)
     {        
@@ -336,19 +483,23 @@ private:
         position_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"X:"));
         position_sizer->Add(m_pXInput);
         position_sizer->Add(new wxStaticText(right_panel, wxID_ANY, L"Y:"));
-        position_sizer->Add(m_pYInput);
-
-        UpdatePieceInfo();
+        position_sizer->Add(m_pYInput);        
 
         right_sizer->Add(m_pSizeChoice);
         right_sizer->Add(position_sizer);
         right_panel->SetSizer(right_sizer);        
 
+        m_pPalCtrl = new PaletteView(this, wxID_ANY);        
+
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_pBitmapViewer, 1, wxEXPAND);
         sizer->Add(right_panel);
 
-        SetSizer(sizer);
+        wxBoxSizer* root_sizer = new wxBoxSizer(wxVERTICAL);
+        root_sizer->Add(sizer, 1, wxEXPAND);
+        root_sizer->Add(m_pPalCtrl, 1, wxEXPAND);
+
+        SetSizer(root_sizer);
     }
 };
 
