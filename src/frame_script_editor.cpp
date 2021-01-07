@@ -324,6 +324,38 @@ struct ScriptFunction
 std::map<uint32_t, ScriptFunction> functions;
 std::map<uint16_t, std::string> sfx;
 
+struct StackVariable
+{
+	std::string name;
+	int32_t value;
+	bool constant;
+
+	StackVariable(const std::string& name)
+		: value(0), name(name), constant(false)
+	{
+
+	}
+
+	StackVariable(const char* name)
+		: value(0), name(name), constant(false)
+	{
+
+	}
+
+	StackVariable(int32_t value)
+		: value(value), constant(true)
+	{
+
+	}
+
+	std::string to_string()
+	{
+		return constant ? std::to_string(value) : name;
+	}
+};
+
+using Stack = std::vector<StackVariable>;
+
 void ScriptEditorFrame::UpdateText()
 {
 	ScriptEditor* editor = (ScriptEditor*)m_pEditor;
@@ -382,21 +414,32 @@ void ScriptEditorFrame::UpdateText()
 	const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x14);
 	const unsigned char* pos = start;
 	
-	std::vector<uint32_t> stack;
+	Stack stack;
 
 	char buffer[100];
 
-	//StackVar last_cmp[2];
+	StackVariable comparison[2] {0, 0};
 	
 	while (pos < end)
 	{
 		switch (*pos)
 		{
+		case 0x12: //cmp
+			comparison[1] = stack.back();
+			comparison[0] = stack[stack.size()-2];
+			pos++;
+		break;
 		case 0x17: //push
 			pos++;
-			stack.push_back(*(uint32_t*)pos);
+			stack.push_back(*(int32_t*)pos);
 			pos+=4;
 			break;
+		case 0x1B: //beq
+			disasm += "if(" + comparison[0].to_string() + " == " + comparison[1].to_string() + ")";
+			disasm += " {\n";
+			++pos;
+			pos = *(uint32_t*)pos + start;
+		break;
 		case 0x21:
 			{
 				memset(buffer, 0, sizeof(buffer));
@@ -412,32 +455,38 @@ void ScriptEditorFrame::UpdateText()
 					disasm += buffer;
 				} else
 				{
-					ScriptFunction& function = functions.at(id);					
+					ScriptFunction& function = functions.at(id);
 
 					switch(function.arguments)
 					{
-						case 0:
-							disasm += function.format;
+						case 0:							
+							strcpy(buffer, function.format);
 						break;
 						case 1:
-							sprintf(buffer, function.format, stack.back());
+							sprintf(buffer, function.format, stack.back().value);
 							stack.pop_back();							
 						break;
 						case 2:
-							sprintf(buffer, function.format, stack[stack.size()-2], stack[stack.size()-1]);
+							sprintf(buffer, function.format, stack[stack.size()-2].value, stack[stack.size()-1].value);
 							stack.pop_back();
 							stack.pop_back();							
 						break;
 						case 3:
-							sprintf(buffer, function.format, stack[stack.size()-3], stack[stack.size()-2],  stack[stack.size()-1]);
+							sprintf(buffer, function.format, stack[stack.size()-3].value, stack[stack.size()-2].value, stack[stack.size()-1].value);
 							stack.pop_back();
 							stack.pop_back();
 							stack.pop_back();							
 						break;
 					}
+
+					if(function.returns)
+					{
+						disasm += "int var = ";
+						stack.push_back("var");
+					}
 					
 					disasm += buffer;
-					disasm += "\n";			
+					disasm += "\n";					
 				}
 								
 				pos+=4;
@@ -445,12 +494,12 @@ void ScriptEditorFrame::UpdateText()
 		break;
 		case 0x22: //push16
 			pos++;			
-			stack.push_back(*(uint16_t*)pos);
+			stack.push_back(*(int16_t*)pos);
 			pos+=2;
 			break;
 		case 0x23: //push8
 			pos++;
-			stack.push_back(*pos);
+			stack.push_back(*(int8_t*)pos);
 			pos++;
 		break;
 		default:
