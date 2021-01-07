@@ -319,60 +319,10 @@ struct ScriptFunction
 	int arguments = 0;
 };
 
-enum StackType
-{
-	STACK_IMM,
-	STACK_RETURN		
-};
-
-struct StackVar
-{
-	StackVar(uint32_t v)
-		: value(v), type(STACK_IMM)
-	{
-
-	}
-
-	StackVar(const std::string& str)
-		: value(0), type(STACK_RETURN), prototype(str)
-	{
-
-	}
-
-	StackVar()
-		: value(0), type(STACK_IMM)
-	{
-
-	}
-
-	uint32_t value;
-	std::string prototype;
-	StackType type;
-};
-
-using Stack = std::vector<StackVar>;
-
 #include <map>
 
 std::map<uint32_t, ScriptFunction> functions;
 std::map<uint16_t, std::string> sfx;
-
-std::string stack_tostring(const StackVar& var)
-{
-	switch (var.type)
-	{
-	case STACK_IMM:
-		return std::to_string(var.value);
-		break;
-	case STACK_RETURN:
-		return var.prototype;
-	break;
-	default:
-		break;
-	}	
-
-	return "";
-}
 
 void ScriptEditorFrame::UpdateText()
 {
@@ -429,37 +379,27 @@ void ScriptEditorFrame::UpdateText()
 	const Script& script = editor->GetScript();
 
 	const unsigned char* start = script.GetData() + 0x18;
-	const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x10) + 1;
+	const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x14);
 	const unsigned char* pos = start;
 	
-	Stack stack;
+	std::vector<uint32_t> stack;
 
 	char buffer[100];
 
-	StackVar last_cmp[2];
+	//StackVar last_cmp[2];
 	
 	while (pos < end)
 	{
 		switch (*pos)
 		{
-		case 0x12: //cmp			
-			last_cmp[0] = stack[stack.size()-2];
-			last_cmp[1] = stack[stack.size()-1];
-			++pos;
-		break;
 		case 0x17: //push
 			pos++;
 			stack.push_back(*(uint32_t*)pos);
 			pos+=4;
 			break;
-		case 0x1B: //beq
-			pos++;
-
-			disasm += "if(" + stack_tostring(last_cmp[0]) + " == " + stack_tostring(last_cmp[1]) + ")";
-			disasm += "\n";
-		break;
 		case 0x21:
 			{
+				memset(buffer, 0, sizeof(buffer));
 				pos++;
 
 				uint32_t id = *(uint32_t*)pos;
@@ -495,15 +435,9 @@ void ScriptEditorFrame::UpdateText()
 							stack.pop_back();							
 						break;
 					}
-
-					if(function.returns)
-					{
-						stack.push_back(std::string(buffer));
-					} else 
-					{
-						disasm += buffer;
-						disasm += "\n";
-					}					
+					
+					disasm += buffer;
+					disasm += "\n";			
 				}
 								
 				pos+=4;
