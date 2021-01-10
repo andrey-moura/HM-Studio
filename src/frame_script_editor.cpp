@@ -381,12 +381,17 @@ void ScriptEditorFrame::UpdateText()
 	if(!functions.size())
 	{
 		functions.insert({0x06,  { "get_actor_direction(%x)", true} } );
-		functions.insert({0x1b,  { "play_sfx(0x%x, 0x%x)", false} });
-		functions.insert({0x1f,  { "begin_talk()", false} });
-		functions.insert({0x21,  { "end_talk()", false} });
-		functions.insert({0x22,  { "show_text(0x%x)", false} });
+		functions.insert({0x11,  { "playanim 0x%x, 0x%x, 0x%x", false} });
+		functions.insert({0x1b,  { "playsfx 0x%x, 0x%x", false} });
+		functions.insert({0x1f,  { "msgbox", false} });
+		functions.insert({0x20,  { "msgbox1", false} });
+		functions.insert({0x21,  { "closemsg", false} });
+		functions.insert({0x22,  { "msg_normal 0x%x", false} });
+		functions.insert({0x23,  { "msg_slow 0x%x", false} });
+		functions.insert({0x22,  { "msg_fast 0x%x", false} });
 		functions.insert({0x28,  { "choose_text(0x%x, 0x%x)", false} });
 		functions.insert({0x29,  { "choose_text(0x%x, 0x%x, 0x%x)", false} });
+		functions.insert({0x3e,  { "fun_3e(0x%x)", true } });
 		functions.insert({0x106, { "fun_106()", false } });
 
 		std::string names;
@@ -394,7 +399,15 @@ void ScriptEditorFrame::UpdateText()
 		for(auto& fun : functions)
 		{
 			std::string_view name = fun.second.format;
-			names += name.substr(0, name.find('('));
+
+			size_t pos = name.find(' ');
+
+			if(pos == std::string::npos)
+			{
+				pos = name.find(')');
+			}
+
+			names += name.substr(0, pos);
 			names += " ";
 		}
 
@@ -415,32 +428,56 @@ void ScriptEditorFrame::UpdateText()
 	const unsigned char* pos = start;
 	
 	Stack stack;
+	std::vector<uint32_t> labels;
 
-	char buffer[100];
-
-	StackVariable comparison[2] {0, 0};
+	char buffer[100];	
 	
 	while (pos < end)
 	{
+		//ToDo: use for loop
+		uint32_t address = pos - start;
+		if(std::find(labels.begin(), labels.end(), address) != labels.end())
+		{
+			disasm += "LAB_";
+			disasm += Moon::BitConverter::ToHexString(address);
+			disasm += ":\n";
+		}
+
 		switch (*pos)
 		{
-		case 0x12: //cmp
-			comparison[1] = stack.back();
-			comparison[0] = stack[stack.size()-2];
-			pos++;
+		case 0x12: //cmp			
+			disasm += "compare ";
+			disasm += stack[stack.size()-2].to_string();
+			disasm += ", ";
+			disasm += stack[stack.size()-1].to_string();
+			disasm += "\n";
+			pos++;			
 		break;
 		case 0x17: //push
 			pos++;
 			stack.push_back(*(int32_t*)pos);
 			pos+=4;
 			break;
-		case 0x1B: //beq
-			disasm += "if(" + comparison[0].to_string() + " == " + comparison[1].to_string() + ")";
-			disasm += " {\n";
-			++pos;
-			pos = *(uint32_t*)pos + start;
+		case 0x18:
+			disasm += "jump LAB_";
+			disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
+			disasm += "\n";
+
+			pos++;			
+			labels.push_back(*(uint32_t*)pos);
+			std::sort(labels.begin(), labels.end());
+			pos += 4;
 		break;
-		case 0x21:
+		case 0x1B: //beq
+			disasm += "if equal jump LAB_";
+			++pos;			
+			disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
+			disasm += "\n";
+			labels.push_back(*(uint32_t*)pos);
+			std::sort(labels.begin(), labels.end());
+			pos += 4;
+		break;
+		case 0x21: // call
 			{
 				memset(buffer, 0, sizeof(buffer));
 				pos++;
@@ -481,8 +518,7 @@ void ScriptEditorFrame::UpdateText()
 
 					if(function.returns)
 					{
-						disasm += "int var = ";
-						stack.push_back("var");
+						stack.push_back("LASTRESULT");
 					}
 					
 					disasm += buffer;
@@ -567,8 +603,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	m_pDecompiler->StyleSetForeground(wxSTC_C_NUMBER, wxColour(255, 128, 0));
 
 	m_pDecompiler->SetKeyWords(0,
-	"bool break case char const continue default delete do else enum"
-    "false for goto if int return truct switch true unsigned void while");	
+	"call compare LASTRESULT if equal greater smaller jump");
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
@@ -578,7 +613,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	global_sizer = new wxBoxSizer(wxHORIZONTAL);	
 	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);
 	global_sizer->Add(m_pSrcCodeOutput, 0, wxALL | wxEXPAND, 0);
-	global_sizer->Add(m_pDecompiler, 0, wxALL | wxEXPAND, 0);
+	global_sizer->Add(m_pDecompiler, 1, wxALL | wxEXPAND, 0);
 
 	CreateMyStatusBar();
 	StatusToStc(tScriptOriginal);
