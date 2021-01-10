@@ -386,7 +386,7 @@ void ScriptEditorFrame::UpdateText()
 		functions.insert({0x1f,  { "msgbox", false} });
 		functions.insert({0x20,  { "msgbox1", false} });
 		functions.insert({0x21,  { "closemsg", false} });
-		functions.insert({0x22,  { "msg_normal 0x%x", false} });
+		functions.insert({0x22,  { "msg 0x%x", false} });
 		functions.insert({0x23,  { "msg_slow 0x%x", false} });
 		functions.insert({0x22,  { "msg_fast 0x%x", false} });
 		functions.insert({0x28,  { "choose_text(0x%x, 0x%x)", false} });
