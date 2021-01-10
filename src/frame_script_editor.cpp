@@ -459,11 +459,10 @@ void ScriptEditorFrame::UpdateText()
 			pos+=4;
 			break;
 		case 0x18:
+			pos++;
 			disasm += "jump LAB_";
 			disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
-			disasm += "\n";
-
-			pos++;			
+			disasm += "\n";				
 			labels.push_back(*(uint32_t*)pos);
 			std::sort(labels.begin(), labels.end());
 			pos += 4;
