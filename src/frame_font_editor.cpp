@@ -233,6 +233,46 @@ void FontEditorFrame::OnZoomClick(wxCommandEvent& event)
     m_pFontViewer->SetScale(zoom);
 }
 
+void FontEditorFrame::OnKeyDown(wxKeyEvent& event)
+{
+    auto& glyphs = m_pFontEditor->GetGlyphs();
+    int width = m_pBitmap->GetWidth()/8;
+
+    switch(event.GetKeyCode())
+    {
+        case wxKeyCode::WXK_LEFT:
+        if(m_Selection > 0)
+        {
+            m_Selection--;
+        }
+        break;
+        case wxKeyCode::WXK_RIGHT:
+        if(m_Selection < glyphs.size()-1)
+        {
+            m_Selection++;
+        }
+        break;
+        case wxKeyCode::WXK_UP:
+        if(m_Selection >= width)
+        {
+            m_Selection-=width;
+        }
+        break;
+        case wxKeyCode::WXK_DOWN:
+        if(m_Selection + width <= glyphs.size()-1)
+        {
+            m_Selection+=width;
+        }
+        break;
+        default:
+        event.Skip(false);
+        return;
+    }
+
+    UpdateFontViewer();
+    event.Skip(true);
+}
+
 void FontEditorFrame::CreateGUIControls()
 {
     CreateMyMenuBar();
@@ -251,5 +291,6 @@ void FontEditorFrame::CreateGUIControls()
 
     m_pFontViewer = new wxBitmapView(this, wxID_ANY);
     m_pFontViewer->Bind(wxEVT_LEFT_DOWN, &FontEditorFrame::OnFontViewerClick, this);
+    m_pFontViewer->Bind(wxEVT_KEY_DOWN, &FontEditorFrame::OnKeyDown, this);
 }
 

@@ -35,9 +35,10 @@ private:
     bool m_ShowGrid = false;
 private:
     void OnShowGridClick(wxCommandEvent& event);
-    void OnFontViewerClick(wxMouseEvent& event);
-
     void OnZoomClick(wxCommandEvent& event);
+
+    void OnFontViewerClick(wxMouseEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
 private:
     void CreateGUIControls();
     void UpdateFontViewer();
