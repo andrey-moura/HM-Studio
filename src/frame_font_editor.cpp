@@ -171,6 +171,11 @@ void FontEditorFrame::OnFontViewerClick(wxMouseEvent& event)
 
     wxPoint point = event.GetPosition();
 
+    int scale = m_pFontViewer->GetScale();
+
+    point.x /= scale;
+    point.y /= scale;
+
     int x = point.x / 8;
     int y = point.y / 16;
 
@@ -202,13 +207,45 @@ void FontEditorFrame::OnFontViewerClick(wxMouseEvent& event)
     UpdateFontViewer();    
 }
 
+void FontEditorFrame::OnZoomClick(wxCommandEvent& event)
+{
+    wxMenuItem* item = m_frameMenuBar->FindItem(event.GetId());
+    event.Skip();
+
+    if(item == nullptr)
+    {
+        event.Skip(false);
+        return;
+    }
+    
+    wxString label = item->GetItemLabel();
+
+    //Remove 'x'
+    label.RemoveLast();
+
+    if(!label.IsNumber())
+    {
+        event.Skip(false);
+        return;
+    }
+
+    int zoom = std::stoi(label.ToStdWstring());
+    m_pFontViewer->SetScale(zoom);
+}
+
 void FontEditorFrame::CreateGUIControls()
 {
     CreateMyMenuBar();
 
+    wxMenu* menuZoom = new wxMenu();
+    Bind(wxEVT_MENU, &FontEditorFrame::OnZoomClick, this, menuZoom->AppendRadioItem(wxID_ANY, L"1x")->GetId());
+    Bind(wxEVT_MENU, &FontEditorFrame::OnZoomClick, this, menuZoom->AppendRadioItem(wxID_ANY, L"2x")->GetId());
+    Bind(wxEVT_MENU, &FontEditorFrame::OnZoomClick, this, menuZoom->AppendRadioItem(wxID_ANY, L"4x")->GetId());
+
     wxMenu* menuView = new wxMenu();
     Bind(wxEVT_MENU, &FontEditorFrame::OnShowGridClick, this, 
     menuView->AppendCheckItem(wxID_ANY, L"Glyph Grid")->GetId());
+    menuView->AppendSubMenu(menuZoom, L"Zoom");
 
     m_frameMenuBar->Append(menuView, L"View");
 

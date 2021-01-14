@@ -36,6 +36,8 @@ private:
 private:
     void OnShowGridClick(wxCommandEvent& event);
     void OnFontViewerClick(wxMouseEvent& event);
+
+    void OnZoomClick(wxCommandEvent& event);
 private:
     void CreateGUIControls();
     void UpdateFontViewer();
