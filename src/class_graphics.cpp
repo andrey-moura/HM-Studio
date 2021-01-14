@@ -139,6 +139,16 @@ uint8_t Graphics::GetPixel(size_t n) const
 	return GetPixel(n % m_Width, n / m_Width);
 }
 
+static unsigned char lookup[16] = {
+0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
+0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf };
+
+
+uint8_t reverse(uint8_t n) {
+   // Reverse the top and bottom nibble then swap them.
+   return (lookup[n&0b1111] << 4) | lookup[n>>4];
+}
+
 uint8_t Graphics::GetPixel(size_t x, size_t y) const
 {
 	size_t n;	
@@ -160,6 +170,9 @@ uint8_t Graphics::GetPixel(size_t x, size_t y) const
 
 	uint8_t b = m_pRawData[n/m_PixelsPerByte];
 	uint8_t s = (n%m_PixelsPerByte) * m_Bpp;
+
+	if(!m_Reversed)
+		b = reverse(b);
 
 	return (b & (m_Mask<<s)) >> s;
 }
@@ -190,6 +203,9 @@ void Graphics::SetPixel(size_t x, size_t y, uint8_t p)
 
 	uint8_t b = m_pRawData[n/m_PixelsPerByte];
 	uint8_t s = (n%m_PixelsPerByte) * m_Bpp;
+
+	if(!m_Reversed)
+		b = reverse(b);
 
 	b = (b & (~(m_Mask<<s))) | p<<s;
 	m_pRawData[n/m_PixelsPerByte] = b;	

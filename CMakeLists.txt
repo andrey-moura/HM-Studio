@@ -82,6 +82,7 @@ SET(SRC
 	src/dialog_get_text_from.cpp
 	src/dialog_spellchecker.cpp
 	src/frame_editor.cpp
+	src/frame_font_editor.cpp
 	src/frame_graphics_editor.cpp
 	src/frame_item_editor.cpp
 	src/frame_letter_editor.cpp
@@ -122,6 +123,7 @@ SET(HDR
 	src/dialog_get_text_from.hpp
 	src/dialog_spellchecker.hpp
 	src/frame_editor.hpp
+	src/frame_font_editor.hpp
 	src/frame_graphics_editor.hpp
 	src/frame_item_editor.hpp
 	src/frame_letter_editor.hpp

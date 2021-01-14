@@ -275,6 +275,7 @@ void MainFrame::CreateGUIControls()
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<GraphicsEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Graphics Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<ValueEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Value Editor")->GetId());
 	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<AnimationEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Animation Editor")->GetId());
+	editorsMenu->Bind(wxEVT_MENU, &MainFrame::OnEditorClick<FontEditorFrame>, this, editorsMenu->Append(wxID_ANY, L"Font Editor")->GetId());
 
 	wxMenu* toolsMenu = new wxMenu();
 	toolsMenu->Bind(wxEVT_MENU, &MainFrame::OnSpellCheckerClick, this, toolsMenu->Append(wxID_ANY, L"Spell Checker", L"Spell Checker Settings")->GetId());

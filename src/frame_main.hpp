@@ -20,6 +20,7 @@
 #include "frame_string_editor.hpp"
 #include "frame_value_editor.hpp"
 #include "animation_frame.hpp"
+#include "frame_font_editor.hpp"
 
 #include "dialog_spellchecker.hpp"
 
