@@ -23,6 +23,8 @@ public:
     Palette& GetPalette();
 };
 
+class wxPixelEditor;
+
 class FontEditorFrame : public EditorFrame
 {
 public:
@@ -30,18 +32,22 @@ public:
 private:
     FontEditor* m_pFontEditor;
     wxBitmap* m_pBitmap = nullptr;
+    wxBitmap* m_pCurGlyph = nullptr;
 
-    int m_Selection = 0;
+    int m_Selection = 0;    
     bool m_ShowGrid = false;
 private:
     void OnShowGridClick(wxCommandEvent& event);
+    void OnShowPixelGridClick(wxCommandEvent& event);    
     void OnZoomClick(wxCommandEvent& event);
 
     void OnFontViewerClick(wxMouseEvent& event);
-    void OnKeyDown(wxKeyEvent& event);
+    void OnFontKeyDown(wxKeyEvent& event);
 private:
     void CreateGUIControls();
     void UpdateFontViewer();
+    void UpdateScale();
 private:
     wxBitmapView* m_pFontViewer;
+    wxPixelEditor* m_pGlyphEditor;
 };

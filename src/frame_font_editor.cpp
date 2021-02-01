@@ -4,6 +4,225 @@
 
 #include <moon/wx/bitmap.hpp>
 
+//Todo:
+//Move to moon/wx to use in other tools
+
+//Struct to hold undo operation info.
+struct wxPixelEditorUndo
+{
+    uint16_t x;
+    uint16_t y;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+
+    bool operator==(const wxPixelEditorUndo& other)
+    {
+        return memcmp(this, &other, sizeof(wxPixelEditorUndo)) == 0;
+    }
+};
+
+//Maximum of 1024 bytes of undo.
+static constexpr size_t wxPixelEditorMaxUndo = 1024/sizeof(wxPixelEditorUndo);
+
+//A controls that displays a pixel bitmap and allows drawing on it.
+class wxPixelEditor : public wxBitmapView
+{
+public:
+    wxPixelEditor(wxWindow* parent, wxWindowID id)
+        : wxBitmapView(parent, id)
+        {
+            m_UndoList.reserve(wxPixelEditorMaxUndo);
+
+            Bind(wxEVT_LEFT_DOWN, &wxPixelEditor::OnMouseDown, this);
+            Bind(wxEVT_RIGHT_DOWN, &wxPixelEditor::OnMouseDown, this);
+            Bind(wxEVT_LEFT_UP, &wxPixelEditor::OnMouseUp, this);
+            Bind(wxEVT_RIGHT_UP, &wxPixelEditor::OnMouseUp, this);
+            Bind(wxEVT_MOTION, &wxPixelEditor::OnMotion, this);
+            Bind(wxEVT_KEY_DOWN, &wxPixelEditor::OnKeyDown, this);
+        }
+private:
+    bool m_PixelGrid = false;
+    wxColour m_Palette[2] { *wxBLACK, *wxWHITE };
+    wxMouseButton m_LastKey = wxMOUSE_BTN_NONE;
+    std::vector<wxPixelEditorUndo> m_UndoList;
+    wxPoint m_LastPoint { -1, -1 };
+    wxColour m_LastColour;
+public:
+    void SetPixelGrid(bool grid)
+    {
+        m_PixelGrid = grid;
+        Refresh();
+    }
+
+    bool GetPixelGrid() const
+    {
+        return m_PixelGrid;
+    }    
+
+    void SetPixel(int color, int x, int y)
+    {
+        SetPixel(m_Palette[color], x, y);
+    }
+
+    void SetPixel(const wxColour& color, int x, int y) 
+    {
+        wxNativePixelData data(*GetBitmap());
+        wxNativePixelData::Iterator it = data.GetPixels();
+
+        it.Offset(data, x, y);
+
+        wxColour old_color;
+        old_color.Set(it.Red(), it.Green(), it.Blue());
+
+        it.Red() = color.Red();
+        it.Green() = color.Green();
+        it.Blue() = color.Blue();
+
+        AddUndo(old_color, x, y);
+
+        Refresh();        
+    }
+
+    void SetPixel(int color, wxPoint point)
+    {
+        point.x += GetVisibleColumnsBegin()*GetScale();
+        point.y += GetVisibleRowsBegin()*GetScale();
+
+        point.x /= GetScale();
+        point.y /= GetScale();
+
+        if(point.x > GetColumnCount() || point.y > GetRowCount() || point.x < 0 || point.y < 0)
+        {
+            return;
+        }
+
+        if(m_LastPoint == point)
+        {
+            if(m_LastColour == m_Palette[color])
+            {
+                //Don't draw several times on the same pixel. This is very useful for motion
+                return;
+            }
+        }
+
+        SetPixel(color, point.x, point.y);
+
+        m_LastPoint = point;
+        m_LastColour = m_Palette[color];
+    }
+
+    void Undo()
+    {
+        if(!m_UndoList.size())
+            return;
+
+        wxPixelEditorUndo undo = m_UndoList.back();
+        m_UndoList.pop_back();
+
+        wxColour color(undo.r, undo.g, undo.b);
+
+        SetPixel(color, undo.x, undo.y);
+
+        //Clear the last operation from undo
+        m_UndoList.pop_back();
+    }
+private:
+    void AddUndo(const wxColour& color, int x, int y)
+    {
+        wxPixelEditorUndo undo = {(uint16_t)x, (uint16_t)y, color.Red(), color.Green(), color.Blue()};
+
+        if(m_UndoList.size() && undo == m_UndoList.back())
+        {
+            return;
+        }
+
+        m_UndoList.push_back(undo);
+
+        if(m_UndoList.size() > wxPixelEditorMaxUndo)
+        {
+            m_UndoList.erase(m_UndoList.begin());
+        }
+    }
+    void OnDraw(wxDC& dc) override
+    {
+        wxBitmapView::OnDraw(dc);
+
+        if(!m_PixelGrid)
+            return;
+
+        dc.SetUserScale(1, 1);
+
+        int row_start = GetVisibleRowsBegin();
+        int col_start = GetVisibleColumnsBegin();
+
+        int row_end = GetVisibleRowsEnd();
+        int col_end = GetVisibleColumnsEnd();
+
+        int scale = GetScale();
+
+        dc.SetPen(*wxBLACK_PEN);
+
+        for(int y = row_start+1; y < row_end; ++y)
+        {
+            dc.DrawLine(col_start*scale, y*scale, col_end*scale, y*scale);
+        }
+
+        for(int x = col_start+1; x < col_end; ++x)
+        {
+            dc.DrawLine(x*scale, row_start*scale, x*scale, row_end*scale);
+        }
+    }
+
+    void OnMouseDown(wxMouseEvent& event)
+    {
+        int color = event.GetButton() == wxMouseButton::wxMOUSE_BTN_RIGHT;
+        m_LastKey = (wxMouseButton)event.GetButton();
+        wxPoint point = event.GetPosition();
+
+        SetPixel(color, point);
+
+        event.Skip();
+    }
+
+    void OnMouseUp(wxMouseEvent& event)
+    {
+        if(m_LastKey == event.GetButton())
+        {
+            m_LastKey = wxMOUSE_BTN_NONE;
+        }
+    }
+
+    void OnMotion(wxMouseEvent& event)
+    {
+        if(m_LastKey == wxMouseButton::wxMOUSE_BTN_NONE)
+        {
+            event.Skip();
+            return;
+        }
+
+        int color = m_LastKey == wxMouseButton::wxMOUSE_BTN_RIGHT;
+        wxPoint point = event.GetPosition();        
+
+        SetPixel(color, point);
+    }
+
+    void OnKeyDown(wxKeyEvent& event)
+    {
+        wxChar key = event.GetUnicodeKey();
+
+        if(key == L'Z')
+        {
+            if(event.ControlDown())
+            {
+                Undo();
+            }            
+        }        
+    }
+};
+
+//-------------------------------------------------------------------------------------/
+
 FontEditor::FontEditor(id i)
     : Editor(i, L"Font")
 {
@@ -73,7 +292,22 @@ int FontEditor::GetGlyphIndex(const char& c)
     return m_Table[(unsigned char)c];
 }
 
-//------------------------------------------------------------------------------------/-/
+void draw_grid(wxMemoryDC& dc, int w, int h)
+{
+    wxSize size = dc.GetSize();
+
+    for(int x = w-1; x < size.GetWidth(); x += w)
+    {
+        dc.DrawLine(x, 0, x, size.GetHeight());
+    }
+
+    for(int y = h-1; y <size.GetHeight(); y +=h)
+    {
+        dc.DrawLine(0, y, size.GetWidth(), y);
+    }
+}
+
+//-------------------------------------------------------------------------------------/
 
 FontEditorFrame::FontEditorFrame(id i)
     : EditorFrame(new FontEditor(i))
@@ -91,11 +325,16 @@ void FontEditorFrame::UpdateFontViewer()
 
     int size = glyphs.size();
 
-    int dimension = ceil(sqrt(size));
+    int dimension = ceil(sqrt(size));    
 
     if(!m_pBitmap)
     {
         m_pBitmap = new wxBitmap(dimension*8, dimension*16, 24);
+    }
+
+    if(!m_pCurGlyph)
+    {
+        m_pCurGlyph = new wxBitmap(8, 16);        
     }
 
     Palette& palette = m_pFontEditor->GetPalette();
@@ -120,16 +359,13 @@ void FontEditorFrame::UpdateFontViewer()
 
     if(m_ShowGrid)
     {
-        for(int x = 7; x < m_pBitmap->GetWidth(); x += 8)
-        {
-            dc.DrawLine(x, 0, x, m_pBitmap->GetHeight());
-        }
-
-        for(int y = 15; y < m_pBitmap->GetHeight(); y +=16)
-        {
-            dc.DrawLine(0, y, m_pBitmap->GetWidth(), y);
-        }
+        draw_grid(dc, 8, 16);
     }    
+    
+    Color* colors = Graphics::ToImage24(glyphs[m_Selection], palette);
+    *m_pCurGlyph = wxImage(8, 16, (uint8_t*)colors);
+
+    m_pGlyphEditor->SetBitmap(m_pCurGlyph);
 
     wxGraphicsContext* pContext = wxGraphicsContext::Create(*m_pBitmap);
 
@@ -144,11 +380,20 @@ void FontEditorFrame::UpdateFontViewer()
     int x = m_Selection % w;
     int y = m_Selection / w;
 
-    pContext->DrawRectangle(x*8, y*16, 8, 16);
+    pContext->DrawRectangle(x*8, y*16, 8, 16);    
 
     delete pContext;
 
-    m_pFontViewer->SetBitmap(m_pBitmap);
+    m_pFontViewer->SetBitmap(m_pBitmap);    
+
+    UpdateScale();
+}
+
+void FontEditorFrame::UpdateScale()
+{
+    m_pFontViewer->SetMaxSize(m_pBitmap->GetSize()*m_pFontViewer->GetScale());    
+
+    Layout();
 }
 
 void FontEditorFrame::OnShowGridClick(wxCommandEvent& event)
@@ -156,6 +401,12 @@ void FontEditorFrame::OnShowGridClick(wxCommandEvent& event)
     m_ShowGrid = !m_ShowGrid;
     UpdateFontViewer();
 
+    event.Skip();
+}
+
+void FontEditorFrame::OnShowPixelGridClick(wxCommandEvent& event)
+{
+    m_pGlyphEditor->SetPixelGrid(!m_pGlyphEditor->GetPixelGrid());
     event.Skip();
 }
 
@@ -230,10 +481,12 @@ void FontEditorFrame::OnZoomClick(wxCommandEvent& event)
     }
 
     int zoom = std::stoi(label.ToStdWstring());
-    m_pFontViewer->SetScale(zoom);
+    m_pFontViewer->SetScale(zoom);    
+
+    UpdateScale();
 }
 
-void FontEditorFrame::OnKeyDown(wxKeyEvent& event)
+void FontEditorFrame::OnFontKeyDown(wxKeyEvent& event)
 {
     auto& glyphs = m_pFontEditor->GetGlyphs();
     int width = m_pBitmap->GetWidth()/8;
@@ -263,14 +516,14 @@ void FontEditorFrame::OnKeyDown(wxKeyEvent& event)
         {
             m_Selection+=width;
         }
-        break;
+        break;          
         default:
-        event.Skip(false);
+        event.Skip();
         return;
     }
 
     UpdateFontViewer();
-    event.Skip(true);
+    event.Skip(false);
 }
 
 void FontEditorFrame::CreateGUIControls()
@@ -284,13 +537,25 @@ void FontEditorFrame::CreateGUIControls()
 
     wxMenu* menuView = new wxMenu();
     Bind(wxEVT_MENU, &FontEditorFrame::OnShowGridClick, this, 
-    menuView->AppendCheckItem(wxID_ANY, L"Glyph Grid")->GetId());
-    menuView->AppendSubMenu(menuZoom, L"Zoom");
+    menuView->AppendCheckItem(wxID_ANY, L"Glyph Grid")->GetId());    
+    Bind(wxEVT_MENU, &FontEditorFrame::OnShowPixelGridClick, this, 
+    menuView->AppendCheckItem(wxID_ANY, L"Pixel Grid")->GetId());
+    menuView->AppendSubMenu(menuZoom, L"Zoom");    
 
     m_frameMenuBar->Append(menuView, L"View");
 
     m_pFontViewer = new wxBitmapView(this, wxID_ANY);
     m_pFontViewer->Bind(wxEVT_LEFT_DOWN, &FontEditorFrame::OnFontViewerClick, this);
-    m_pFontViewer->Bind(wxEVT_KEY_DOWN, &FontEditorFrame::OnKeyDown, this);
+    m_pFontViewer->Bind(wxEVT_KEY_DOWN, &FontEditorFrame::OnFontKeyDown, this);
+
+    m_pGlyphEditor = new wxPixelEditor(this, wxID_ANY);
+    m_pGlyphEditor->SetMinSize(wxSize(8, 16)*8); //always on size to fit scale
+    m_pGlyphEditor->SetScale(8);
+
+    wxBoxSizer* root_sizer = new wxBoxSizer(wxHORIZONTAL);
+    root_sizer->Add(m_pFontViewer, 1, wxEXPAND);
+    root_sizer->Add(m_pGlyphEditor);
+
+    SetSizer(root_sizer);
 }
 
