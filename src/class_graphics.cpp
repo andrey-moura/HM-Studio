@@ -208,6 +208,10 @@ void Graphics::SetPixel(size_t x, size_t y, uint8_t p)
 		b = reverse(b);
 
 	b = (b & (~(m_Mask<<s))) | p<<s;
+
+	if(!m_Reversed)
+		b = reverse(b);
+
 	m_pRawData[n/m_PixelsPerByte] = b;	
 }
 
