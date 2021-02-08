@@ -43,6 +43,7 @@ private:
     bool m_ShowGrid = false;
     bool m_ShowUnmapped = false;
 private:
+    void OnCopyFrom(wxCommandEvent& event);
     void OnShowGridClick(wxCommandEvent& event);
     void OnShowPixelGridClick(wxCommandEvent& event);
     void OnShowUnmappedClick(wxCommandEvent& event);    

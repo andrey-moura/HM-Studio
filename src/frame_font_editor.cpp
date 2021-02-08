@@ -343,8 +343,8 @@ FontEditor::FontEditor(id i)
         }
 
         Graphics graphics;
-        graphics.Create(8, 16, 1);
-        
+        graphics.Create(8, 16, 1, false);
+
         int index = 0;
 
         Moon::wxWidgets::Bitmap::for_each_pixel_24(sub, [&index, &graphics](
@@ -686,6 +686,44 @@ void FontEditorFrame::UpdateScale()
     Layout();
 }
 
+void FontEditorFrame::OnCopyFrom(wxCommandEvent& event)
+{
+    wxTextEntryDialog dialog(this, L"Please, type a char to get glyph from...", "Type...");
+
+    if(dialog.ShowModal() == wxID_OK)
+    {
+        wxString str = dialog.GetValue();
+
+        if( str.size() > 1)
+        {
+            wxMessageBox(L"Please, type one char only.", "Huh?", wxICON_ERROR);
+            return;
+        }
+
+        std::string std_str = str.ToStdString(wxCSConv(wxFONTENCODING_CP1252));
+
+        if(std_str.size() != 1)
+        {
+            wxMessageBox(L"Failed to convert the character.", "Huh?", wxICON_ERROR);
+            return;
+        }
+
+        auto& glyphs = m_pFontEditor->GetGlyphs();
+        auto& table = m_pFontEditor->GetTable();
+
+        int glyph = table[(unsigned char)std_str[0]];
+
+        if(glyph == -1)
+        {
+            wxMessageBox(L"This character is unmaped!", L"Huh?", wxICON_ERROR);
+            return;
+        }
+
+        glyphs[m_Selection] = glyphs[glyph];
+        UpdateFontViewer();
+    }
+}
+
 void FontEditorFrame::OnShowGridClick(wxCommandEvent& event)
 {
     m_ShowGrid = !m_ShowGrid;
@@ -834,6 +872,10 @@ void FontEditorFrame::CreateGUIControls()
 
     CreateMyMenuBar();
 
+    wxMenu* menuGlyph = new wxMenu();
+    Bind(wxEVT_MENU, &FontEditorFrame::OnCopyFrom, this, 
+    menuGlyph->Append(wxID_ANY, L"Copy Glyph")->GetId());
+
     wxMenu* menuZoom = new wxMenu();
     Bind(wxEVT_MENU, &FontEditorFrame::OnZoomClick, this, menuZoom->AppendRadioItem(wxID_ANY, L"1x")->GetId());
     Bind(wxEVT_MENU, &FontEditorFrame::OnZoomClick, this, menuZoom->AppendRadioItem(wxID_ANY, L"2x")->GetId());
@@ -848,6 +890,7 @@ void FontEditorFrame::CreateGUIControls()
     menuView->AppendCheckItem(wxID_ANY, L"Show Unmapped")->GetId());
     menuView->AppendSubMenu(menuZoom, L"Zoom");    
 
+    m_frameMenuBar->Append(menuGlyph, L"Glyph");
     m_frameMenuBar->Append(menuView, L"View");
 
     m_pFontViewer = new wxBitmapView(this, wxID_ANY);
