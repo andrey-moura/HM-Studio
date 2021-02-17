@@ -1,5 +1,87 @@
 #include "frame_graphics_editor.hpp"
 
+GraphicsInfo::GraphicsInfo() :
+	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(true), m_Planar(false), m_TileWidth(8), m_TileHeight(8)
+{
+
+}
+
+GraphicsInfo::GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width, short height , char bpp, bool reversed, bool planar, short tilewidth, short tileheight)
+	: m_ImageAdress(imageAdress), m_PaletteAdress(paletteOffset), m_Width(width), m_Height(height), m_Bpp(bpp), m_Reversed(reversed), m_Planar(planar), m_TileWidth(tilewidth), m_TileHeight(tileheight)
+{
+
+}
+
+GraphicsTreeItem::GraphicsTreeItem(const std::string& name, const GraphicsInfo& info) : m_Name(name), m_Info(info)
+{
+
+}
+
+GraphicsTreeParent::GraphicsTreeParent(const std::string& name, bool mount) : m_Name(name), m_CanMount(mount)
+{
+
+}
+
+
+GraphicsInfoViewer::GraphicsInfoViewer(wxWindow* parent) : wxWindow(parent, wxID_ANY)
+{
+	CreateGUIControls();
+	SetBackgroundColour(wxColour(255, 255, 255));
+}
+
+void GraphicsInfoViewer::SetInfo(const GraphicsInfo& info)
+{
+	m_Texts[0]->SetLabel(std::to_string(info.m_Width));
+	m_Texts[1]->SetLabel(std::to_string(info.m_Height));
+	m_Texts[2]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_ImageAdress));
+	m_Texts[3]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_PaletteAdress));
+	m_Texts[4]->SetLabel(Moon::BitConverter::ToBooleanString(info.m_Function == nullptr));
+	m_Texts[5]->SetLabel(std::to_string((int)info.m_Bpp) + "bpp");
+	m_Texts[6]->SetLabel(info.m_Reversed ? "Reversed" : "No-reversed");
+	m_Texts[7]->SetLabel(info.m_Planar ? "Planar" : "Linear");
+}
+
+void GraphicsInfoViewer::CreateGUIControls()
+{
+	m_pRootSizer = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticText* labels[8];
+
+	for (size_t index = 0; index < 8; ++index)
+	{
+		labels[index] = new wxStaticText(this, wxID_ANY, "");
+		m_Texts[index] = new wxStaticText(this, wxID_ANY, "");
+
+		wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->AddSpacer(5);
+		sizer->Add(labels[index]);
+		sizer->AddStretchSpacer(1);
+		sizer->Add(m_Texts[index]);
+		sizer->AddSpacer(5);
+
+		m_pRootSizer->Add(sizer, 0, wxEXPAND, 0);
+	}
+
+	labels[0]->SetLabel("Width: ");
+	labels[1]->SetLabel("Height: ");
+	labels[2]->SetLabel("Img addr: ");
+	labels[3]->SetLabel("Pal addr: ");
+	labels[4]->SetLabel("Good: ");
+	labels[5]->SetLabel("Bpp: ");
+	labels[6]->SetLabel("Order: ");
+	labels[7]->SetLabel("Type: ");
+
+	GraphicsInfo info(0, 0);
+	info.m_Bpp = 0;
+	info.m_Reversed = false;
+	info.m_Planar = false;
+
+	SetInfo(info);
+
+	SetSizerAndFit(m_pRootSizer);
+	m_pRootSizer->SetSizeHints(this);
+}
+
 GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
 {
 	CreateGUIControls();
@@ -171,22 +253,7 @@ void GraphicsEditorFrame::ExportImage()
 
 void GraphicsEditorFrame::SaveImage()
 {
-	wxFileName fn;
-	fn.SetPath(m_RootDir);
-	fn.SetName(m_pNavigator->GetItemText(m_Index->first));
-	fn.SetExt(L"bin");	
 
-	std::vector<uint8_t> bytes;
-	bytes.resize(((m_Index->second.m_Width * m_Index->second.m_Height) / (8 / m_Index->second.m_Bpp)));
-
-	GRAPHICS_HEADER* header = (GRAPHICS_HEADER*)bytes.data();
-	header->riff = 0x46464952;
-	header->size = ((m_Index->second.m_Width * m_Index->second.m_Height) / (8 / m_Index->second.m_Bpp));
-	header->bpp = m_Index->second.m_Bpp;
-
-	m_RomTranslated.Seek(m_Index->second.m_ImageAdress);
-	m_RomTranslated.Read(bytes.data() + sizeof(GRAPHICS_HEADER), header->size);
-	Moon::File::WriteAllBytes(fn.GetFullPath().ToStdString(), bytes);
 }
 
 void GraphicsEditorFrame::ImportImage()

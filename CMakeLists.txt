@@ -66,7 +66,6 @@ SET(SRC
 	src/class_editor.cpp
 	src/class_finder.cpp
 	src/class_graphics.cpp
-	src/class_graphics_editor.cpp
 	src/class_item.cpp
 	src/class_item_editor.cpp
 	src/class_letter.cpp
@@ -94,7 +93,6 @@ SET(SRC
 	src/frame_string_editor.cpp
 	src/frame_text_block_editor.cpp
 	src/frame_value_editor.cpp
-	src/graphicsinfoviewer.cpp
 	src/palctrl.cpp
 	src/window_find_results.cpp
 )
@@ -108,7 +106,6 @@ SET(HDR
 	src/class_editor.hpp
 	src/class_finder.hpp
 	src/class_graphics.hpp
-	src/class_graphics_editor.hpp
 	src/class_item.hpp
 	src/class_item_editor.hpp
 	src/class_letter.hpp
@@ -137,7 +134,6 @@ SET(HDR
 	src/frame_text_block_editor.hpp
 	src/frame_value_editor.hpp
 	src/gba_graphics.hpp
-	src/graphicsinfoviewer.hpp
 	src/palctrl.hpp
 	src/window_find_results.hpp
 )
