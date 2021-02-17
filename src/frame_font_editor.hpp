@@ -1,3 +1,5 @@
+#pragma once
+
 #include "frame_editor.hpp"
 
 #include "class_graphics.hpp"

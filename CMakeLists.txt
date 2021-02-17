@@ -87,6 +87,7 @@ SET(SRC
 	src/frame_item_editor.cpp
 	src/frame_letter_editor.cpp
 	src/frame_main.cpp
+	src/frame_name_screen.cpp
 	src/frame_save_editor.cpp
 	src/frame_script_editor.cpp
 	src/frame_search_script.cpp
@@ -128,6 +129,7 @@ SET(HDR
 	src/frame_item_editor.hpp
 	src/frame_letter_editor.hpp
 	src/frame_main.hpp
+	src/frame_name_editor.hpp
 	src/frame_save_editor.hpp
 	src/frame_script_editor.hpp
 	src/frame_search_script.hpp
