@@ -633,6 +633,8 @@ private:
     std::vector<wxStaticBitmap*> m_StaticBitmaps;
     wxSpinCtrl* m_pRangeStart;
     wxSpinCtrl* m_pRangeLength;
+
+    wxString m_LastImportPath;
 private:
     void OnFrameClick(wxMouseEvent& event)
     {   
@@ -661,10 +663,16 @@ private:
     {
         event.Skip();
 
-        wxString path = wxLoadFileSelector(L"Image", L"png");
+        wxFileDialog dialog(this, L"Select an image", m_LastImportPath, wxEmptyString,
+                        L"PNG Files (*.png)|*.png", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 
-        if(path.empty())
+        if(dialog.ShowModal() != wxID_OK)
             return;
+
+        wxString path = dialog.GetPath();
+
+        wxFileName fn(path);
+        m_LastImportPath = fn.GetPath();
 
         wxBitmap bitmap(path, wxBitmapType::wxBITMAP_TYPE_PNG);
 
