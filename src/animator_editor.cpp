@@ -194,9 +194,26 @@ wxBitmap AnimatorEditor::MountFrame(size_t n)
 {
     Frame& frame = m_Animator.GetFrame(n);
 
-    wxBitmap bitmap(frame.w, frame.h);
+    wxBitmap bitmap;
+
+    if(!frame.w && !frame.h)
+    {
+        bitmap.Create(16, 16);
+    } else 
+    {
+        bitmap.Create(frame.w, frame.h);
+    }
 
     wxMemoryDC dc(bitmap);
+
+    if(!frame.w && !frame.h)
+    {
+        dc.SetBrush(*wxBLACK_BRUSH);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        dc.DrawRectangle(0, 0, 16, 16);
+        return bitmap;
+    }
 
     for(FramePiece& piece : frame.pieces)
     {

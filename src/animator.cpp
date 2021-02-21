@@ -62,6 +62,17 @@ void Animator::Flush()
         Frame& frame = m_Frames[frame_i];
         FrameInfo info;
 
+        if(!frame.w && !frame.x)
+        {
+            info.affine = { 0, 0 };
+            info.color = { 0, 0 };
+            info.oam = { 0, 0 };
+            info.tile = { 0, 0 };
+
+            m_FrameInfos.push_back(info);
+            continue;
+        }        
+
         info.tile.start = m_Tiles.size();
         info.tile.length = (frame.w/8)*(frame.h/8);
 
