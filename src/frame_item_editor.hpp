@@ -20,8 +20,6 @@ public:
 private:
 	Graphics m_Graphics;
 	bool m_IsOpen = false;
-	GraphicsInfo GetInfo();
-	GraphicsTreeParent GetGraphicsList();
 private:
 	virtual void OnGetTextFrom() override;
 	virtual void UpdateText() override;

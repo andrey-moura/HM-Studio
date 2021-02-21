@@ -9,11 +9,6 @@ ItemEditorFrame::~ItemEditorFrame()
 {
 }
 
-GraphicsInfo ItemEditorFrame::GetInfo()
-{
-	return GraphicsInfo(((ItemEditor*)m_pEditor)->GetImgAdress(true), ((ItemEditor*)m_pEditor)->GetPalAdress(true));
-}
-
 void ItemEditorFrame::OnFileClick(wxCommandEvent& event)
 {	
 	((ItemEditor*)m_pEditor)->OpenItens(event.GetId() - 5051);
@@ -34,20 +29,6 @@ void ItemEditorFrame::OnInsertClick(wxCommandEvent& event)
 	((ItemEditor*)m_pEditor)->InsertItens();
 
 	event.Skip();
-}
-
-GraphicsTreeParent ItemEditorFrame::GetGraphicsList()
-{
-	GraphicsTreeParent parent(((ItemEditor*)m_pEditor)->GetInfo().m_Name);
-
-	const auto& itens = ((ItemEditor*)m_pEditor)->GetCurItens(true);
-
-	for (const Item& item : itens)
-	{
-		parent.push_back(GraphicsTreeItem(item.GetName(), GraphicsInfo(item.GetImgAdress(), item.GetPalAdress())));
-	}
-
-	return parent;
 }
 
 void ItemEditorFrame::OnGetTextFrom()
@@ -88,9 +69,7 @@ void ItemEditorFrame::OnImageDoubleClick(wxMouseEvent& event)
 {
 	if (m_GraphicsFrame == nullptr)
 	{
-		auto graphics = GetGraphicsList();
-		m_GraphicsFrame = new GraphicsEditorFrame(m_pEditor->GetRom(true).Id, graphics);
-		m_GraphicsFrame->SetTitle("Item Images");
+
 	}
 
 	m_GraphicsFrame->Show();

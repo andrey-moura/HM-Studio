@@ -1,671 +1,290 @@
 #include "frame_graphics_editor.hpp"
 
-GraphicsInfo::GraphicsInfo() :
-	m_Width(16), m_Height(16), m_Bpp(4), m_Reversed(true), m_Planar(false), m_TileWidth(8), m_TileHeight(8)
+#include "gba_graphics.hpp"
+
+#include <moon/wx/bitmap.hpp>
+
+GraphicsEditor::GraphicsEditor(id i)
+	: Editor(i, L"Graphics")
 {
+	wxArrayString files;
+	wxDir::GetAllFiles(m_EditorDir, &files, L"*.png");
 
-}
-
-GraphicsInfo::GraphicsInfo(uint32_t imageAdress, uint32_t paletteOffset, short width, short height , char bpp, bool reversed, bool planar, short tilewidth, short tileheight)
-	: m_ImageAdress(imageAdress), m_PaletteAdress(paletteOffset), m_Width(width), m_Height(height), m_Bpp(bpp), m_Reversed(reversed), m_Planar(planar), m_TileWidth(tilewidth), m_TileHeight(tileheight)
-{
-
-}
-
-GraphicsTreeItem::GraphicsTreeItem(const std::string& name, const GraphicsInfo& info) : m_Name(name), m_Info(info)
-{
-
-}
-
-GraphicsTreeParent::GraphicsTreeParent(const std::string& name, bool mount) : m_Name(name), m_CanMount(mount)
-{
-
-}
-
-
-GraphicsInfoViewer::GraphicsInfoViewer(wxWindow* parent) : wxWindow(parent, wxID_ANY)
-{
-	CreateGUIControls();
-	SetBackgroundColour(wxColour(255, 255, 255));
-}
-
-void GraphicsInfoViewer::SetInfo(const GraphicsInfo& info)
-{
-	m_Texts[0]->SetLabel(std::to_string(info.m_Width));
-	m_Texts[1]->SetLabel(std::to_string(info.m_Height));
-	m_Texts[2]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_ImageAdress));
-	m_Texts[3]->SetLabel("0x" + Moon::BitConverter::ToHexString(info.m_PaletteAdress));
-	m_Texts[4]->SetLabel(Moon::BitConverter::ToBooleanString(info.m_Function == nullptr));
-	m_Texts[5]->SetLabel(std::to_string((int)info.m_Bpp) + "bpp");
-	m_Texts[6]->SetLabel(info.m_Reversed ? "Reversed" : "No-reversed");
-	m_Texts[7]->SetLabel(info.m_Planar ? "Planar" : "Linear");
-}
-
-void GraphicsInfoViewer::CreateGUIControls()
-{
-	m_pRootSizer = new wxBoxSizer(wxVERTICAL);
-
-	wxStaticText* labels[8];
-
-	for (size_t index = 0; index < 8; ++index)
+	for(wxString& file : files)
 	{
-		labels[index] = new wxStaticText(this, wxID_ANY, "");
-		m_Texts[index] = new wxStaticText(this, wxID_ANY, "");
+		std::vector<wxString> strings;
 
-		wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-		sizer->AddSpacer(5);
-		sizer->Add(labels[index]);
-		sizer->AddStretchSpacer(1);
-		sizer->Add(m_Texts[index]);
-		sizer->AddSpacer(5);
-
-		m_pRootSizer->Add(sizer, 0, wxEXPAND, 0);
-	}
-
-	labels[0]->SetLabel("Width: ");
-	labels[1]->SetLabel("Height: ");
-	labels[2]->SetLabel("Img addr: ");
-	labels[3]->SetLabel("Pal addr: ");
-	labels[4]->SetLabel("Good: ");
-	labels[5]->SetLabel("Bpp: ");
-	labels[6]->SetLabel("Order: ");
-	labels[7]->SetLabel("Type: ");
-
-	GraphicsInfo info(0, 0);
-	info.m_Bpp = 0;
-	info.m_Reversed = false;
-	info.m_Planar = false;
-
-	SetInfo(info);
-
-	SetSizerAndFit(m_pRootSizer);
-	m_pRootSizer->SetSizeHints(this);
-}
-
-GraphicsEditorFrame::GraphicsEditorFrame(id i) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
-{
-	CreateGUIControls();
-
-	wxFileName fn;
-	fn.SetPath(m_RomTranslated.m_HomeDir);
-	fn.AppendDir(L"Graphics");	
-
-	if(!fn.DirExists())
-	{
-		fn.Mkdir(511, wxPATH_MKDIR_FULL);
-	}
-
-	m_RootDir = fn.GetFullPath();
-
-	GetGraphicsList();
-}
-
-GraphicsEditorFrame::GraphicsEditorFrame(id i, GraphicsTreeParent& graphics) : wxFrame(nullptr, wxID_ANY, "Graphics Editor"), m_RomOriginal(i, false), m_RomTranslated(i, true)
-{
-	CreateGUIControls();
-
-	wxFileName fn;
-	fn.SetPath(m_RomTranslated.m_HomeDir);
-	fn.AppendDir(L"Graphics");
-
-	if(!fn.DirExists())
-	{
-		fn.Mkdir(511, wxPATH_MKDIR_FULL);
-	}
-
-	m_RootDir = fn.GetFullPath();	
-
-	AppendGraphics(graphics);
-}
-
-void GraphicsEditorFrame::GetGraphicsList()
-{		
-	SetRootName(L"Graphics");
-
-	AppendGraphics(GraphicsTreeItem("Balloons", GraphicsInfo(0x6C316c, 0x6C40F0, 16, 496)));
-	
-	AppendGraphics(GraphicsTreeItem("Menu", GraphicsInfo(0x6C427c, 0x6C4680, 16, 128)));
-	
-	GraphicsTreeParent tv("TV Channels");
-	tv.push_back(GraphicsTreeItem("My Dear Princess",    GraphicsInfo(0x6C5400, 0x6CB0A4, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Fishing Hour",        GraphicsInfo(0x6C5D00, 0x6CB184, 32, 96)));
-	tv.push_back(GraphicsTreeItem("Goddess Game Show",   GraphicsInfo(0x6C6800, 0x6CB224, 32, 64)));
-	tv.push_back(GraphicsTreeItem("Life On The Farm",    GraphicsInfo(0x6C6C00, 0x6CB244, 32, 96)));
-	tv.push_back(GraphicsTreeItem("Aaron Changes",       GraphicsInfo(0x6C7200, 0x6CB284, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Mechabot Ultra",    	 GraphicsInfo(0x6C7500, 0x6CB2A9, 32, 48)));
-	tv.push_back(GraphicsTreeItem("News",                GraphicsInfo(0x6c7E00, 0x6CB384, 32, 80)));		
-	tv.push_back(GraphicsTreeItem("New Year Game Show",  GraphicsInfo(0x6c8300, 0x6CB3A4, 32, 48)));
-	tv.push_back(GraphicsTreeItem("TV Shopping",         GraphicsInfo(0x6C9400, 0x6CB504, 32, 48)));
-	tv.push_back(GraphicsTreeItem("Forecast",            GraphicsInfo(0x6C9700, 0x6CB524, 32, 352)));
-	AppendGraphics(tv);	
-	
-	AppendGraphics(GraphicsTreeItem("Clock", GraphicsInfo(0x70017c, 0x6CDD04, 256, 32)));
-
-	AppendGraphics(GraphicsTreeItem("Font", GraphicsInfo(0x9ab020, 0x6F5D1C, 192, 228, 1, false, false, 8, 12)));
-
-	GraphicsTreeParent miss("Miss", true);
-	miss.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E3130, 0x6E3834, 64, 32)));
-	miss.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3530, 0x6E3834, 32, 32)));
-	miss.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3730, 0x6E3834, 16, 32)));
-	AppendGraphics(miss);
-
-	GraphicsTreeParent pause("Pause", true);
-	pause.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E389c, 0x6E3FA0, 64, 32)));
-	pause.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3c9c, 0x6E3FA0, 32, 32)));
-	pause.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E3e9c, 0x6E3FA0, 16, 32)));
-	AppendGraphics(pause);
-
-	GraphicsTreeParent start("Start", true);
-	start.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6E4008, 0x6E470C, 64, 32)));
-	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4408, 0x6E470C, 32, 32)));
-	start.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6E4608, 0x6E470C, 16, 32)));
-	AppendGraphics(start);
-	
-	GraphicsTreeParent calendar("Calendar");
-	calendar.push_back(GraphicsTreeItem("Numbers", GraphicsInfo(0x6F4c58, 0x6F5D1C, 16, 160)));
-	calendar.push_back(GraphicsTreeItem("Year", GraphicsInfo(0x6F5158, 0x6F5D1C, 32, 16)));
-
-	GraphicsTreeParent calendar_spring("Spring", true);
-	calendar_spring.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5258, 0x6F5D1C, 32, 16)));
-	calendar_spring.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5358, 0x6F5D1C, 16, 16)));
-	calendar.append(calendar_spring);
-
-	GraphicsTreeParent calendar_summer("Summer", true);
-	calendar_summer.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F53d8, 0x6F5D1C, 32, 16)));
-	calendar_summer.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F54d8, 0x6F5D1C, 16, 16)));
-	calendar.append(calendar_summer);
-
-	GraphicsTreeParent calendar_fall("Fall", true);
-	calendar_fall.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5558, 0x6F5D1C, 16, 16)));
-	calendar_fall.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F55d8, 0x6F5D1C, 8, 16)));
-	calendar_fall.push_back(GraphicsTreeItem("Piece 3", GraphicsInfo(0x6F5618, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_fall);
-
-	GraphicsTreeParent calendar_winter("Winter", true);
-	calendar_winter.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5658, 0x6F5D1C, 32, 16)));
-	calendar_winter.push_back(GraphicsTreeItem("Piece 2", GraphicsInfo(0x6F5758, 0x6F5D1C, 16, 16)));
-	calendar.append(calendar_winter);
-
-	GraphicsTreeParent calendar_sun("Sun", true);
-	calendar_sun.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F57d8, 0x6F5D3C, 16, 16)));
-	calendar_sun.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5858, 0x6F5D3C, 8, 16)));
-	calendar.append(calendar_sun);
-
-	GraphicsTreeParent calendar_mon("Mon", true);
-	calendar_mon.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5898, 0x6F5D1C, 16, 16)));
-	calendar_mon.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5918, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_mon);
-
-	GraphicsTreeParent calendar_tue("Tue", true);
-	calendar_tue.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5958, 0x6F5D1C, 16, 16)));
-	calendar_tue.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F59d8, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_tue);
-
-	GraphicsTreeParent calendar_wed("Wed", true);
-	calendar_wed.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5a18, 0x6F5D1C, 16, 16)));
-	calendar_wed.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5a98, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_wed);
-
-	GraphicsTreeParent calendar_thu("Thu", true);
-	calendar_thu.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5ad8, 0x6F5D1C, 16, 16)));
-	calendar_thu.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5b58, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_thu);
-
-	GraphicsTreeParent calendar_fri("Fri", true);
-	calendar_fri.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5b98, 0x6F5D1C, 16, 16)));
-	calendar_fri.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5c18, 0x6F5D1C, 8, 16)));
-	calendar.append(calendar_fri);
-
-	GraphicsTreeParent calendar_sat("Sat", true);
-	calendar_sat.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5c58, 0x6F5D5C, 16, 16)));
-	calendar_sat.push_back(GraphicsTreeItem("Piece 1", GraphicsInfo(0x6F5cd8, 0x6F5D5C, 8, 16)));
-	calendar.append(calendar_sat);
-
-	AppendGraphics(calendar);
-
-	GraphicsTreeParent test("test", false);
-	test.push_back(GraphicsTreeItem("Test 1", GraphicsInfo(0x6c316c, 0x6c40f0, 8, 8)));
-
-	AppendGraphics(test);
-}
-
-void GraphicsEditorFrame::FromOriginal()
-{
-	if (m_IsPieces)
-	{
-		GetGraphicsPieces(m_MountGraphics[m_MountIndex], m_RomOriginal);
-	}
-	else
-	{
-		GetGraphics(m_Index->second, m_RomOriginal);
-	}
-}
-
-void GraphicsEditorFrame::ExportImage()
-{
-	wxString name = m_IsPieces ? m_MountGraphics[m_MountIndex].GetName() : m_pNavigator->GetItemText(m_Index->first);
-
-	wxString path = wxSaveFileSelector(L"Image", L"png", name);
-
-	if (path.empty())
-		return;
-}
-
-void GraphicsEditorFrame::SaveImage()
-{
-
-}
-
-void GraphicsEditorFrame::ImportImage()
-{
-	// wxString path = wxFileSelector("Select a image to import", wxEmptyString, wxEmptyString, ".png", wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
-
-	// wxBitmap bitmap(path, wxBitmapType::wxBITMAP_TYPE_PNG);
-
-	// wxMemoryDC dc(bitmap);
-
-	// const Palette& pal = m_Graphic.GetPalette();
-	// uint8_t* data = m_Graphic.GetData();
-
-	// for (size_t y = 0; y < bitmap.GetHeight(); ++y)
-	// {
-	// 	for (size_t x = 0; x < bitmap.GetWidth(); ++x)
-	// 	{
-	// 		wxColour color;
-	// 		dc.GetPixel(x, y, &color);
-
-	// 		size_t pos = pal.FindRGB(color.GetRGB());
-			
-	// 		if (pos == std::string::npos)
-	// 		{
-	// 			//Todo: Find the closest color
-	// 			continue;
-	// 		}
-
-	// 		data[x + (y * m_Graphic.GetWidth())] = pos;
-	// 	}
-	// }
-
-	// m_ImageView->Refresh();
-}
-
-void GraphicsEditorFrame::OnSaveFileClick(wxCommandEvent& event)
-{
-	SaveImage();
-	event.Skip();
-}
-
-void GraphicsEditorFrame::OnInsertClick(wxCommandEvent& event)
-{
-	InsertImage();
-	event.Skip();
-}
-
-void GraphicsEditorFrame::OnMenuBarClick(wxCommandEvent& event)
-{
-	int id = event.GetId();
-
-	if (id >= ID_ZOOM_IN && id <= ID_ZOOM_32)
-	{
-		Zoom(id);
-	}
-	else
-	{
-		switch (id)
-		{		
-		case wxID_OPEN:
-			break;
-		case wxID_SAVE:
-			SaveImage();
-			break;
-		case wxID_CLOSE:
-			break;
-		case ID_IMPORT:
-			ImportImage();
-			break;
-		case ID_EXPORT:
-			ExportImage();
-			break;
-		case wxID_COPY:
-			FromOriginal();
-			break;
-		case ID_PIXEL_GRID:			
-			ToggleMenu(id, m_ImageView->TogglePixelGrid());
-			break;
-		case ID_TILE_GRID:			
-			ToggleMenu(id, m_ImageView->ToggleTileGrid());
-			break;
-		case ID_BLOCK_GRID:			
-			ToggleMenu(id, m_ImageView->ToggleBlockGrid());
-			break;
-		default:
-			break;
-		}
-	}
-
-	event.Skip();
-}
-
-void GraphicsEditorFrame::OnSelChanged(wxTreeEvent& event)
-{
-	event.Skip();
-
-	wxTreeItemId id = event.GetItem();	
-
-	for (size_t i = 0; i < m_MountGraphics.size(); ++i)
-	{
-		if (m_MountGraphics[i].m_Id == id)
-		{
-			GetGraphicsPieces(m_MountGraphics[i], m_RomTranslated);
-			m_MountIndex = i;
-			m_IsPieces = true;
-			return;
-		}
-	}
-
-	MAP::iterator it = m_LookUp.find(id);
-
-	if (it != m_LookUp.end())
-	{
-		m_Index = it;
-		m_IsPieces = false;
-		GetGraphics(it->second, m_RomTranslated);
-	}	
-}
-
-void GraphicsEditorFrame::SetRootName(const wxString& name)
-{
-	m_Root = m_pNavigator->AddRoot(name);
-}
-
-void GraphicsEditorFrame::GetGraphics(const GraphicsInfo& info, RomFile& rom)
-{	
-	// m_Graphic.SetWidth(info.m_Width);
-	// m_Graphic.SetHeight(info.m_Height);
-	// m_Graphic.SetImgOffset(info.m_ImageAdress);
-	// m_Graphic.SetPalOffset(info.m_PaletteAdress);
-	// m_Graphic.SetBpp(info.m_Bpp);
-	// m_Graphic.SetReversed(info.m_Reversed);
-	// m_Graphic.SetPlanar(info.m_Planar);
-	// m_Graphic.SetTileWidth(info.m_TileWidth);
-	// m_Graphic.SetTileHeight(info.m_TileHeight);
-
-	// m_Graphic.LoadFromRom(rom);
-
-	// m_ImageView->SetGraphics(&m_Graphic);
-	// m_PalCtrl->SetPal(m_Graphic.GetPalette());
-	// m_InfoViewer->SetInfo(info);
-}
-
-void GraphicsEditorFrame::GetGraphicsPieces(const GraphicsTreeParent& parent, RomFile& rom)
-{
-	// wxSize size;
-	// std::vector<Graphics> graphics;
-
-	// size.y = parent[0].m_Info.m_Height;
-
-	// for (const GraphicsTreeItem& item : parent)
-	// {
-	// 	size.x += item.m_Info.m_Width;
-
-	// 	graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
-	// 	graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);
-	// 	graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
-	// 	graphics.back().SetPalOffset(item.m_Info.m_PaletteAdress);
-	// }
-
-	// for (Graphics& cur_graphics : graphics)
-	// 	cur_graphics.LoadFromRom(rom);
-
-	// unsigned char* bytes = new unsigned char[size.GetWidth() * size.GetHeight()];
-
-	// for (size_t y = 0, x = 0; y < size.GetHeight(); ++y, x = 0)
-	// {
-	// 	for (const Graphics& cur_graphics : graphics)
-	// 	{
-	// 		memcpy(bytes + (x + (y * size.GetWidth())), cur_graphics.GetData() + (y * cur_graphics.GetWidth()), cur_graphics.GetWidth());
-	// 		x += cur_graphics.GetWidth();
-	// 	}
-	// }
-
-	// m_Graphic = graphics[0];
-
-	// uint32_t palSize = (1 << m_Graphic.GetBpp()) * 2;
-	// uint8_t* rawPal = new uint8_t[palSize];
-	// rom.Seek(m_Graphic.GetPalOffset());
-	// rom.Read(rawPal, palSize);
-
-	// m_Graphic.GetPalette().DecodeColors((uint16_t*)rawPal, m_Graphic.GetBpp());
-
-	// m_Graphic.SetWidth(size.GetWidth());
-	// m_Graphic.SetHeight(size.GetHeight());
-	// m_Graphic.SetData(bytes);
-	// m_ImageView->SetGraphics(&m_Graphic);
-	// m_PalCtrl->SetPal(m_Graphic.GetPalette());
-}
-
-void GraphicsEditorFrame::InsertImage()
-{
-	// if (!m_IsPieces)
-	// {
-	// 	m_Graphic.InsertImage(m_RomTranslated);
-	// }
-	// else
-	// {
-	// 	std::vector<Graphics> graphics;		
-
-	// 	for (const GraphicsTreeItem& item : m_MountGraphics[m_MountIndex])
-	// 	{
-	// 		graphics.push_back(Graphics(item.m_Info.m_Width, item.m_Info.m_Height, item.m_Info.m_Bpp, item.m_Info.m_Reversed, item.m_Info.m_Planar, item.m_Info.m_TileWidth, item.m_Info.m_TileHeight));
-	// 		graphics.back().SetImgOffset(item.m_Info.m_ImageAdress);			
-	// 	}
-
-	// 	wxSize totalSize(m_Graphic.GetWidth(), m_Graphic.GetHeight());
+		wxFileName fn(file);
+		wxString name = fn.GetName();
 		
-	// 	unsigned char* src = m_Graphic.GetData();	
+		size_t pos = 0;
 
-	// 	size_t x = 0;
-
-	// 	for (Graphics& cur_graphics : graphics)
-	// 	{
-	// 		unsigned char* bytes = new unsigned char[cur_graphics.GetWidth() * cur_graphics.GetHeight()];			
-	// 		unsigned char* _bytes = bytes;
-
-	// 		for (size_t line = 0; line < cur_graphics.GetHeight(); line++)
-	// 		{
-	// 			memcpy(bytes, src + (line * m_Graphic.GetWidth()) + x, cur_graphics.GetWidth());
-	// 			bytes += cur_graphics.GetWidth();
-	// 		}
-
-	// 		x += cur_graphics.GetWidth();
-
-	// 		cur_graphics.SetData(_bytes);
-	// 		cur_graphics.InsertImage(m_RomTranslated);			
-	// 	}
-	// }
-}
-
-void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item, const wxTreeItemId& id)
-{
-	m_LookUp.insert(std::make_pair(m_pNavigator->AppendItem(id, item.m_Name), item.m_Info));
-}
-
-void GraphicsEditorFrame::AppendGraphics(const GraphicsTreeItem& item)
-{	
-	AppendGraphics(item, m_Root);
-}
-
-void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent)
-{	
-	AppendGraphics(parent, m_Root);
-
-	//if (parent.CanMount())
-	//{
-	//	parent.m_Id = id;
-	//	m_MountGraphics.push_back(parent);
-	//}
-
-	//for (const GraphicsTreeItem& item : parent)
-	//{
-	//	AppendGraphics(item, id);
-	//}
-
-	//if (parent.child_size() > 0)
-	//{
-	//	for (GraphicsTreeParent& child_parent : parent.get_childs())
-	//	{
-	//		id = m_pNavigator->AppendItem(id, child_parent.GetName());
-
-	//		if (child_parent.CanMount())
-	//		{
-	//			child_parent.m_Id = id;
-	//			m_MountGraphics.push_back(child_parent);
-	//		}
-
-	//		for (const GraphicsTreeItem& item : child_parent)
-	//		{
-	//			AppendGraphics(item, id);
-	//		}			
-	//	}
-	//}
-}
-
-void GraphicsEditorFrame::AppendGraphics(GraphicsTreeParent& parent, wxTreeItemId gran_parent)
-{
-	wxTreeItemId id = m_pNavigator->AppendItem(gran_parent, parent.GetName());
-
-	if (parent.CanMount())
-	{
-		parent.m_Id = id;
-		m_MountGraphics.push_back(parent);
-	}
-
-	for (const GraphicsTreeItem& item : parent)
-	{
-		AppendGraphics(item, id);
-	}
-
-	if (parent.child_size() > 0)
-	{
-		for (GraphicsTreeParent& item : parent.get_childs())
+		while(pos != std::string::npos)
 		{
-			AppendGraphics(item, id);
+			strings.push_back(name.substr(pos == 0 ? 0 : pos+1, name.find(L'.', pos)));
+			pos = name.find(L'.', pos+1);
+		}		
+
+		if(strings.size() != 3)
+		{
+			continue;		
+		}
+
+		bool good = true;
+
+		for(const wxString& string : strings)
+		{
+			for(const auto& c : string)
+			{
+				if(!isxdigit(c))
+				{
+					good = false;
+				}
+			}
+		}
+
+		if(!good)
+		{
+			continue;
+		}
+
+		wxBitmap bitmap(file, wxBitmapType::wxBITMAP_TYPE_PNG);
+
+		if(!bitmap.IsOk())
+		{
+			continue;
+		}
+
+		uint32_t img_address = std::stoi(strings[0].ToStdWstring(), nullptr, 16);
+		uint32_t pal_address = std::stoi(strings[1].ToStdWstring(), nullptr, 16);
+		int bpp = std::stoi(strings[2].ToStdWstring());
+
+		m_GraphicsList.push_back({ img_address, pal_address, bpp });		
+	}
+}
+
+bool GraphicsEditor::Open(uint32_t index)
+{
+	std::string img_address = Moon::BitConverter::ToHexString(m_GraphicsList[index].img);
+	std::string pal_address = Moon::BitConverter::ToHexString(m_GraphicsList[index].pal);
+
+	m_Info.StartBlock = m_GraphicsList[index].img;
+	m_PalAddress = m_GraphicsList[index].pal;
+
+	wxString name = wxString::Format(L"%s.%s.%i", img_address, pal_address, m_GraphicsList[index].bpp);
+
+	wxFileName fn;
+	fn.SetPath(m_EditorDir);
+	fn.SetName(name);
+	fn.SetExt("png");
+
+	wxBitmap bmp;
+	bool loaded = bmp.LoadFile(fn.GetFullPath(), wxBitmapType::wxBITMAP_TYPE_PNG);	
+
+	if(!bmp.IsOk())
+	{
+		m_GraphicsList.erase(m_GraphicsList.begin()+index);
+		return false;
+	}
+
+	m_RomTranslated.Seek(m_GraphicsList[index].pal);
+
+	m_Palette.resize(16);
+
+	for(int i = 0; i < 16; ++i)
+	{
+		m_Palette[i] = gba_to_color(m_RomTranslated.ReadUInt16());
+	}
+
+	m_Graphics.Create(bmp.GetWidth(), bmp.GetHeight(), 4);
+
+	int i = 0;
+
+	Moon::wxWidgets::Bitmap::for_each_pixel(bmp, [this, &i](
+		uint8_t& r,
+		uint8_t& g,
+		uint8_t& b,
+		uint8_t a
+	)
+	{
+		size_t p = m_Palette.find_color({r,g,b});
+
+		if(p == std::string::npos)
+		{
+			p = m_Palette.find_nearest({r,g,b});			
+		}
+
+		m_Graphics.SetPixel(i, p);
+		++i;
+	});
+}
+
+bool GraphicsEditor::Open(uint32_t img, uint32_t pal, int w, int h)
+{
+	int index = -1;
+	for(int i = 0; i < m_GraphicsList.size(); ++i)	
+	{
+		if(m_GraphicsList[i].img == img)
+		{
+			if(Open(index))
+			{
+				return true;
+			}			
 		}
 	}
-}
 
-void GraphicsEditorFrame::Zoom(int zoomMode)
-{
-	int newZoom = 0;
-
-	if (zoomMode == ID_ZOOM_OUT || zoomMode == ID_ZOOM_IN)
+	if(index == -1)
 	{
-		int currentZoom = m_ImageView->GetScale();		
+		index = m_GraphicsList.size();
+		m_GraphicsList.push_back({img, pal, 4, w, h});
 
-		if (zoomMode == ID_ZOOM_OUT && currentZoom > 1)
-		{
-			newZoom = currentZoom / 2;
-		}			
+		m_Info.StartBlock = m_GraphicsList[index].img;
+		m_PalAddress = m_GraphicsList[index].pal;
 
-		if (zoomMode == ID_ZOOM_IN && currentZoom < 32)
+		if(!m_Graphics.GetData() || m_Graphics.GetWidth() != m_GraphicsList[index].w || m_Graphics.GetHeight() != m_GraphicsList[index].h)
 		{
-			newZoom = currentZoom * 2;
-		}		
+			m_Graphics.Create(m_GraphicsList[index].w, m_GraphicsList[index].h);
+		}
+
+		m_RomTranslated.Seek(m_GraphicsList[index].img);
+		m_RomTranslated.Read(m_Graphics.GetData(), m_Graphics.GetLenght());
+
+		m_RomTranslated.Seek(m_GraphicsList[index].pal);
+
+		m_Palette.resize(16);
+
+		for(int i = 0; i < 16; ++i)
+		{
+			m_Palette[i] = gba_to_color(m_RomTranslated.ReadUInt16());
+		}
 	}
-	else
-	{
-		newZoom = pow(2, (zoomMode - ID_ZOOM_1));
-	}	
 	
-	m_ImageView->SetScale(newZoom);
+	Open(index);
+
+	return true;
 }
 
-void GraphicsEditorFrame::ToggleMenu(int id, bool check)
+void GraphicsEditor::SaveFile()
 {
-	GetMenuBar()->FindItem(id)->Check(check);	
+	std::string img_address = Moon::BitConverter::ToHexString(m_Info.StartBlock);
+	std::string pal_address = Moon::BitConverter::ToHexString(m_PalAddress);
+
+	wxString name = wxString::Format(L"%s.%s.%i", img_address, pal_address, (int)m_Graphics.GetBpp());
+
+	wxFileName fn;
+	fn.SetPath(m_EditorDir);
+	fn.SetName(name);
+	fn.SetExt(L"png");	
+
+	wxBitmap bitmap = GetBitmap();	
+	bitmap.SaveFile(fn.GetFullPath(), wxBitmapType::wxBITMAP_TYPE_PNG);
 }
 
-void GraphicsEditorFrame::OnPalChanged(PaletteEvent& event)
+void GraphicsEditor::InsertFile()
 {
-	m_ImageView->SetColor1(event.GetFirst());
-	m_ImageView->SetColor2(event.GetSecond());
+	m_RomTranslated.Seek(m_Info.StartBlock);
 
-	event.Skip();
+	m_RomTranslated.Write(m_Graphics.GetData(), m_Graphics.GetLenght());
+	m_RomTranslated.Flush();
+}
+
+//--------------------------------------------------------------------------------------//
+
+class OpenGraphicsDialog : public wxDialog
+{
+public:
+OpenGraphicsDialog(wxWindow* parent, wxWindowID id)
+	: wxDialog(parent, id, L"Type graphics information")
+	{
+		m_pImgAddress = new wxTextCtrl(this, wxID_ANY, L"70017c");
+		m_pPalAddress = new wxTextCtrl(this, wxID_ANY, L"6CDD04");
+
+		wxBoxSizer* addr_sizer = new wxBoxSizer(wxHORIZONTAL);
+		addr_sizer->Add(new wxStaticText(this, wxID_ANY, L"Img Address: "));
+		addr_sizer->Add(m_pImgAddress);
+
+		wxBoxSizer* pal_sizer = new wxBoxSizer(wxHORIZONTAL);
+		pal_sizer->Add(new wxStaticText(this, wxID_ANY, L"Pal Address: "));
+		pal_sizer->Add(m_pPalAddress);
+
+		m_pWidth = new wxTextCtrl(this, wxID_ANY, L"256");
+		m_pHeight = new wxTextCtrl(this, wxID_ANY, L"32");
+
+		wxBoxSizer* size_sizer = new wxBoxSizer(wxHORIZONTAL);
+		size_sizer->Add(m_pWidth);
+		size_sizer->Add(new wxStaticText(this, wxID_ANY, L"x"));
+		size_sizer->Add(m_pHeight);
+
+		wxBoxSizer* root_sizer = new wxBoxSizer(wxVERTICAL);
+		root_sizer->Add(addr_sizer);
+		root_sizer->Add(pal_sizer);
+		root_sizer->Add(size_sizer);
+		root_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL));
+
+		SetSizerAndFit(root_sizer);		
+	}
+private:
+	wxTextCtrl* m_pImgAddress;
+	wxTextCtrl* m_pPalAddress;
+	wxTextCtrl* m_pWidth;
+	wxTextCtrl* m_pHeight;
+public:
+	int GetImgAddress()
+	{
+		return std::stoi(m_pImgAddress->GetValue().ToStdWstring(), nullptr, 16);
+	}
+
+	int GetPalAddress()
+	{
+		return std::stoi(m_pPalAddress->GetValue().ToStdWstring(), nullptr, 16);
+	}
+
+	wxSize GetImgSize()
+	{
+		int width = std::stoi(m_pWidth->GetValue().ToStdWstring());
+		int height = std::stoi(m_pHeight->GetValue().ToStdWstring());
+
+		return { width, height };
+	}
+};
+
+//--------------------------------------------------------------------------------------//
+
+GraphicsEditorFrame::GraphicsEditorFrame(id i)
+	: EditorFrame(new GraphicsEditor(i))
+{
+	m_pGraphicsEditor = (GraphicsEditor*)m_pEditor;	
+	CreateGUIControls();
+}
+
+void GraphicsEditorFrame::OnGoFile()
+{
+	OpenGraphicsDialog dialog(this, wxID_ANY);
+
+	if(dialog.ShowModal() != wxID_OK)
+		return;
+
+	wxSize size = dialog.GetImgSize();
+	int img = dialog.GetImgAddress();
+	int pal = dialog.GetPalAddress();
+
+	m_pGraphicsEditor->Open(img, pal, size.GetWidth(), size.GetHeight());
+
+	UpdateFile();
+}
+
+void GraphicsEditorFrame::UpdateFile()
+{
+	Graphics& graphics = m_pGraphicsEditor->GetGraphics();	
+	m_Bitmap = m_pGraphicsEditor->GetBitmap();
+
+	m_pPixelEditor->Refresh();
 }
 
 void GraphicsEditorFrame::CreateGUIControls()
-{
-	wxMenu* menuImage = new wxMenu();
-	menuImage->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnSaveFileClick, this, menuImage->Append(wxID_SAVE, "Save")->GetId());
-	menuImage->Append(ID_IMPORT, "Import");
-	menuImage->Append(ID_EXPORT, "Export");
-	menuImage->Append(wxID_COPY, "From Original");
-	menuImage->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnInsertClick, this, menuImage->Append(wxNewId(), "Insert")->GetId());
+{	
+	CreateMyToolBar();
 
-	wxMenu* zoomMenu = new wxMenu();
-	zoomMenu->Append(ID_ZOOM_IN, "In");
-	zoomMenu->Append(ID_ZOOM_OUT, "Out");
-	zoomMenu->Append(ID_ZOOM_1, "1x");
-	zoomMenu->Append(ID_ZOOM_2, "2x");
-	zoomMenu->Append(ID_ZOOM_4, "4x");
-	zoomMenu->Append(ID_ZOOM_8, "8x");
-	zoomMenu->Append(ID_ZOOM_16, "16x");
-	zoomMenu->Append(ID_ZOOM_32, "32x");
-
-	wxMenu* viewMenu = new wxMenu();
-	viewMenu->AppendSubMenu(zoomMenu, "Zoom");
-	viewMenu->AppendSeparator();
-	viewMenu->AppendCheckItem(ID_PIXEL_GRID, "Pixel Grid");
-	viewMenu->AppendCheckItem(ID_TILE_GRID, "Tile Grid");
-	viewMenu->AppendCheckItem(ID_BLOCK_GRID, "Block Grid");
-
-	wxMenuBar* menuBar = new wxMenuBar();	
-	menuBar->Append(menuImage, "Image");
-	menuBar->Append(viewMenu, "View");
-	menuBar->Bind(wxEVT_MENU, &GraphicsEditorFrame::OnMenuBarClick, this);
-
-	SetMenuBar(menuBar);
-
-	SetBackgroundColour(wxColour(240, 240, 240));
-
-	m_pLeftPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_RAISED);
-
-	m_pNavigator = new wxTreeCtrl(m_pLeftPanel, wxID_ANY);
-	m_pNavigator->SetSize(wxSize(200, m_pNavigator->GetSize().GetHeight()));
-	m_pNavigator->SetMinSize(wxSize(200, m_pNavigator->GetSize().GetHeight()));	
-	m_pNavigator->Bind(wxEVT_TREE_SEL_CHANGED, &GraphicsEditorFrame::OnSelChanged, this);
-
-	m_InfoViewer = new GraphicsInfoViewer(m_pLeftPanel);
-
-	wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
-	leftSizer->Add(m_pNavigator, 1, wxEXPAND);
-	leftSizer->Add(m_InfoViewer, 0, wxEXPAND);
-
-	m_pLeftPanel->SetSizer(leftSizer);
-	leftSizer->SetSizeHints(m_pLeftPanel);
-
-	m_ImageView = new GraphicsView(this);	
-
-	wxPanel* bottomPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_RAISED);
-	bottomPanel->SetBackgroundColour(*wxWHITE);
-
-	m_PalCtrl = new PalCtrl(bottomPanel);
-	m_PalCtrl->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));	
-
-	wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
-	bottomSizer->Add(m_PalCtrl, 0, wxTOP | wxBOTTOM, 4);
-
-	bottomPanel->SetSizer(bottomSizer);
-	bottomSizer->SetSizeHints(bottomPanel);
-
-	wxBoxSizer* editorSizer = new wxBoxSizer(wxVERTICAL);
-	editorSizer->Add(m_ImageView, 1, wxEXPAND, 0);
-	editorSizer->Add(bottomPanel, 0, wxEXPAND, 0);
-
-	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
-	rootSizer->Add(m_pLeftPanel, 0, wxEXPAND);
-	rootSizer->Add(editorSizer, 1, wxEXPAND);
-
-	SetSizer(rootSizer);
-	rootSizer->SetSizeHints(this);
+	m_pPixelEditor = new wxPixelEditor(this, wxID_ANY);
+	m_pPixelEditor->SetBitmap(&m_Bitmap);
 }
