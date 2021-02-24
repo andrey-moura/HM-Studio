@@ -26,6 +26,7 @@ uint32_t Animator::GetLength() const
     size += m_AnimRanges.size()*sizeof(AnimRange);
     size += m_FrameInfos.size()*sizeof(FrameInfo);
     size += m_Attributes.size()*sizeof(SpriteAttribute);
+
     size += m_Tiles.size()*32;
     size += m_Palettes.size()*32;
     size += m_Affines.size()*sizeof(AnimAff);
@@ -53,14 +54,12 @@ void Animator::Flush()
     m_FrameInfos.clear();
     m_Affines.clear();
     m_Palettes.clear();
-    m_Attributes.clear();
-
-    Graphics lastTile;    
+    m_Attributes.clear();    
 
     for(size_t frame_i = 0; frame_i < m_Frames.size(); ++frame_i)
     {
         Frame& frame = m_Frames[frame_i];
-        FrameInfo info;
+        FrameInfo info;        
 
         if(!frame.w && !frame.x)
         {
@@ -73,7 +72,7 @@ void Animator::Flush()
             continue;
         }        
 
-        info.tile.start = m_Tiles.size();
+//        info.tile.start = m_Tiles.size();
         info.tile.length = (frame.w/8)*(frame.h/8);
 
         info.affine.start = 0;
@@ -160,6 +159,8 @@ void Animator::Flush()
 
         std::vector<SpriteAttribute> attrs;
 
+        std::vector<Graphics> tiles;
+
         for(FramePiece& piece : frame.pieces)
         {
             SpriteAttribute attr;
@@ -189,7 +190,7 @@ void Animator::Flush()
             int max_x = piece.graphics.GetWidth() / 8;
             int max_y = piece.graphics.GetHeight() / 8;
 
-            tile_count += max_x * max_y;
+            tile_count += max_x * max_y;            
 
             while(y < max_y)
             {
@@ -198,7 +199,7 @@ void Animator::Flush()
                     Graphics tile = piece.graphics.GetTile(x, y);
                     ++x;
                     
-                    m_Tiles.push_back(tile);
+                    tiles.push_back(tile);
                 }
 
                 x = 0;
@@ -206,20 +207,44 @@ void Animator::Flush()
             }
         }
 
-        auto it = std::search(m_Attributes.begin(), m_Attributes.end(), attrs.begin(), attrs.end());
+        auto tile_it = std::search(m_Tiles.begin(), m_Tiles.end(), tiles.begin(), tiles.end());
 
-        if(it == m_Attributes.end())
+        if(tile_it == m_Tiles.end())
+        {
+            //Reuse last tile if possible to don't waste 32 byts with repeated tiles
+            info.tile.start = m_Tiles.size();
+            auto insert_it = tiles.begin();
+
+            if(m_Tiles.size())
+            {
+                if(tiles[0] == m_Tiles.back())
+                {
+                    info.tile.start--;
+                    insert_it++;
+                }   
+            }                     
+            
+            m_Tiles.insert(m_Tiles.end(), insert_it, tiles.end());
+        } else
+        {
+            //Reuse other frame tiles
+            info.tile.start = tile_it - m_Tiles.begin();
+        }        
+
+        auto attr_it = std::search(m_Attributes.begin(), m_Attributes.end(), attrs.begin(), attrs.end());
+
+        if(attr_it == m_Attributes.end())
         {
             info.oam.start = m_Attributes.size();
             m_Attributes.insert(m_Attributes.end(), attrs.begin(), attrs.end());
         } else
         {
-            info.oam.start = it - m_Attributes.begin();
+            info.oam.start = attr_it - m_Attributes.begin();
         }
 
         info.oam.length = attrs.size();
         m_FrameInfos.push_back(info);
-    }
+    }    
 }
 
 void Animator::LoadFromFile(wxFile& file)

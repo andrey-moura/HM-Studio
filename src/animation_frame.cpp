@@ -807,6 +807,8 @@ void AnimationEditorFrame::UpdateFile()
     m_CurrentAnimation = 0;
     m_CurrentInstruction = 0;
 
+    SetTitle(Moon::BitConverter::ToHexString(m_pAnimatorEditor->GetOffset()));
+
     UpdateAnimation();
 }
 

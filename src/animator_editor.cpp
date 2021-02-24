@@ -12,7 +12,7 @@ AnimatorEditor::AnimatorEditor(const id& id)
     m_PathFormat = fn.GetFullPath();
 
     wxArrayString files;
-    wxDir::GetAllFiles(m_EditorDir, &files, L"*.bin");        
+    wxDir::GetAllFiles(m_EditorDir, &files, L"*.bin", wxDIR_FILES);        
 
     for(const wxString& file : files)
     {

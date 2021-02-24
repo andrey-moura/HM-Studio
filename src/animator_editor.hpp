@@ -21,6 +21,8 @@ public:
     void OpenNew(uint32_t offset);
     virtual void SaveFile() override;
     virtual void InsertFile() override;
+
+    uint32_t GetOffset() { return m_Offset; }
 public:
     wxBitmap MountFrame(size_t n);
 
