@@ -64,7 +64,7 @@ SET(SRC
 	src/animator_editor.cpp
 	src/class_app.cpp
 	src/class_editor.cpp
-	src/class_finder.cpp
+	
 	src/class_graphics.cpp
 	src/class_item.cpp
 	src/class_item_editor.cpp
@@ -104,7 +104,7 @@ SET(HDR
 	src/animator_editor.hpp
 	src/class_app.hpp
 	src/class_editor.hpp
-	src/class_finder.hpp
+	
 	src/class_graphics.hpp
 	src/class_item.hpp
 	src/class_item_editor.hpp

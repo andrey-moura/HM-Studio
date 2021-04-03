@@ -417,17 +417,14 @@ inline bool ScriptEditor::IsInsideBlock(const uint32_t& offset)
 
 inline bool ScriptEditor::IsFreeSpace(const uint32_t& offset, const uint32_t& size)
 {
-	uint8_t* data = new uint8_t[size];
+	std::vector<uint8_t> bytes = m_RomTranslated.ReadBytes<uint8_t>(offset, size);	
+	for (const uint8_t& b : bytes) {
+		if (b != 0x00 && b != 0xff) {
+			return false;
+		}
+	}
 
-	m_RomTranslated.Seek(offset);
-	m_RomTranslated.Read(data, size);
-
-	bool inside = IsInsideBlock(offset);
-	bool free = Finder::VerifyFilled(inside ? 0x00 : 0xff, data, size);
-
-	delete[] data;
-
-	return free;
+	return true;
 }
 
 FilesResults ScriptEditor::FindInScripts(std::string& search, bool useTable, bool translated) const
@@ -824,55 +821,32 @@ void ScriptEditor::InsertMove(const void* data, uint32_t size, uint32_t oldOffse
 }
 
 bool ScriptEditor::InsertFind(const void* data, uint32_t size, uint32_t oldOffset, uint32_t oldSize)
-{
-	uint8_t* scriptBlock = new uint8_t[m_Info.BlockLenght];
+{	
+	std::vector<char> bytes = m_RomTranslated.ReadBytes<char>(m_Info.StartBlock, m_Info.BlockLenght);
 
-	m_RomTranslated.Seek(m_Info.StartBlock);
-	m_RomTranslated.Read(scriptBlock, m_Info.BlockLenght);	
+	std::string buffer(size+8, '\0');
 
-	if (oldSize != std::string::npos)
-	{		
-		if (IsInsideBlock(oldOffset))
-			memset(scriptBlock + (oldOffset - m_Info.StartBlock), 0x00, oldSize);
-	}		
+	auto pos = std::search(bytes.begin(), bytes.end(), buffer.begin(), buffer.end());
+	uint32_t freespace;
 
-	bool trying = true;
+	if (pos == bytes.end()) {
+		memset(buffer.data(), 0xff, size+8);
+		bytes = m_RomTranslated.ReadBytes<char>(m_RomTranslated.m_FreeSpace, m_RomTranslated.Length() - m_RomTranslated.m_FreeSpace);
+		pos = std::search(bytes.begin(), bytes.end(), buffer.begin(), buffer.end());
 
-	uint32_t freeSpace = 0;
-
-	uint32_t riff = SCRIPT_RIFF;
-
-	bool flag = false;
-
-	while (1)
-	{
-		freeSpace = Finder::FindFilledAlingBlock(0x00, size, scriptBlock, m_Info.BlockLenght, freeSpace, 4);
-
-		if (freeSpace == std::string::npos)
-		{
-			break;
+		if (pos == bytes.end()) {
+			return false;
 		}
-
-		uint32_t lastScript = Finder::FindBack(scriptBlock, m_Info.BlockLenght, &riff, 4, freeSpace);
-		uint32_t lastSize = ScriptSize((uint32_t*)&scriptBlock[lastScript]);
-
-		if ((lastScript + lastSize) > freeSpace)
-		{
-			freeSpace = lastScript + lastSize;			
-			continue;
+		else {
+			freespace = (pos - bytes.begin()) + m_RomTranslated.m_FreeSpace;
 		}
-	
-		flag = true;
-		break;
+	}
+	else {
+		freespace = (pos - bytes.begin()) + m_Info.StartBlock;
 	}
 
-	delete[] scriptBlock;
-
-	if (flag) {
-		InsertMove(data, size, oldOffset, oldSize, freeSpace + m_Info.StartBlock);
-	}
-
-	return flag;
+	InsertMove(data, size, oldOffset, oldSize, freespace+4);
+	return true;
 }
 
 void ScriptEditor::InsertFile(const std::string& file)

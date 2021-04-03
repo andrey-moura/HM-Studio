@@ -15,8 +15,6 @@
 #include <wx/menu.h>
 #include <wx/statusbr.h>
 
-#include "class_finder.hpp"
-
 #include "class_spell_checker.hpp"
 
 #define SCI_LINELENGTH 2350

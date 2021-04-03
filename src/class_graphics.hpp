@@ -5,7 +5,6 @@
 #include <wx/msgdlg.h>
 
 #include "class_rom_file.hpp"
-#include "class_finder.hpp"
 
 struct Color {
 	uint8_t red;

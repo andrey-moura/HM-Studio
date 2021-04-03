@@ -13,7 +13,6 @@
 #include "class_rom_file.hpp"
 #include "class_script.hpp"
 #include "class_editor.hpp"
-#include "class_finder.hpp"
 #include "window_find_results.hpp"
 
 enum OpCode
