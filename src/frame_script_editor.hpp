@@ -256,8 +256,7 @@ private:
 	void RestoreText();
 //Script manipulation
 private:
-	void OpenScript(size_t index);
-	void SaveScript();		
+	void OpenScript(size_t index);	
 	void UpdateScript();	
 	void FindText();
 public:
@@ -266,6 +265,8 @@ public:
 	virtual void OnSaveString() override;
 	virtual void UpdateText() override;
 	virtual void UpdateFile() override;
+	virtual void OnSaveFile() override;	
+	virtual void OnInsertFile() override;
 //Forms
 
 //Text manipulation

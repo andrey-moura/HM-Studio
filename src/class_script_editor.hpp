@@ -98,7 +98,7 @@ public:
 
 	void DumpAll(bool translated) override;	
 	void InsertAll() override;
-	std::string Compile(std::ostream& stream);
+	std::string Compile(std::ostream& output, const std::string& input);
 private:
 	void InsertSmaller(const void* data, uint32_t size, uint32_t offset, uint32_t oldSize);
 	bool InsertLarger(const void* data, uint32_t size, uint32_t oldOffset, uint32_t oldSize);
@@ -134,10 +134,10 @@ public:
 	FilesResults CheckCode();
 
 	wxString& GetDisassembly() { return m_ScriptDisassembly; }
+	void InsertFile(const std::string& file);
 private:
 	virtual bool Open(uint32_t number) override;
-	virtual void GetRomInfo() override;
-	virtual void InsertFile() override;
+	virtual void GetRomInfo() override;	
 	virtual void SaveFile() override;	
 	virtual bool GetTextFromNumber(size_t number) override;
 	virtual bool GetTextFromPath(const std::string& path) override;

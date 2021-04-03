@@ -104,20 +104,24 @@ void for_each_operation(const unsigned char* start, const size_t& len, function 
 		}
 
 		i += operation.size;		
-		f(op_index, operand, op_addr);
+		f((OpCode)op_index, operand, op_addr);
 	}
 }
 
 ScriptEditor::ScriptEditor(const id& id) : Editor(id, L"Script")
 {
-	std::string test;
+	for (int32_t i = 0; i < 0x118; ++i) {
+		if (s_functions.find(i) == s_functions.end()){
+			std::string operand_string = Moon::BitConverter::ToHexString(i);
 
-	for(int i = 0; i < 0x24; ++i)
-	{
-		//test += "{ \"" + s_script_operations[i] + "\"," + std::to_string(s_imm_size[i]) + " },\n";
+			while (operand_string.size() > 1 && operand_string[0] == '0') {
+				operand_string.erase(operand_string.begin());
+			}
+
+			std::string name = "function" + operand_string;
+			s_functions.insert({ i, name });			
+		}
 	}
-
-	Moon::File::WriteAllText(std::string("test.txt"), test);
 
 	GetRomInfo();
 
@@ -171,19 +175,11 @@ bool ScriptEditor::Open(uint32_t number)
 	// m_RomTranslated.InputTextWithVariables(m_Translated);
 	// m_RomOriginal.InputTextWithVariables(m_Original);
 
-	// m_Index = 0;
-	// m_Number = number;
+	m_Index = 0;
+	m_Number = number;
 	// m_Count = m_Original.size();
 
-	// m_Opened = true;	
-
-	wxFile file;
-	file.Open(GetPath(number, true));
-
-	if( !file.IsOpened() )
-		return false;
-
-	file.ReadAll(&m_ScriptDisassembly, wxCSConv(wxFONTENCODING_CP1252));
+	// m_Opened = true;		
 
 	return true;
 }
@@ -879,19 +875,24 @@ bool ScriptEditor::InsertFind(const void* data, uint32_t size, uint32_t oldOffse
 	return flag;
 }
 
-void ScriptEditor::InsertFile()
+void ScriptEditor::InsertFile(const std::string& file)
 {	
 	uint32_t oldOffset = GetOffset(true);
 	uint32_t oldSize = ScriptSize(oldOffset, true);	
-
-	std::string data;
+	
 	std::stringstream stream;
-	std::string output_msg = Compile(stream);
+	std::string output_msg = Compile(stream, file);
 
 	if(!output_msg.empty()) {
 		wxMessageBox(output_msg, "Error", wxICON_ERROR);
 		return;
 	}
+
+	std::string data = stream.str();	
+
+	//Moon::File::WriteAllBytes(std::string("test.obj"), data.c_str(), data.size());
+
+	//return;
 
 	uint32_t newSize = data.size();
 
@@ -985,85 +986,123 @@ void ScriptEditor::InsertAll()
 	m_RomTranslated.Write(script_block.data(), script_block.size());
 }
 
-std::string ScriptEditor::Compile(std::ostream& stream) {	
-	//std::stringstream str;
+std::string ScriptEditor::Compile(std::ostream& output, const std::string& input) {
+	//std::stringoutput str;
 	//str << "STR ";
 
 	//ToDo: Show line in error/warning and more information about the error
 
-	stream << "RIFF";
-	stream.write("\0\0\0", 4);
-	stream << "SCR CODE";
-	stream.write("\0\0\0", 4);
-	stream.write("\0\0\0", 4);
+	output << "RIFF";
+	output.write("\0\0\0", 4);
+	output << "SCR CODE";
+	output.write("\0\0\0", 4);
+	output.write("\0\0\0", 4);
 
-	size_t src_start = stream.tellp();
+	size_t src_start = output.tellp();
 
-	auto lines = Moon::String::GetLines(m_ScriptDisassembly.ToStdString(), false);
+	auto lines = Moon::String::GetLines(input, false);
 
 	std::vector<std::string> jumpTables;
 
 	auto jump_it = std::find(lines.begin(), lines.end(), ".section jump");
 
 	if (jump_it != lines.end()) {
-		
+
 	}
 
 	auto scr_it = std::find(lines.begin(), lines.end(), ".section scr");
 
-	if( scr_it == lines.end() ) {
+	if (scr_it == lines.end()) {
 		return "error: undefined scr section";
 	}
 
-	std::string labels;
-	std::vector<std::pair<uint32_t, size_t>> jumps;
+	std::vector<std::pair<std::string, uint32_t>> labels_addrs;
+	std::vector<std::pair<std::string, uint32_t>> labels_jumps;
 
-	for(int i = (scr_it - lines.begin())+1; i < lines.size(); ++i) { 
+	for (int i = (scr_it - lines.begin()) + 1; i < lines.size(); ++i) {
 		std::string line = lines[i];
+
+		while (line.size() && (line[0] == ' ' || line[0] == '\t')) {
+			line.erase(0, 1);
+		}
+
+		if (line.empty()) {
+			continue;
+		}
+
+		size_t label_pos = line.find(':');
+
+		if (label_pos != std::string::npos) {
+			std::string label = line.substr(0, label_pos);
+
+			for (const char& c : label) {
+				if (!isalnum(c) && c != '_') {
+					return "error: unexpected token '" + std::string(&c, 1) + "' in label name";
+				}
+			}
+
+			line.erase(0, label.size() + 1);
+
+			if (!line.empty()) {
+				return "error: syntax error";
+			}
+
+			for (int label_index = 0; label_index < labels_addrs.size(); ++label_index) {
+				if (labels_addrs[label_index].first == label) {
+					return "error: redefinition of label '" + label + "'";
+				}
+			}
+
+			labels_addrs.push_back(std::pair<std::string, uint32_t>(label, (uint32_t)output.tellp()-0x18));
+			continue;
+		}
+
 		std::string operation = line.substr(0, lines[i].find(' '));
 		bool written = false;
 		bool end = false;
 
-		for(uint32_t op = 0; op < s_operations.size(); ++op) {
-			if(s_operations[op].name == operation) {
+		for (uint32_t op = 0; op < s_operations.size(); ++op) {
+			if (s_operations[op].name == operation) {
 				//push     1
 				//to
 				//     1
 				//and then to
 				//1
 				line.erase(0, operation.size());
-				while(line.size() && line[0] == ' ') {
+				while (line.size() && line[0] == ' ') {
 					line.erase(line.begin());
 				}
 
-				if(!line.size() && s_operations[op].size) {
+				if (!line.size() && s_operations[op].size) {
 					return "error: missing instruction argument";
 				}
 
-				if(line.size() && !s_operations[op].size) {
+				if (line.size() && !s_operations[op].size) {
 					return "error: unexpected argument";
 				}
 
 				uint8_t op_code = op;
 				int32_t argument;
-				
-				if(s_operations[op].size) {
+
+				if (s_operations[op].size) {
 					std::string arg;
 
-					if(op == OpCode::CALL || op == OpCode::SWITCH) {
+					if (op == OpCode::CALL || op == OpCode::SWITCH || (op >= OpCode::B && op <= OpCode::BGT)) {
 						arg = line.substr(0, line.find(' '));
-					} else {
-						if(line[0] == '-') {
+					}
+					else {
+						if (line[0] == '-') {
 							line.erase(line.begin());
 							arg.push_back('-');
 						}
-						for(const char& c : line) {
-							if(c == ' ') {
+						for (const char& c : line) {
+							if (c == ' ') {
 								break;
 							}
-							else if(!isdigit(c)) {
-								return "error: unexpected token '" + std::to_string(c) + "' in argument";
-							} else {
+							else if (!isdigit(c)) {
+								return "error: unexpected token '" + std::string(c, 1) + "' in argument";
+							}
+							else {
 								arg.push_back(c);
 							}
 						}
@@ -1071,24 +1110,39 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 
 					line.erase(0, arg.size());
 
-					if(line.size()) {
+					if (line.size()) {
 						return "error: too many arguments";
 					}
 
-					if(op == OpCode::CALL) {
+					if (op == OpCode::CALL) {
 						int fn = -1;
-						for(const auto& pair : s_functions)
-							if(pair.second.name == arg) {
+						for (const auto& pair : s_functions)
+							if (pair.second.name == arg) {
 								fn = pair.first;
 								break;
 							}
-						if(fn == -1) {
+						if (fn == -1) {
 							return "error: unexpected token '" + arg + "' in argument";
 						}
 						argument = fn;
 					}
 					else if (op == OpCode::SWITCH) {
 
+					}
+					else if ((op >= OpCode::B && op <= OpCode::BGT)) {
+						int label = -1;
+						for (int label_index = 0; label_index < labels_addrs.size(); ++i) {
+							if (labels_addrs[label_index].first == arg) {
+								label = label_index;
+							}
+						}
+						if (label == -1) {
+							labels_jumps.push_back(std::pair<std::string, uint32_t>(arg, output.tellp()));
+							argument = 0;
+						}
+						else {
+							argument = labels_addrs[label].second;
+						}
 					}
 					else {
 
@@ -1100,10 +1154,11 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 						bool auto_size = false;
 
 						//push has 32, 16 and 8-bits signed arguments
-						if(operation == "push") {
+						if (operation == "push") {
 							arg_size = 4;
 							auto_size = true;
-						} else {
+						}
+						else {
 							arg_size = s_operations[op].size;
 						}
 
@@ -1126,30 +1181,31 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 							break;
 						default:
 							break;
-						}					
+						}
 
-						if(arg.size() > arg_max_digits) {
+						if (arg.size() > arg_max_digits) {
 							return "error: argument overflow";
-						}					
-						
+						}
+
 						auto temp_argument = std::stoll(arg);
 
 						std::cout << "Temp argument: " << temp_argument << "\n";
 
-						if(temp_argument > arg_max || temp_argument < arg_min) {
+						if (temp_argument > arg_max || temp_argument < arg_min) {
 							return "error: argument overflow";
 						}
 
-						if(auto_size) {
-							if(temp_argument >= INT8_MIN && temp_argument <= INT8_MAX) {
+						if (auto_size) {
+							if (temp_argument >= INT8_MIN && temp_argument <= INT8_MAX) {
 								arg_size = 1;
-							} else if(temp_argument >= INT16_MIN && temp_argument <= INT16_MAX) {
+							}
+							else if (temp_argument >= INT16_MIN && temp_argument <= INT16_MAX) {
 								arg_size = 2;
 							}
 							//else arg_size = 32 by default
 						}
 
-						if(s_operations[op].name == "push") {
+						if (s_operations[op].name == "push") {
 							switch (arg_size)
 							{
 							case 1:
@@ -1173,32 +1229,32 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 					}
 				}
 
-				if(op == op == OpCode::END) {
+				if (op == OpCode::END) {
 					end = true;
 				}
 
-				stream.write(char_pointer(op_code), 1);
+				output.write(char_pointer(op_code), 1);
 
-				if(s_operations[op_code].size) {
+				if (s_operations[op_code].size) {
 					switch (s_operations[op_code].size)
 					{
 					case 1:
-						{
-							uint8_t arg = argument;
-							stream.write(char_pointer(arg), 1);
-						}
-						break;
+					{
+						uint8_t arg = argument;
+						output.write(char_pointer(arg), 1);
+					}
+					break;
 					case 2:
-						{
-							uint16_t arg = argument;
-							stream.write(char_pointer(arg), 2);
-						}
-						break;
+					{
+						uint16_t arg = argument;
+						output.write(char_pointer(arg), 2);
+					}
+					break;
 					case 4:
-						{							
-							stream.write(char_pointer(argument), 4);
-						}
-						break;
+					{
+						output.write(char_pointer(argument), 4);
+					}
+					break;
 					default:
 						break;
 					}
@@ -1209,36 +1265,62 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 			}
 		}
 
-		if(end) {
+		if (end) {
 			break;
 		}
-		if(written) {
+		if (written) {
 			continue;
 		}
 
 		return "error: undefined instruction '" + operation + "'";
 	}
 
-	size_t src_end = stream.tellp();
+	size_t src_end = output.tellp();
+
+	for (auto& labels_jump : labels_jumps) {
+		output.seekp(labels_jump.second + 1);
+
+		bool written = false;
+
+		for (int label_index = 0; label_index < labels_addrs.size(); ++label_index) {
+			if (labels_addrs[label_index].first == labels_jump.first) {
+				output.write(char_pointer(labels_addrs[label_index].second), 4);
+				written = true;
+				break;
+			}
+		}
+
+		if (!written) {
+			return "error: undefined reference to label '" + labels_jump.first + "'";
+		}
+	}	
+
+	output.seekp(src_end);
+
+	while (src_end % 4 != 0) {
+		++src_end;
+		output.write("\0", 1);
+	}
+
 	uint32_t code_lenght = src_end - src_start;
-	uint32_t src_lenght = code_lenght+4;
+	uint32_t src_lenght = code_lenght + 4;
 
-	stream.seekp(0x10);
-	stream.write(char_pointer(src_lenght), 4);
-	stream.write(char_pointer(code_lenght), 4);
+	output.seekp(0x10);
+	output.write(char_pointer(src_lenght), 4);
+	output.write(char_pointer(code_lenght), 4);
 
-	stream.seekp(src_end);
+	//String compilation
 
-//String compilation
+	output.seekp(src_end);
 
-	stream << "STR ";	
+	output << "STR ";
 
 	auto str_it = std::find(lines.begin(), lines.end(), ".section str");
 
-	if( str_it == lines.end() ) {
+	if (str_it == lines.end()) {
 		uint32_t len = 4;
-		stream.write(char_pointer(len), 4);
-		stream.write("\0\0\0", 4);
+		output.write(char_pointer(len), 4);
+		output.write("\0\0\0", 4);
 
 		return "";
 	}
@@ -1246,7 +1328,7 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 	std::vector<uint32_t> pointers;
 	std::string strings;
 
-	for(int i = (str_it - lines.begin())+1; i < lines.size(); ++i) { 
+	for (int i = (str_it - lines.begin()) + 1; i < lines.size(); ++i) {
 		std::string& line = lines[i];
 
 		// size_t dots = line.find(":");
@@ -1270,19 +1352,19 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 
 		size_t start = line.find("\"");
 
-		if(start == std::string::npos) {
+		if (start == std::string::npos) {
 			continue;
 		}
 
-		size_t end = line.find("\"", start+1);		
+		size_t end = line.find("\"", start + 1);
 
-		if(end == std::string::npos) {
+		if (end == std::string::npos) {
 			return "error: missing matching \"";
 		}
 
 		pointers.push_back(strings.size());
 
-		std::string str = line.substr(start+1, (end-start)-1);
+		std::string str = line.substr(start + 1, (end - start) - 1);
 		Moon::String::Replace(str, "\\n", "\n");
 		Moon::String::Replace(str, "\\r", "\r");
 
@@ -1290,33 +1372,33 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 		strings.push_back('\0');
 	}
 
-	if(!pointers.size()) {
+	if (!pointers.size()) {
 		uint32_t len = 4;
-		stream.write(char_pointer(len), 4);
-		stream.write("\0\0\0", 4);
+		output.write(char_pointer(len), 4);
+		output.write("\0\0\0", 4);
 		return "";
 	}
 
 	uint32_t str_len = 0;
 	uint32_t str_count = pointers.size();
 
-	str_len += str_count*4;
+	str_len += str_count * 4;
 	str_len += 4;
 	str_len += strings.size();
 
-	stream.write(char_pointer(str_len), 4);
-	stream.write(char_pointer(str_count), 4);
+	output.write(char_pointer(str_len), 4);
+	output.write(char_pointer(str_count), 4);
 
-	for(const uint32_t& pointer : pointers) {
-		stream.write(char_pointer(pointer), 4);
+	for (const uint32_t& pointer : pointers) {
+		output.write(char_pointer(pointer), 4);
 	}
 
-	stream.write(strings.c_str(), strings.size());
+	output.write(strings.c_str(), strings.size());
 
-	uint32_t riff_size = stream.tellp();
+	uint32_t riff_size = output.tellp();
 
-	stream.seekp(4);
-	stream.write(char_pointer(riff_size), 4);
+	output.seekp(4);
+	output.write(char_pointer(riff_size), 4);
 
 	return "";
 }

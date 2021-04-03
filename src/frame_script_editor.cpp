@@ -150,14 +150,19 @@ void ScriptEditorFrame::OpenScript(size_t index)
 	UpdateFile();
 }
 
-void ScriptEditorFrame::SaveScript()
-{		
-	m_pEditor->SaveFile();
+void ScriptEditorFrame::OnSaveFile()
+{			
+	Moon::File::WriteAllText(m_pEditor->GetPath(true), m_pDisassemblyEditor->GetText().ToStdString(wxCSConv(wxFONTENCODING_CP1252)));	
+}
 
-	if (wxFile::Exists(m_BackupFile))
-	{
-		wxRemoveFile(m_BackupFile);
-	}
+void ScriptEditorFrame::OnInsertFile()
+{
+	//Todo: check if file was actually changed.
+	std::string script = m_pDisassemblyEditor->GetText().ToStdString(wxCSConv(wxFONTENCODING_CP1252));
+	Moon::File::WriteAllText(m_pEditor->GetPath(true), script);
+
+	ScriptEditor* editor = (ScriptEditor*)m_pEditor;	
+	editor->InsertFile(script);
 }
 
 void ScriptEditorFrame::UpdateScriptDic()
@@ -177,6 +182,9 @@ void ScriptEditorFrame::UpdateScriptDic()
 void ScriptEditorFrame::UpdateFile()
 {
 	SetTitle("Script " + std::to_string(m_pEditor->GetNumber()));
+
+	std::string script = Moon::File::ReadAllText(m_pEditor->GetPath(true));
+	m_pDisassemblyEditor->SetText(wxString(script.c_str(), wxCSConv(wxFONTENCODING_CP1252), script.size()));
 		
 	UpdateScriptDic();
 	UpdateText();
@@ -361,7 +369,7 @@ using Stack = std::vector<StackVariable>;
 
 void ScriptEditorFrame::UpdateText()
 {
-	ScriptEditor* editor = (ScriptEditor*)m_pEditor;
+	//ScriptEditor* editor = (ScriptEditor*)m_pEditor;
 
 	// if(editor->GetScript().HaveText())
 	// {
@@ -548,7 +556,8 @@ void ScriptEditorFrame::UpdateText()
 
 	//Testing with MFoMT 350
 
-	m_pDisassemblyEditor->SetText(editor->GetDisassembly());
+	//std::string script = Moon::File::ReadAllText(editor->GetPath(true));
+	//m_pDisassemblyEditor->SetText(wxString(script.c_str(), wxCSConv(wxFONTENCODING_CP1252), script.size()));
 }
 
 void ScriptEditorFrame::CreateGUIControls()
