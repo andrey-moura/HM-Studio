@@ -1032,8 +1032,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 		}
 
 		std::string operation = line.substr(0, lines[i].find(' '));
-		bool written = false;
-		bool end = false;
+		bool written = false;		
 
 		for (uint32_t op = 0; op < s_operations.size(); ++op) {
 			if (s_operations[op].name == operation) {
@@ -1201,11 +1200,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 
 						argument = temp_argument;
 					}
-				}
-
-				if (op == OpCode::END) {
-					end = true;
-				}
+				}				
 
 				output.write(char_pointer(op_code), 1);
 
@@ -1238,10 +1233,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 				break;
 			}
 		}
-
-		if (end) {
-			break;
-		}
+		
 		if (written) {
 			continue;
 		}
