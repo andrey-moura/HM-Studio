@@ -16,6 +16,47 @@
 #include "class_finder.hpp"
 #include "window_find_results.hpp"
 
+enum OpCode
+{
+	NOP,
+	EQU,
+	ADDEQU,
+	SUBEQU,
+	MULEQU,
+	DIVEQU,
+	MODEQU,
+	ADD,
+	SUB,
+	MUL,
+	DIV,
+	MOD,
+	AND,
+	OR,
+	INC,
+	DEC,
+	NEG,
+	NOT,
+	CMP,
+	PUSHM,
+	POPM,
+	DUP,
+	POP,
+	PUSH,
+	B,
+	BLT,
+	BLE,
+	BEQ,
+	BNE,
+	BGE,
+	BGT,
+	BI,
+	END,
+	CALL,
+	PUSH16,
+	PUSH8,
+	SWITCH	
+};
+
 struct Operation {
 	Operation(const std::string& name, const int& size)
 		: name(name), size(size) {

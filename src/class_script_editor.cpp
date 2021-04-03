@@ -698,13 +698,13 @@ void ScriptEditor::DumpAll(bool translated)
 		script_disassembly.push_back('\n');
 		script_disassembly.push_back('\n');		
 
-		for_each_operation(start, count, [&labels](const uint32_t& op, const int32_t operand, const uint32_t& addr) {
-			if(op >= 0x18 && op <= 0x1E) {
+		for_each_operation(start, count, [&labels](const OpCode& op, const int32_t operand, const uint32_t& addr) {
+			if(op >= OpCode::B && op <= OpCode::BGT) {
 				labels.push_back(operand);
 			}
 		});
 
-		for_each_operation(start, count, [&labels, &script_disassembly](const uint32_t& op, const int32_t operand, const uint32_t& addr) {		
+		for_each_operation(start, count, [&labels, &script_disassembly](const OpCode& op, const int32_t operand, const uint32_t& addr) {
 			if(std::find(labels.begin(), labels.end(), addr) != labels.end()) {
 				script_disassembly += "LAB_";
 				script_disassembly += Moon::BitConverter::ToHexString(addr);
@@ -717,10 +717,10 @@ void ScriptEditor::DumpAll(bool translated)
 			script_disassembly.push_back(' ');
 
 			if(operation.size > 0) {
-				if(op >= 0x18 && op <= 0x1E) {
+				if (op >= OpCode::B && op <= OpCode::BGT) {
 					script_disassembly += "LAB_";
 					script_disassembly += Moon::BitConverter::ToHexString(operand);
-				} else if(op == 0x21) {
+				} else if(op == OpCode::CALL) {
 					auto it = s_functions.find(operand);
 
 					if(it == s_functions.end()) {
@@ -738,7 +738,7 @@ void ScriptEditor::DumpAll(bool translated)
 						script_disassembly += it->second.name;
 					}
 				}
-				else if (op == 0x24) {
+				else if (op == OpCode::SWITCH) {
 					script_disassembly += "Table";
 					script_disassembly += std::to_string(operand);					
 				}
@@ -1015,6 +1015,9 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 		return "error: undefined scr section";
 	}
 
+	std::string labels;
+	std::vector<std::pair<uint32_t, size_t>> jumps;
+
 	for(int i = (scr_it - lines.begin())+1; i < lines.size(); ++i) { 
 		std::string line = lines[i];
 		std::string operation = line.substr(0, lines[i].find(' '));
@@ -1047,7 +1050,7 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 				if(s_operations[op].size) {
 					std::string arg;
 
-					if(s_operations[op].name == "call" || s_operations[op].name == "switch") {
+					if(op == OpCode::CALL || op == OpCode::SWITCH) {
 						arg = line.substr(0, line.find(' '));
 					} else {
 						if(line[0] == '-') {
@@ -1072,7 +1075,7 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 						return "error: too many arguments";
 					}
 
-					if(s_operations[op].name == "call") {
+					if(op == OpCode::CALL) {
 						int fn = -1;
 						for(const auto& pair : s_functions)
 							if(pair.second.name == arg) {
@@ -1084,7 +1087,7 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 						}
 						argument = fn;
 					}
-					else if (s_operations[op].name == "switch") {
+					else if (op == OpCode::SWITCH) {
 
 					}
 					else {
@@ -1170,7 +1173,7 @@ std::string ScriptEditor::Compile(std::ostream& stream) {
 					}
 				}
 
-				if(operation == "end") {
+				if(op == op == OpCode::END) {
 					end = true;
 				}
 
