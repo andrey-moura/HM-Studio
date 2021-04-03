@@ -3,6 +3,9 @@
 #include <wx/popupwin.h>
 #include <wx/statline.h>
 
+wxDEFINE_EVENT(wxEVT_STC_WRAP_WORD, wxStyledTextEvent);
+wxDEFINE_EVENT(wxEVT_STC_LEFT_DOWN, wxStyledTextEvent);
+
 ScriptEditorFrame::ScriptEditorFrame(id i) : EditorFrame(new ScriptEditor(i))
 {
 	CreateGUIControls();
@@ -360,192 +363,192 @@ void ScriptEditorFrame::UpdateText()
 {
 	ScriptEditor* editor = (ScriptEditor*)m_pEditor;
 
-	if(editor->GetScript().HaveText())
-	{
-		std::string std_translated = ((ScriptEditor*)m_pEditor)->GetCurTranslated();
-		wxString translated(std_translated.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_translated.size());
+	// if(editor->GetScript().HaveText())
+	// {
+	// 	std::string std_translated = ((ScriptEditor*)m_pEditor)->GetCurTranslated();
+	// 	wxString translated(std_translated.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_translated.size());
 
-		std::string std_original = ((ScriptEditor*)m_pEditor)->GetCurOriginal();
-		wxString original(std_original.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_original.size());
+	// 	std::string std_original = ((ScriptEditor*)m_pEditor)->GetCurOriginal();
+	// 	wxString original(std_original.c_str(), wxCSConv(wxFONTENCODING_CP1252), std_original.size());
 
-		tScriptOriginal->SetText(original);
-		tScriptTranslated->SetText(translated);
+	// 	tScriptOriginal->SetText(original);
+	// 	tScriptTranslated->SetText(translated);
 
-		m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
+	// 	m_pStatusBar->SetStatusText(wxString("Index: ") << std::to_string(m_pEditor->GetIndex() + 1) << "/" << std::to_string(m_pEditor->GetCount()));
 			
-		tScriptTranslated->SetModified(false);
-	}	
+	// 	tScriptTranslated->SetModified(false);
+	// }	
 
-	m_pSrcCodeOutput->SetText(editor->GetScript().GetSrcCode());
+	// m_pSrcCodeOutput->SetText(editor->GetScript().GetSrcCode());
 
-	if(!functions.size())
-	{
-		functions.insert({0x06,  { "get_actor_direction(%x)", true} } );
-		functions.insert({0x11,  { "playanim 0x%x, 0x%x, 0x%x", false} });
-		functions.insert({0x1b,  { "playsfx 0x%x, 0x%x", false} });
-		functions.insert({0x1f,  { "msgbox", false} });
-		functions.insert({0x20,  { "msgbox1", false} });
-		functions.insert({0x21,  { "closemsg", false} });
-		functions.insert({0x22,  { "msg 0x%x", false} });
-		functions.insert({0x23,  { "msg_slow 0x%x", false} });
-		functions.insert({0x22,  { "msg_fast 0x%x", false} });
-		functions.insert({0x28,  { "choose_text(0x%x, 0x%x)", false} });
-		functions.insert({0x29,  { "choose_text(0x%x, 0x%x, 0x%x)", false} });
-		functions.insert({0x3e,  { "fun_3e(0x%x)", true } });
-		functions.insert({0x106, { "fun_106()", false } });
+	// if(!functions.size())
+	// {
+	// 	functions.insert({0x06,  { "get_actor_direction(%x)", true} } );
+	// 	functions.insert({0x11,  { "playanim 0x%x, 0x%x, 0x%x", false} });
+	// 	functions.insert({0x1b,  { "playsfx 0x%x, 0x%x", false} });
+	// 	functions.insert({0x1f,  { "msgbox", false} });
+	// 	functions.insert({0x20,  { "msgbox1", false} });
+	// 	functions.insert({0x21,  { "closemsg", false} });
+	// 	functions.insert({0x22,  { "msg 0x%x", false} });
+	// 	functions.insert({0x23,  { "msg_slow 0x%x", false} });
+	// 	functions.insert({0x22,  { "msg_fast 0x%x", false} });
+	// 	functions.insert({0x28,  { "choose_text(0x%x, 0x%x)", false} });
+	// 	functions.insert({0x29,  { "choose_text(0x%x, 0x%x, 0x%x)", false} });
+	// 	functions.insert({0x3e,  { "fun_3e(0x%x)", true } });
+	// 	functions.insert({0x106, { "fun_106()", false } });
 
-		std::string names;
+	// 	std::string names;
 
-		for(auto& fun : functions)
-		{
-			std::string_view name = fun.second.format;
+	// 	for(auto& fun : functions)
+	// 	{
+	// 		std::string_view name = fun.second.format;
 
-			size_t pos = name.find(' ');
+	// 		size_t pos = name.find(' ');
 
-			if(pos == std::string::npos)
-			{
-				pos = name.find(')');
-			}
+	// 		if(pos == std::string::npos)
+	// 		{
+	// 			pos = name.find(')');
+	// 		}
 
-			names += name.substr(0, pos);
-			names += " ";
-		}
+	// 		names += name.substr(0, pos);
+	// 		names += " ";
+	// 	}
 
-		m_pDecompiler->SetKeyWords(1, names);
-	}
+	// 	m_pDecompiler->SetKeyWords(1, names);
+	// }
 
-	if(!sfx.size())
-	{
-		sfx.insert({0x00A1, "CowMoo"});
-	}
+	// if(!sfx.size())
+	// {
+	// 	sfx.insert({0x00A1, "CowMoo"});
+	// }
 
-	std::string disasm;	
+	// std::string disasm;	
 
-	const Script& script = editor->GetScript();
+	// const Script& script = editor->GetScript();
 
-	const unsigned char* start = script.GetData() + 0x18;
-	const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x14);
-	const unsigned char* pos = start;
+	// const unsigned char* start = script.GetData() + 0x18;
+	// const unsigned char* end = start + *(uint32_t*)(script.GetData() + 0x14);
+	// const unsigned char* pos = start;
 	
-	Stack stack;
-	std::vector<uint32_t> labels;
+	// Stack stack;
+	// std::vector<uint32_t> labels;
 
-	char buffer[100];	
+	// char buffer[100];	
 	
-	while (pos < end)
-	{
-		//ToDo: use for loop
-		uint32_t address = pos - start;
-		if(std::find(labels.begin(), labels.end(), address) != labels.end())
-		{
-			disasm += "LAB_";
-			disasm += Moon::BitConverter::ToHexString(address);
-			disasm += ":\n";
-		}
+	// while (pos < end)
+	// {
+	// 	//ToDo: use for loop
+	// 	uint32_t address = pos - start;
+	// 	if(std::find(labels.begin(), labels.end(), address) != labels.end())
+	// 	{
+	// 		disasm += "LAB_";
+	// 		disasm += Moon::BitConverter::ToHexString(address);
+	// 		disasm += ":\n";
+	// 	}
 
-		switch (*pos)
-		{
-		case 0x12: //cmp			
-			disasm += "compare ";
-			disasm += stack[stack.size()-2].to_string();
-			disasm += ", ";
-			disasm += stack[stack.size()-1].to_string();
-			disasm += "\n";
-			pos++;			
-		break;
-		case 0x17: //push
-			pos++;
-			stack.push_back(*(int32_t*)pos);
-			pos+=4;
-			break;
-		case 0x18:
-			pos++;
-			disasm += "jump LAB_";
-			disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
-			disasm += "\n";				
-			labels.push_back(*(uint32_t*)pos);
-			std::sort(labels.begin(), labels.end());
-			pos += 4;
-		break;
-		case 0x1B: //beq
-			disasm += "if equal jump LAB_";
-			++pos;			
-			disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
-			disasm += "\n";
-			labels.push_back(*(uint32_t*)pos);
-			std::sort(labels.begin(), labels.end());
-			pos += 4;
-		break;
-		case 0x21: // call
-			{
-				memset(buffer, 0, sizeof(buffer));
-				pos++;
+	// 	switch (*pos)
+	// 	{
+	// 	case 0x12: //cmp			
+	// 		disasm += "compare ";
+	// 		disasm += stack[stack.size()-2].to_string();
+	// 		disasm += ", ";
+	// 		disasm += stack[stack.size()-1].to_string();
+	// 		disasm += "\n";
+	// 		pos++;			
+	// 	break;
+	// 	case 0x17: //push
+	// 		pos++;
+	// 		stack.push_back(*(int32_t*)pos);
+	// 		pos+=4;
+	// 		break;
+	// 	case 0x18:
+	// 		pos++;
+	// 		disasm += "jump LAB_";
+	// 		disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
+	// 		disasm += "\n";				
+	// 		labels.push_back(*(uint32_t*)pos);
+	// 		std::sort(labels.begin(), labels.end());
+	// 		pos += 4;
+	// 	break;
+	// 	case 0x1B: //beq
+	// 		disasm += "if equal jump LAB_";
+	// 		++pos;			
+	// 		disasm += Moon::BitConverter::ToHexString(*(uint32_t*)pos);
+	// 		disasm += "\n";
+	// 		labels.push_back(*(uint32_t*)pos);
+	// 		std::sort(labels.begin(), labels.end());
+	// 		pos += 4;
+	// 	break;
+	// 	case 0x21: // call
+	// 		{
+	// 			memset(buffer, 0, sizeof(buffer));
+	// 			pos++;
 
-				uint32_t id = *(uint32_t*)pos;
+	// 			uint32_t id = *(uint32_t*)pos;
 
-				auto it = functions.find(id);
+	// 			auto it = functions.find(id);
 
-				if(it == functions.end())
-				{
-					sprintf(buffer, "fun_%x();\n", id);
-					disasm += buffer;
-				} else
-				{
-					ScriptFunction& function = functions.at(id);
+	// 			if(it == functions.end())
+	// 			{
+	// 				sprintf(buffer, "fun_%x();\n", id);
+	// 				disasm += buffer;
+	// 			} else
+	// 			{
+	// 				ScriptFunction& function = functions.at(id);
 
-					switch(function.arguments)
-					{
-						case 0:							
-							strcpy(buffer, function.format);
-						break;
-						case 1:
-							sprintf(buffer, function.format, stack.back().value);
-							stack.pop_back();							
-						break;
-						case 2:
-							sprintf(buffer, function.format, stack[stack.size()-2].value, stack[stack.size()-1].value);
-							stack.pop_back();
-							stack.pop_back();							
-						break;
-						case 3:
-							sprintf(buffer, function.format, stack[stack.size()-3].value, stack[stack.size()-2].value, stack[stack.size()-1].value);
-							stack.pop_back();
-							stack.pop_back();
-							stack.pop_back();							
-						break;
-					}
+	// 				switch(function.arguments)
+	// 				{
+	// 					case 0:							
+	// 						strcpy(buffer, function.format);
+	// 					break;
+	// 					case 1:
+	// 						sprintf(buffer, function.format, stack.back().value);
+	// 						stack.pop_back();							
+	// 					break;
+	// 					case 2:
+	// 						sprintf(buffer, function.format, stack[stack.size()-2].value, stack[stack.size()-1].value);
+	// 						stack.pop_back();
+	// 						stack.pop_back();							
+	// 					break;
+	// 					case 3:
+	// 						sprintf(buffer, function.format, stack[stack.size()-3].value, stack[stack.size()-2].value, stack[stack.size()-1].value);
+	// 						stack.pop_back();
+	// 						stack.pop_back();
+	// 						stack.pop_back();							
+	// 					break;
+	// 				}
 
-					if(function.returns)
-					{
-						stack.push_back("LASTRESULT");
-					}
+	// 				if(function.returns)
+	// 				{
+	// 					stack.push_back("LASTRESULT");
+	// 				}
 					
-					disasm += buffer;
-					disasm += "\n";					
-				}
+	// 				disasm += buffer;
+	// 				disasm += "\n";					
+	// 			}
 								
-				pos+=4;
-			}
-		break;
-		case 0x22: //push16
-			pos++;			
-			stack.push_back(*(int16_t*)pos);
-			pos+=2;
-			break;
-		case 0x23: //push8
-			pos++;
-			stack.push_back(*(int8_t*)pos);
-			pos++;
-		break;
-		default:
-			pos++;
-			break;
-		}		
-	}
+	// 			pos+=4;
+	// 		}
+	// 	break;
+	// 	case 0x22: //push16
+	// 		pos++;			
+	// 		stack.push_back(*(int16_t*)pos);
+	// 		pos+=2;
+	// 		break;
+	// 	case 0x23: //push8
+	// 		pos++;
+	// 		stack.push_back(*(int8_t*)pos);
+	// 		pos++;
+	// 	break;
+	// 	default:
+	// 		pos++;
+	// 		break;
+	// 	}		
+	// }
 
 	//Testing with MFoMT 350
 
-	m_pDecompiler->SetText(disasm);
+	m_pDisassemblyEditor->SetText(editor->GetDisassembly());
 }
 
 void ScriptEditorFrame::CreateGUIControls()
@@ -592,17 +595,34 @@ void ScriptEditorFrame::CreateGUIControls()
 	m_pSrcCodeOutput->SetMarginWidth(0, 72);
 	m_pSrcCodeOutput->Bind(wxEVT_STC_STYLENEEDED, &ScriptEditorFrame::OnCodeStyleNeeded, this);
 
-	m_pDecompiler = new STC(this, wxID_ANY);
-	m_pDecompiler->SetLexer(wxSTC_LEX_CPP);  
+	m_pDisassemblyEditor = new wxStyledTextWrapper(this, wxID_ANY);
+	m_pDisassemblyEditor->Bind(wxEVT_STC_WRAP_WORD, &ScriptEditorFrame::OnDisassemblyWord, this);
+	m_pDisassemblyEditor->SetBaseLexer();
+	m_pDisassemblyEditor->SetLineCommentKey(L";");
 
-	m_pDecompiler->StyleSetForeground(wxSTC_C_COMMENT, wxColour(80, 240, 60));
-	m_pDecompiler->StyleSetForeground(wxSTC_C_WORD, wxColour(0, 0, 255));
-	m_pDecompiler->StyleSetForeground(wxSTC_C_WORD2, wxColour(121, 94, 38));
-	m_pDecompiler->StyleSetForeground(wxSTC_C_STRING, wxColour(165, 57, 130));
-	m_pDecompiler->StyleSetForeground(wxSTC_C_NUMBER, wxColour(255, 128, 0));
+	auto& operations = ScriptEditor::GetOperations();
 
-	m_pDecompiler->SetKeyWords(0,
-	"call compare LASTRESULT if equal greater smaller jump");
+	for(const Operation& op : operations)
+	{
+		m_pDisassemblyEditor->AppendKeyWord(op.name, 0);
+	}
+
+	m_pDisassemblyEditor->AppendKeyWord(L"db", 0);
+	m_pDisassemblyEditor->AppendKeyWord(L"case", 0);
+	m_pDisassemblyEditor->SetKeyWordForeground(1, { 255, 219, 105 });
+
+	//m_pDisassemblyEditor->SetLexer(wxSTC_LEX_CPP);  
+
+	m_pDisassemblyEditor->DisplayLineNumbers();
+
+	// m_pDecompiler->StyleSetForeground(wxSTC_C_COMMENT, wxColour(80, 240, 60));
+	// m_pDecompiler->StyleSetForeground(wxSTC_C_WORD, wxColour(0, 0, 255));
+	// m_pDecompiler->StyleSetForeground(wxSTC_C_WORD2, wxColour(121, 94, 38));
+	// m_pDecompiler->StyleSetForeground(wxSTC_C_STRING, wxColour(165, 57, 130));
+	// m_pDecompiler->StyleSetForeground(wxSTC_C_NUMBER, wxColour(255, 128, 0));
+
+	//m_pDisassemblyEditor->SetKeyWords(0,
+	//"call compare LASTRESULT if equal greater smaller jump");
 
 	editor_sizer = new wxBoxSizer(wxVERTICAL);	
 	editor_sizer->Add(tScriptTranslated, 2, wxALL | wxEXPAND, 0);
@@ -612,7 +632,7 @@ void ScriptEditorFrame::CreateGUIControls()
 	global_sizer = new wxBoxSizer(wxHORIZONTAL);	
 	global_sizer->Add(editor_sizer, 1, wxALL | wxEXPAND, 0);
 	global_sizer->Add(m_pSrcCodeOutput, 0, wxALL | wxEXPAND, 0);
-	global_sizer->Add(m_pDecompiler, 1, wxALL | wxEXPAND, 0);
+	global_sizer->Add(m_pDisassemblyEditor, 1, wxALL | wxEXPAND, 0);
 
 	CreateMyStatusBar();
 	StatusToStc(tScriptOriginal);
@@ -683,6 +703,36 @@ void ScriptEditorFrame::OnCodeStyleNeeded(wxStyledTextEvent& event)
 		}
 
 		++ln;
+	}
+}
+
+void ScriptEditorFrame::OnDisassemblyWord(wxStyledTextEvent& event) {
+	wxString word = event.GetString();
+	int position = event.GetPosition();	
+	int start = position-word.size();
+
+	if(m_pDisassemblyEditor->GetCharAt(position) == L':') {
+		//new label declaration
+		m_pDisassemblyEditor->AppendKeyWord(word, 1);
+
+		m_pDisassemblyEditor->StartStyling(start);
+		m_pDisassemblyEditor->SetStyling(word.size()+2, wxSTC_WRAP_STYLE_KEYWORD+1);
+
+		//Not skip the event so word DON'T get painted with wxSTC_WRAP_STYLE_DEFAULT
+		event.Skip(false);
+	}
+	else if(word == L"section") {		
+		if(m_pDisassemblyEditor->GetCharAt(start-1) == L'.') {
+			start--;			
+		}
+
+		m_pDisassemblyEditor->StartStyling(start);
+		m_pDisassemblyEditor->SetStyling(word.size()+1, wxSTC_WRAP_STYLE_KEYWORD);
+
+		event.Skip(false);
+	} else {
+		//Skip the event so word get painted with wxSTC_WRAP_STYLE_DEFAULT
+		event.Skip();
 	}
 }
 

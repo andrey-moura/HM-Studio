@@ -57,7 +57,7 @@ GraphicsEditor::GraphicsEditor(id i)
 
 		uint32_t img_address = std::stoi(strings[0].ToStdWstring(), nullptr, 16);
 		uint32_t pal_address = std::stoi(strings[1].ToStdWstring(), nullptr, 16);
-		int bpp = std::stoi(strings[2].ToStdWstring());
+		uint16_t bpp = std::stoi(strings[2].ToStdWstring());
 
 		m_GraphicsList.push_back({ img_address, pal_address, bpp });		
 	}
@@ -119,7 +119,7 @@ bool GraphicsEditor::Open(uint32_t index)
 	});
 }
 
-bool GraphicsEditor::Open(uint32_t img, uint32_t pal, int w, int h)
+bool GraphicsEditor::Open(uint32_t img, uint32_t pal, uint16_t w, uint16_t h)
 {
 	int index = -1;
 	for(int i = 0; i < m_GraphicsList.size(); ++i)	

@@ -29,7 +29,7 @@ private:
 
 	std::vector<GraphicsInfo> m_GraphicsList;
 public:
-	bool Open(uint32_t img, uint32_t pal, int w, int h);
+	bool Open(uint32_t img, uint32_t pal, uint16_t w, uint16_t h);
 	virtual bool Open(uint32_t index) override;
 	virtual void SaveFile() override;	
 	virtual void InsertFile() override;

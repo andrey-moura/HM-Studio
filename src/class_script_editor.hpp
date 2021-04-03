@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <map>
+#include <sstream>
 
 #include <wx/filename.h>
 #include <wx/progdlg.h>
@@ -14,14 +16,34 @@
 #include "class_finder.hpp"
 #include "window_find_results.hpp"
 
+struct Operation {
+	Operation(const std::string& name, const int& size)
+		: name(name), size(size) {
+
+	}
+
+	std::string name;
+	int size;
+};
+
+struct Function {
+	Function(const std::string& name)
+		: name(name)  {
+
+	}
+	std::string name;	
+};
+
 class ScriptEditor : public Editor
 {
 public:
 	ScriptEditor(const id& id);
-
 	~ScriptEditor() = default;
 public:
 	const std::string& GetScriptDir() const { return m_ScriptDir; }
+	static const std::vector<Operation>& GetOperations() { return s_operations; }
+	static std::vector<Operation> s_operations;
+	static std::map<int32_t, Function> s_functions;
 public:
 	uint32_t GetOffset(bool translated, size_t number);
 	uint32_t GetOffset(bool translated);
@@ -35,13 +57,14 @@ public:
 
 	void DumpAll(bool translated) override;	
 	void InsertAll() override;
+	std::string Compile(std::ostream& stream);
 private:
-	void InsertSmaller(Script& script, uint32_t offset, uint32_t oldSize);
-	bool InsertLarger(const Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);
-	void InsertOnly(const Script& script, uint32_t offset);
-	void InsertMove(const Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newOffset);
-	bool InsertVerify(Script& script, uint32_t offset, uint32_t oldSize);
-	bool InsertFind(Script& script, uint32_t oldOffset, uint32_t oldSize, uint32_t newSize);	
+	void InsertSmaller(const void* data, uint32_t size, uint32_t offset, uint32_t oldSize);
+	bool InsertLarger(const void* data, uint32_t size, uint32_t oldOffset, uint32_t oldSize);
+	void InsertOnly(const void* data, uint32_t size, uint32_t offset);
+	void InsertMove(const void* data, uint32_t size, uint32_t oldOffset, uint32_t oldSize, uint32_t newOffset);
+	bool InsertVerify(const void* data, uint32_t size, uint32_t offset);
+	bool InsertFind(const void* data, uint32_t size, uint32_t oldOffset, uint32_t oldSize);	
 	void EraseScript(uint32_t offset, uint32_t size);
 
 	inline bool IsInsideBlock(const uint32_t& offset);
@@ -68,6 +91,8 @@ public:
 	Script& GetScript() { return m_ScriptTranslated; }
 	
 	FilesResults CheckCode();
+
+	wxString& GetDisassembly() { return m_ScriptDisassembly; }
 private:
 	virtual bool Open(uint32_t number) override;
 	virtual void GetRomInfo() override;
@@ -82,5 +107,7 @@ private:
 
 	std::vector<std::string> m_Original;
 	std::vector<std::string> m_Translated;	
+
+	wxString m_ScriptDisassembly;
 	bool m_Opened = false;
 };
