@@ -1104,7 +1104,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 					}
 					else if ((op >= OpCode::B && op <= OpCode::BGT)) {
 						int label = -1;
-						for (int label_index = 0; label_index < labels_addrs.size(); ++i) {
+						for (int label_index = 0; label_index < labels_addrs.size(); ++label_index) {
 							if (labels_addrs[label_index].first == arg) {
 								label = label_index;
 							}
