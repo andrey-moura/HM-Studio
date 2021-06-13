@@ -981,7 +981,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 	auto jump_it = std::find(lines.begin(), lines.end(), ".section jump");
 
 	if (jump_it != lines.end()) {
-
+		
 	}
 
 	auto scr_it = std::find(lines.begin(), lines.end(), ".section scr");
@@ -996,7 +996,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 	for (int i = (scr_it - lines.begin()) + 1; i < lines.size(); ++i) {
 		std::string line = lines[i];
 
-		while (line.size() && (line[0] == ' ' || line[0] == '\t')) {
+		while (line.starts_with(' ') || line.ends_with('\t')) {
 			line.erase(0, 1);
 		}
 
@@ -1042,7 +1042,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 				//and then to
 				//1
 				line.erase(0, operation.size());
-				while (line.size() && line[0] == ' ') {
+				while (line.starts_with(' ')) {
 					line.erase(line.begin());
 				}
 
@@ -1064,7 +1064,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 						arg = line.substr(0, line.find(' '));
 					}
 					else {
-						if (line[0] == '-') {
+						if (line.starts_with('-')) {
 							line.erase(line.begin());
 							arg.push_back('-');
 						}
