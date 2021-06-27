@@ -165,6 +165,28 @@ ScriptEditor::ScriptEditor(const id& id) : Editor(id, L"Script")
 	// 		std::cout << "Script " << i << ": different size\n";
 	// 	}
 	// }
+
+	// const Moon::Hacking::Table& table = m_RomTranslated.GetTable();
+
+	// for(int i = 0; i < m_Info.Count; ++i) {
+	// 	std::string script;
+	// 	std::string path = GetPath(i, true);
+	// 	Moon::File::ReadAllText(path, script);
+
+	// 	bool ignore = false;
+	// 	for(char& c : script) {
+	// 		if((unsigned char)c == 0x81 || (unsigned char)c == 0xff) {
+	// 			ignore = true;
+	// 		} else {
+	// 			if(!ignore) {
+	// 				table.Input(c);
+	// 			}
+	// 			ignore = false;
+	// 		}			
+	// 	}		
+
+	// 	Moon::File::WriteAllText(path, script);
+	// }
 }
 
 bool ScriptEditor::Open(uint32_t number)
@@ -915,34 +937,27 @@ void ScriptEditor::InsertAll()
 
 	std::vector<uint32_t> scripts_pointers;
 	scripts_pointers.reserve(m_Info.Count);			
-
+ 
 	for (size_t script_number = 0; script_number < m_Info.Count; ++script_number)
-	{
-		std::cout << script_number << "\n";
-		if(script_number == 146) {
-			std::string();
-		}
+	{		
 		std::string file = Moon::File::ReadAllText(GetPath(script_number, true));		
-		std::stringstream stream;
+		std::stringstream stream;		
 		std::string output_msg = Compile(stream, file);
 
-		//if (!script)
-		{
-			//wxMessageBox(wxString(L"Failed to load script ") << script_number << L".", L"Huh?", wxICON_ERROR);
-			//return;
+		if(!output_msg.empty()) {
+			wxMessageBox(wxString(L"script ") << script_number << ": " << output_msg);
+			return;
 		}
 
-		std::string data = stream.str();
-		Moon::File::WriteAllText("Script/script_"+std::to_string(script_number)+".bin", data);
+		std::string data = stream.str();		
+		//Moon::File::WriteAllText("Script/script_"+std::to_string(script_number)+".bin", data);
 
 		scripts_pointers.push_back(script_block.size()+m_Info.StartBlock);
 		script_block += data;
 
 		while (script_block.size() % 4 != 0)
 			script_block.push_back('\0');
-	}
-
-	return;
+	}	
 
 	if (script_block.size() > m_Info.BlockLenght)
 	{
