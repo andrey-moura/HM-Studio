@@ -110,19 +110,6 @@ void for_each_operation(const unsigned char* start, const size_t& len, function 
 
 ScriptEditor::ScriptEditor(const id& id) : Editor(id, L"Script")
 {
-	for (int32_t i = 0; i < 0x118; ++i) {
-		if (s_functions.find(i) == s_functions.end()){
-			std::string operand_string = Moon::BitConverter::ToHexString(i);
-
-			while (operand_string.size() > 1 && operand_string[0] == '0') {
-				operand_string.erase(operand_string.begin());
-			}
-
-			std::string name = "function" + operand_string;
-			s_functions.insert({ i, name });			
-		}
-	}
-
 	GetRomInfo();
 
 	wxFileName pathLeft;
@@ -152,7 +139,32 @@ ScriptEditor::ScriptEditor(const id& id) : Editor(id, L"Script")
 		break;
 	default:
 		break;
-	}
+	}	
+
+	// for(int i = 0; i < m_Info.Count; ++i) {		
+	// 	std::string original;
+	// 	Moon::File::ReadAllText("Original/Script_Original_"+std::to_string(i)+".msf", original);
+
+	// 	std::string translated;
+	// 	Moon::File::ReadAllText("Script/script_"+std::to_string(i)+".bin", translated);
+
+	// 	if(original.size() == translated.size()) {
+	// 		size_t diff = std::string::npos;
+	// 		for(int i = 0; i < original.size(); ++i) {
+	// 			if(original[i] != translated[i]) {
+	// 				diff = i;
+	// 				break;
+	// 			}
+	// 		}
+	// 		if(diff == std::string::npos) {				
+	// 			wxRemoveFile("Script/script_"+std::to_string(i)+".bin");				
+	// 		} else {
+	// 			std::cout << "Script " << i << ": difference at byte " << diff << "\n";
+	// 		}
+	// 	} else {
+	// 		std::cout << "Script " << i << ": different size\n";
+	// 	}
+	// }
 }
 
 bool ScriptEditor::Open(uint32_t number)
@@ -607,23 +619,25 @@ void ScriptEditor::DumpAll(bool translated)
 
 		std::vector<std::string> text = script.GetText();
 
-		script_disassembly += ".section str\n\n";
+		if(text.size()) {
+			script_disassembly += ".section str\n\n";
 
-		for(int str_index = 0; str_index < text.size(); ++str_index) {
-			std::string str = text[str_index];
-			Moon::String::Replace(str, "\r", "\\r");
-			Moon::String::Replace(str, "\n", "\\n");
-			Moon::String::Replace(str, "\"", "\\\"");
+			for(int str_index = 0; str_index < text.size(); ++str_index) {
+				std::string str = text[str_index];
+				Moon::String::Replace(str, "\r", "\\r");
+				Moon::String::Replace(str, "\n", "\\n");
+				Moon::String::Replace(str, "\"", "\\\"");
 
-			script_disassembly.push_back('\t');
-			script_disassembly += "string";
-			script_disassembly += std::to_string(str_index);
-			script_disassembly.push_back(':');
-			script_disassembly += " db ";
-			script_disassembly.push_back('\"');
-			script_disassembly += str;
-			script_disassembly.push_back('\"');
-			script_disassembly.push_back('\n');
+				script_disassembly.push_back('\t');
+				script_disassembly += "string";
+				script_disassembly += std::to_string(str_index);
+				script_disassembly.push_back(':');
+				script_disassembly += " db ";
+				script_disassembly.push_back('\"');
+				script_disassembly += str;
+				script_disassembly.push_back('\"');
+				script_disassembly.push_back('\n');
+			}
 		}
 
 		const unsigned char* start = script.GetData() + 0x18;
@@ -660,21 +674,20 @@ void ScriptEditor::DumpAll(bool translated)
 					const int32_t* defaultCase = (int32_t*)(caseCount+1);
 
 					if (*defaultCase != -1) {
-						script_disassembly += "\tdefault:\n";
-						script_disassembly += "\t\tb LAB_";
+						script_disassembly += "\tdefault: LAB_";						
 						script_disassembly += Moon::BitConverter::ToHexString(*defaultCase);
 						script_disassembly += "\n";
 
 						labels.push_back(*defaultCase);
 					}
 
-					const std::pair<uint32_t, uint32_t>* value_offset = (std::pair<uint32_t, uint32_t>*)(defaultCase+1);
+					const std::pair<int32_t, uint32_t>* value_offset = (std::pair<int32_t, uint32_t>*)(defaultCase+1);
 
 					for (uint32_t caseIndex = 0; caseIndex < *caseCount; ++caseIndex) {
 						script_disassembly += "\tcase ";
 						script_disassembly += std::to_string(value_offset[caseIndex].first);
-						script_disassembly += ":\n";
-						script_disassembly += "\t\tb LAB_";
+						script_disassembly.push_back(':');
+						script_disassembly += " LAB_";
 						script_disassembly += Moon::BitConverter::ToHexString(value_offset[caseIndex].second);
 						script_disassembly += "\n";						
 
@@ -697,7 +710,7 @@ void ScriptEditor::DumpAll(bool translated)
 			}
 		});
 
-		for_each_operation(start, count, [&labels, &script_disassembly](const OpCode& op, const int32_t operand, const uint32_t& addr) {
+		for_each_operation(start, count, [&labels, &script_disassembly, &i](const OpCode& op, const int32_t operand, const uint32_t& addr) {
 			if(std::find(labels.begin(), labels.end(), addr) != labels.end()) {
 				script_disassembly += "LAB_";
 				script_disassembly += Moon::BitConverter::ToHexString(addr);
@@ -719,19 +732,21 @@ void ScriptEditor::DumpAll(bool translated)
 					if(it == s_functions.end()) {
 						std::string operand_string = Moon::BitConverter::ToHexString(operand);
 
-						while(operand_string.size() > 1 && operand_string[0] == '0') {
+						while(operand_string.starts_with('0')) {
 							operand_string.erase(operand_string.begin());
 						}
-
-						std::string name = "function"+operand_string;						
-						s_functions.insert({ operand, name });
-						script_disassembly += name;
+						
+						script_disassembly += "0x";
+						script_disassembly += operand_string;
 					}
 					else {
 						script_disassembly += it->second.name;
 					}
 				}
 				else if (op == OpCode::SWITCH) {
+					if(i == 146) {
+						std::string();
+					}
 					script_disassembly += "Table";
 					script_disassembly += std::to_string(operand);					
 				}
@@ -864,7 +879,7 @@ void ScriptEditor::InsertFile(const std::string& file)
 
 	std::string data = stream.str();	
 
-	//Moon::File::WriteAllBytes(std::string("test.obj"), data.c_str(), data.size());
+	Moon::File::WriteAllBytes(std::string("test.obj"), data.c_str(), data.size());
 
 	//return;
 
@@ -899,51 +914,35 @@ void ScriptEditor::InsertAll()
 	script_block.reserve(m_Info.BlockLenght);
 
 	std::vector<uint32_t> scripts_pointers;
-	scripts_pointers.reserve(m_Info.Count);
-
-	uint32_t oldOffset = 0;
-
-	//We'll use this buffer to fill scripts in the end of the
-	//ROM. But we'll not delete and allocate again, we'll alocate
-	//once, and grow if we need a larger buffer.
-	std::string ffbuffer;
+	scripts_pointers.reserve(m_Info.Count);			
 
 	for (size_t script_number = 0; script_number < m_Info.Count; ++script_number)
 	{
-		oldOffset = GetOffset(true, script_number);
+		std::cout << script_number << "\n";
+		if(script_number == 146) {
+			std::string();
+		}
+		std::string file = Moon::File::ReadAllText(GetPath(script_number, true));		
+		std::stringstream stream;
+		std::string output_msg = Compile(stream, file);
 
-		if (m_RomTranslated.IsInsideFreeSpace(oldOffset))
+		//if (!script)
 		{
-			m_RomTranslated.Seek(oldOffset);
-
-			if (m_RomTranslated.ReadUInt32() == SCRIPT_RIFF)
-			{
-				uint32_t size = m_RomTranslated.ReadUInt32();
-
-				if (size > ffbuffer.size())
-				{
-					ffbuffer.resize(size, 0xff);
-				}
-
-				m_RomTranslated.Seek(oldOffset);
-				m_RomTranslated.WriteBytes(ffbuffer.data(), size);
-			}
+			//wxMessageBox(wxString(L"Failed to load script ") << script_number << L".", L"Huh?", wxICON_ERROR);
+			//return;
 		}
 
-		Script script = Moon::File::ReadAllBytes<uint8_t>(GetPath(script_number, true));
-
-		if (!script)
-		{
-			wxMessageBox(wxString(L"Failed to load script ") << script_number << L".", L"Huh?", wxICON_ERROR);
-			return;
-		}
+		std::string data = stream.str();
+		Moon::File::WriteAllText("Script/script_"+std::to_string(script_number)+".bin", data);
 
 		scripts_pointers.push_back(script_block.size()+m_Info.StartBlock);
-		script_block.append((const char*)script.GetData(), script.GetRiffLenght());
+		script_block += data;
 
 		while (script_block.size() % 4 != 0)
 			script_block.push_back('\0');
 	}
+
+	return;
 
 	if (script_block.size() > m_Info.BlockLenght)
 	{
@@ -974,14 +973,115 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 
 	size_t src_start = output.tellp();
 
-	auto lines = Moon::String::GetLines(input, false);
-
-	std::vector<std::string> jumpTables;
+	auto lines = Moon::String::GetLines(input, false);	
 
 	auto jump_it = std::find(lines.begin(), lines.end(), ".section jump");
+	std::vector<std::pair<std::string, std::vector<std::pair<uint32_t, std::string>>>> jumpTables;
+	std::vector<std::string> defaultLabels;
 
-	if (jump_it != lines.end()) {
-		
+	if (jump_it != lines.end()) {				
+		for (int i = (jump_it - lines.begin()) + 1; i < lines.size(); ++i) {
+			std::string defaultLabel;
+			std::vector<std::pair<uint32_t, std::string>> cases;
+			std::string line = lines[i];
+
+			if(line.empty()) {
+				continue;
+			}
+
+			if(line.starts_with(".section")) {
+				break;
+			}
+			
+			size_t label_pos = line.find(':');
+
+			if (label_pos != std::string::npos) {
+				std::string tableLabel = line.substr(0, label_pos);
+
+				while(tableLabel.starts_with(' ') || tableLabel.starts_with('\t')) {
+					tableLabel.erase(0, 1);
+				}
+
+				++i;
+
+				while(i < lines.size()) {
+					line = lines[i];
+
+					if(line.empty()) {
+						continue;
+					}
+
+					while(line.starts_with(' ') || line.starts_with('\t')) {
+						line.erase(0, 1);
+					}
+					//case x:
+					if(line.starts_with("case")) {						
+						line.erase(0, 4);
+						while(line.starts_with(' ') || line.starts_with('\t')) {
+							line.erase(0, 1);
+						}
+
+						size_t ncasePos = line.find(':');
+						if(ncasePos == std::string::npos) {
+							return "error: missing case terminator ':'";
+						}
+
+						std::string ncaseStr = line.substr(0, ncasePos);
+						bool negative = false;
+						if(ncaseStr.starts_with('-')) {
+							negative = true;
+							ncaseStr.erase(ncaseStr.begin());
+						}
+						for(const char& c : ncaseStr) {
+							if(!isdigit(c)) {
+								return "error: unexpected token '" + std::string(&c, 1) + "' in case value";
+							}
+						}
+
+						int32_t ncase = std::stoi(ncaseStr);
+						if(negative) {
+							ncase *= -1;
+						}
+
+						line.erase(0, ncasePos+1);
+						while(line.starts_with(' ') || line.starts_with('\t')) {
+							line.erase(0, 1);
+						}							
+
+						std::string label;
+
+						for(const char& c : line) {
+							if(c == ' ' || c == '\t') {
+								break;
+							}
+
+							label.push_back(c);
+						}
+
+						cases.push_back({ ncase, label });
+					} else if(line.starts_with("default:")) {
+						line.erase(0, 8);
+						while(line.starts_with(' ') || line.starts_with('\t')) {
+							line.erase(line.begin());
+						}
+						for(const char& c : line) {
+							if(c == ' ' || c == '\t') {
+								break;
+							}
+
+							defaultLabel.push_back(c);
+						}
+					} else {
+						//process last line again
+						--i;
+						break;
+					}					
+					++i;
+				}
+				defaultLabels.push_back(defaultLabel);
+				jumpTables.push_back({tableLabel, cases});
+			}
+		}
 	}
 
 	auto scr_it = std::find(lines.begin(), lines.end(), ".section scr");
@@ -1088,19 +1188,47 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 					}
 
 					if (op == OpCode::CALL) {
-						int fn = -1;
-						for (const auto& pair : s_functions)
-							if (pair.second.name == arg) {
-								fn = pair.first;
-								break;
+						if(arg.starts_with("0x")) {
+							arg.erase(0, 2);
+							for(const char& c : arg) {
+								if(!isxdigit(c)) {
+									return "error: unexpected token '" + std::string(c, 1) + "' in argument";
+								}
 							}
-						if (fn == -1) {
-							return "error: unexpected token '" + arg + "' in argument";
-						}
-						argument = fn;
+							argument = std::stoi(arg, nullptr, 16);
+						} else if(isdigit(arg[0])) {
+							for(const char& c : arg) {
+								if(!isdigit(c)) {
+									return "error: unexpected token '" + std::string(c, 1) + "' in argument";
+								}
+							}
+							argument = std::stoi(arg);
+						} else {
+							int fn = -1;						
+							for (const auto& pair : s_functions) {
+								if (pair.second.name == arg) {
+									fn = pair.first;
+									break;
+								}
+							}
+							if (fn == -1) {
+								return "error: unexpected token '" + arg + "' in argument";
+							}
+							argument = fn;	
+						}						
 					}
 					else if (op == OpCode::SWITCH) {
-
+						argument = -1;
+						for(size_t i = 0; auto& table : jumpTables) {
+							if(table.first == arg) {
+								argument = i;
+								break;
+							}
+							++i;
+						}
+						if(argument == -1) {
+							return "error: undefined reference to jump table '" + arg + "'";
+						}
 					}
 					else if ((op >= OpCode::B && op <= OpCode::BGT)) {
 						int label = -1;
@@ -1160,9 +1288,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 							return "error: argument overflow";
 						}
 
-						auto temp_argument = std::stoll(arg);
-
-						std::cout << "Temp argument: " << temp_argument << "\n";
+						auto temp_argument = std::stoll(arg);						
 
 						if (temp_argument > arg_max || temp_argument < arg_min) {
 							return "error: argument overflow";
@@ -1266,7 +1392,7 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 	while (src_end % 4 != 0) {
 		++src_end;
 		output.write("\0", 1);
-	}
+	}	
 
 	uint32_t code_lenght = src_end - src_start;
 	uint32_t src_lenght = code_lenght + 4;
@@ -1275,91 +1401,168 @@ std::string ScriptEditor::Compile(std::ostream& output, const std::string& input
 	output.write(char_pointer(src_lenght), 4);
 	output.write(char_pointer(code_lenght), 4);
 
-	//String compilation
-
 	output.seekp(src_end);
+
+	if(jumpTables.size()) {
+		//jump compilation
+		uint32_t jumpStart = output.tellp();
+		output << "JUMP";
+		output.write("\0\0\0\0", 4);
+		uint32_t jumpTablesCount = jumpTables.size();
+		output.write(char_pointer(jumpTablesCount), 4);
+
+		//jump pointers
+		//one word per table
+		uint32_t lastAddr = (uint32_t)(jumpTables.size()*4);
+
+		for(auto& table : jumpTables) {
+			output.write(char_pointer(lastAddr), 4);
+			lastAddr += 4; //case count
+			lastAddr += 4; //default label
+			lastAddr += table.second.size()*8;
+		}	
+
+		for(size_t i = 0; auto& table : jumpTables) {		
+			uint32_t caseCount = table.second.size();
+			output.write(char_pointer(caseCount), 4);
+
+			int32_t defaultCase = -1;
+
+			if(!defaultLabels[i].empty()) {
+				for(auto& pair : labels_addrs) {
+					if(pair.first == defaultLabels[i]) {
+						defaultCase = pair.second;
+						break;
+					}
+				}
+
+				if(defaultCase == -1) {
+					return "error: undefined reference to label '" + defaultLabels[i] + "'";
+				}
+			}
+
+			output.write(char_pointer(defaultCase), 4);
+			for(auto& icase : table.second) {
+				output.write(char_pointer(icase.first), 4);
+
+				for(auto& pair : labels_addrs) {
+					if(pair.first == icase.second) {
+						output.write(char_pointer(pair.second), 4);
+						break;
+					}
+				}
+			}
+
+			++i;
+		}
+		size_t jumpEnd = output.tellp();
+		output.seekp(jumpStart+4);
+
+		uint32_t jumpLenght = (jumpEnd-jumpStart)-8; //-JUMP & -JUMP LENGHT
+		output.write(char_pointer(jumpLenght), 4);
+		output.seekp(jumpEnd);
+	}
+
+	//String compilation	
 
 	output << "STR ";
 
 	auto str_it = std::find(lines.begin(), lines.end(), ".section str");
 
-	if (str_it == lines.end()) {
+	if (str_it != lines.end()) {
+		std::vector<uint32_t> pointers;
+		std::string strings;
+
+		for (int i = (str_it - lines.begin()) + 1; i < lines.size(); ++i) {
+			std::string& line = lines[i];
+
+			size_t start = line.find("\"");
+
+			if (start == std::string::npos) {
+				continue;
+			}
+
+			++start;
+
+			std::string str;
+			bool escape = false;
+			while(start < line.size()) {
+				switch (line[start])
+				{
+				case '\\':
+					escape = true;
+					break;
+				case '\"':
+					if(escape) {
+						escape = false;
+						str.push_back('"');
+					} else {
+						break;
+					}
+					break;
+				case 'n':
+					if(escape) {
+						escape = false;
+						str.push_back('\n');
+					} else {
+						str.push_back('n');
+					}
+					break;
+				case 'r':
+					if(escape) {
+						escape = false;
+						str.push_back('\r');
+					} else {
+						str.push_back('r');
+					}
+					break;
+				default:
+					if(escape) {
+						return "error: undefined escape sequence '" + std::string(line[start], 1) + "'";
+					} else {
+						escape = false;
+						str.push_back(line[start]);
+					}
+					break;
+				}
+				++start;
+			}
+
+			pointers.push_back(strings.size());
+
+			Moon::String::Replace(str, "\\n", "\n");
+			Moon::String::Replace(str, "\\r", "\r");
+
+			strings.append(str);
+			strings.push_back('\0');
+		}
+
+		if (pointers.size()) {
+			uint32_t str_len = 0;
+			uint32_t str_count = pointers.size();
+
+			str_len += str_count * 4;
+			str_len += 4;
+			str_len += strings.size();
+
+			output.write(char_pointer(str_len), 4);
+			output.write(char_pointer(str_count), 4);
+
+			for (const uint32_t& pointer : pointers) {
+				output.write(char_pointer(pointer), 4);
+			}
+
+			output.write(strings.c_str(), strings.size());					
+		} else {
+			uint32_t len = 4;
+			output.write(char_pointer(len), 4);
+			output.write("\0\0\0", 4);
+		}		
+	} else {
 		uint32_t len = 4;
 		output.write(char_pointer(len), 4);
 		output.write("\0\0\0", 4);
-
-		return "";
-	}
-
-	std::vector<uint32_t> pointers;
-	std::string strings;
-
-	for (int i = (str_it - lines.begin()) + 1; i < lines.size(); ++i) {
-		std::string& line = lines[i];
-
-		// size_t dots = line.find(":");
-		// std::string name = line.substr(dots);
-
-		// while((*name.begin() == ' ' || *name.begin() == '\t') && name.size()) {
-		// 	name.erase(name.begin());
-		// }
-
-		// for(const char& c : name) {
-		// 	if(c >= 'a'&& c <= 'z') {
-		// 		break;
-		// 	} else if(c >= 'A' && c <= 'Z') {
-		// 		break;
-		// 	} else if(c >= '0' && c <= '9') {
-		// 		break;
-		// 	}
-
-		// 	return "error: undefined token '" + std::to_string(c) + "' in string name '" + '';
-		// }
-
-		size_t start = line.find("\"");
-
-		if (start == std::string::npos) {
-			continue;
-		}
-
-		size_t end = line.find("\"", start + 1);
-
-		if (end == std::string::npos) {
-			return "error: missing matching \"";
-		}
-
-		pointers.push_back(strings.size());
-
-		std::string str = line.substr(start + 1, (end - start) - 1);
-		Moon::String::Replace(str, "\\n", "\n");
-		Moon::String::Replace(str, "\\r", "\r");
-
-		strings.append(str);
-		strings.push_back('\0');
-	}
-
-	if (!pointers.size()) {
-		uint32_t len = 4;
-		output.write(char_pointer(len), 4);
-		output.write("\0\0\0", 4);
-		return "";
-	}
-
-	uint32_t str_len = 0;
-	uint32_t str_count = pointers.size();
-
-	str_len += str_count * 4;
-	str_len += 4;
-	str_len += strings.size();
-
-	output.write(char_pointer(str_len), 4);
-	output.write(char_pointer(str_count), 4);
-
-	for (const uint32_t& pointer : pointers) {
-		output.write(char_pointer(pointer), 4);
-	}
-
-	output.write(strings.c_str(), strings.size());
+	}	
 
 	uint32_t riff_size = output.tellp();
 
