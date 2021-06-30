@@ -324,7 +324,7 @@ std::string LetterEditor::GetPath(const size_t& number, const bool& translated) 
 	const std::string& state = GetRom(translated).State;
 
 	wxFileName fn;
-	fn.SetPath(m_LetterDir);
+	fn.SetPath(m_EditorDir+L"s");
 	fn.AppendDir(state);
 
 	fn.SetFullName("Letter_" + state + "_" + std::to_string(number) + ".letter");

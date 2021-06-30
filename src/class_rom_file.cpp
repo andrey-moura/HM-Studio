@@ -167,8 +167,8 @@ void RomFile::ReplaceWideChars(wxString& text)
 }
 
 wxString RomFile::ReplaceWideChars(std::string& text)
-{
-	wxString ret = text;
+{		
+	wxString ret(text.c_str(), wxCSConv(wxFONTENCODING_CP1252), text.size());
 
 	const wchar_t* txt = ret.wc_str();
 

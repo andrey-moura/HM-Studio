@@ -50,10 +50,12 @@ void ItemEditorFrame::UpdateText()
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
-		m_pItemName->SetValue(((ItemEditor*)m_pEditor)->GetName(true));
+		std::string name = ((ItemEditor*)m_pEditor)->GetName(true);	
+		m_pItemName->SetValue(wxString(name.data(), wxCSConv(wxFONTENCODING_CP1252), name.size()));
 	}
 
-	m_pItemText->SetText(((ItemEditor*)m_pEditor)->GetDescription(true));
+	std::string description = ((ItemEditor*)m_pEditor)->GetDescription(true);
+	m_pItemText->SetText(wxString(description.data(), wxCSConv(wxFONTENCODING_CP1252), description.size()));
 
 	if (m_pEditor->GetRom(true).Console == console::GBA)
 	{
