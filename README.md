@@ -6,6 +6,12 @@ HM Studio is a tool to edit Harvest Moon Games. Currently, it supports:
 * Harvest Moon -  DS (American Version)
 The support for HM FoMT and DS are not 100%
 
+# Overview
+
+### Script Editor
+
+![Script Editor](https://i.imgur.com/hcEUc3Z.png)
+
 ## Building
 
 ### Linux
