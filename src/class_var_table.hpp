@@ -21,7 +21,7 @@ public:
 	void Reserve(size_t size);
 	void Append(const char& var, const std::string& name);
 public:
-	inline void Input(std::string& str, const Moon::Hacking::Table& tbl)
+	inline void Input(std::string& str, const Moon::Hacking::Table& tbl) const
 	{
 		size_t varPos = str.find(0xff);
 
@@ -58,7 +58,7 @@ public:
 			str.insert(pos.m_VarPos, name.data(), m_VarSize - 2);
 		}		
 	}
-	inline void Output(std::string& str, const Moon::Hacking::Table& tbl)
+	inline void Output(std::string& str, const Moon::Hacking::Table& tbl) const
 	{
 		std::vector<VarPos> poss;
 
@@ -91,8 +91,8 @@ public:
 		}
 	}
 	
-	void Input(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl);
-	void Output(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl);
+	void Input(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl) const;
+	void Output(std::vector<std::string>& strs, const Moon::Hacking::Table& tbl) const;
 //Acessors
 public:
 	size_t Size() const { return m_Vars.size(); }

@@ -53,8 +53,8 @@ private:
 	void SetupVars();
 public:
 	std::string GetTablePath();
-	inline const Moon::Hacking::Table& GetTable() const { return m_Table; }
-	inline const VarTable& GetVarTable() const { return m_VarTable; }
+	const Moon::Hacking::Table& GetTable() const { return m_Table; }
+	const VarTable& GetVarTable() const { return m_VarTable; }
 	void InputTextWithVariables(std::string& text);
 	void InputTextWithVariables(std::vector<std::string>& text);
 	void OutputTextWithVariables(std::string& text);

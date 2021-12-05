@@ -117,6 +117,8 @@ bool GraphicsEditor::Open(uint32_t index)
 		m_Graphics.SetPixel(i, p);
 		++i;
 	});
+
+	return true;
 }
 
 bool GraphicsEditor::Open(uint32_t img, uint32_t pal, uint16_t w, uint16_t h)

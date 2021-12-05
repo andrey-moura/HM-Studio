@@ -309,6 +309,7 @@ void MainFrame::CreateGUIControls()
 	int widths[2]{ -1, m_pSelection->GetSize().GetWidth() + 10 };
 
 	m_frameStatusBar->SetStatusWidths(2, widths);
+	m_frameStatusBar->SetMinHeight(m_pSelection->GetSize().GetHeight());
 
 #ifdef __WXGTK__
 	int styles[2]{ wxSB_RAISED, wxSB_RAISED };
