@@ -157,6 +157,7 @@ void SpellCheckerDialog::CreateGUIControls()
 	wxDirPickerCtrl* dictionary_path = new wxDirPickerCtrl(this, wxID_ANY, SpellChecker::GetDictionariesPath(), wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_DIR_MUST_EXIST | wxDIRP_SMALL);
 
 	m_pDictionariesDir = dictionary_path->GetTextCtrl();
+	m_pDictionariesDir->SetValue(wxConfigBase::Get()->Read("DictionariesDir", L""));
 	m_pDictionariesDir->SetMinSize(wxSize(235, m_pDictionariesDir->GetMinSize().GetHeight()));	
 
 	wxStaticBoxSizer* dictionary_path_sizer = new wxStaticBoxSizer(wxVERTICAL, this, L"Dictionaries Folder");

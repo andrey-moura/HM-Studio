@@ -300,8 +300,8 @@ void ValueEditor::InsertFile()
 			m_RomTranslated.WriteT((uint16_t)value.value);
 			break;
 		case ValueType::StringValue:
-		{
-			std::string str = value.str_value.ToStdString();
+		{			
+			std::string str = value.str_value.ToStdString(wxCSConv(wxFONTENCODING_CP1252));
 			m_RomTranslated.WriteBytes(str.c_str(), str.size()+1);
 			break;
 		}
@@ -687,9 +687,6 @@ void ValueEditorFrame::OnCellChanged(wxGridEvent& event)
 
 	Value& value = m_pValueEditor->GetValue(event.GetRow());	
 
-	if (value.type == ValueType::CharValue)
-		return;
-
 	wxString string = m_pValueList2->GetCellValue(event.GetRow(), event.GetCol());
 
 	if (event.GetCol() == COL_ADRESS)
@@ -781,7 +778,7 @@ void ValueEditorFrame::CreateGUIControls()
 
 	CreateMyToolBar();
 
-	m_pValueList2 = new wxGrid(this, wxID_ANY);
+	m_pValueList2 = new wxGrid(this, wxID_ANY);	
 
 	m_pValueList2->CreateGrid(0, 5);
 	m_pValueList2->HideRowLabels();
@@ -791,13 +788,49 @@ void ValueEditorFrame::CreateGUIControls()
 	m_pValueList2->SetColLabelValue(COL_SIZE, L"Size");
 	m_pValueList2->SetColLabelValue(COL_VALUE, L"Value");
 	m_pValueList2->UseNativeColHeader();
-	m_pValueList2->SetColLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+	m_pValueList2->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
 
 	m_pValueList2->Bind(wxEVT_GRID_SELECT_CELL, &ValueEditorFrame::OnCellSelected, this);
 	m_pValueList2->Bind(wxEVT_GRID_EDITOR_CREATED, &ValueEditorFrame::OnCellChangeStart, this);
 	m_pValueList2->Bind(wxEVT_GRID_CELL_CHANGING, &ValueEditorFrame::OnCellChanging, this);
 	m_pValueList2->Bind(wxEVT_GRID_CELL_CHANGED, &ValueEditorFrame::OnCellChanged, this);
 	m_pValueList2->Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &ValueEditorFrame::OnCellRightClick, this);
+	m_pValueList2->Bind(wxEVT_SIZE, [this](wxSizeEvent& event) {
+		int sizes[5] { -1, 1, 1, 30, -1 };
+		int width = m_pValueList2->GetSize().GetWidth();
+
+		int itemCount = 0;
+		for(int colIndex = 0; colIndex < 5; ++colIndex) {
+			int size = sizes[colIndex];
+			if(size == 0) {
+				break;
+			} else if(size == -1) {
+				itemCount++;
+			} else if(size == 1) {
+				m_pValueList2->AutoSizeColumn(colIndex);            
+				int colWidth = m_pValueList2->GetColSize(colIndex);
+				width -= colWidth;
+			} else {
+				int colWidth = m_pValueList2->GetColSize(colIndex);
+				colWidth = std::max(colWidth, size);
+				width -= colWidth;
+				m_pValueList2->SetColSize(colIndex, colWidth);
+			}
+		}
+
+		    if(width < 0) {
+        return;
+    }    
+
+	for(int colIndex = 0; colIndex < 5; ++colIndex) {
+		if(sizes[colIndex] == -1) {
+			m_pValueList2->SetColSize(colIndex, width / itemCount);
+		}
+		++colIndex;
+	}
+
+		event.Skip();
+	});	
 
 	m_pToggleHexMenu = new wxMenu();
 	m_pToggleHexMenu->Bind(wxEVT_MENU, &ValueEditorFrame::OnToggleHexMenuClick, this, m_pToggleHexMenu->AppendCheckItem(wxID_ANY, L"Show as hex")->GetId());

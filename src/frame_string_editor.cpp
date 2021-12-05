@@ -35,11 +35,6 @@ StringEditor::StringEditor(const id& i) : Editor(i, L"String")
 	}	
 
 	m_Info.Count = files.size();	
-
-	for(int i = 0; i < m_Info.Count; ++i) {
-		Open(i);
-		SaveFile();
-	}
 }
 
 bool StringEditor::LoadFile(const wxString& path, std::vector<RomString>& strings, uint32_t& blocklength, uint32_t& blockstart)

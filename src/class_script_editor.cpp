@@ -766,9 +766,6 @@ void ScriptEditor::DumpAll(bool translated)
 					}
 				}
 				else if (op == OpCode::SWITCH) {
-					if(i == 146) {
-						std::string();
-					}
 					script_disassembly += "Table";
 					script_disassembly += std::to_string(operand);					
 				}

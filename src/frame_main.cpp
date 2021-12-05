@@ -192,8 +192,7 @@ void MainFrame::OnOpenDefaultClick(wxCommandEvent& event)
 	m_DefaultSelection = m_pSelection->GetSelection();
 	
 	wxConfigBase* pConfig = wxConfigBase::Get();
-	pConfig->Write(L"/Global/DefaultRom", m_DefaultSelection);
-	pConfig->Flush();
+	pConfig->Write(L"/Global/DefaultRom", m_DefaultSelection);	
 
 	event.Skip();
 }
