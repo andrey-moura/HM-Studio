@@ -45,7 +45,7 @@ else()
 	find_package(wxWidgets REQUIRED COMPONENTS net core base xml stc)
 	include(${wxWidgets_USE_FILE})
 	
-	find_package(hunspell)
+	# find_package(hunspell)
 	
 	if(DEFINED HUNSPELL_FOUND)
 		# hunspell include directory
