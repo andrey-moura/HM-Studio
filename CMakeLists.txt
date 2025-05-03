@@ -151,3 +151,13 @@ else()
 		target_link_libraries(HMStudio ${HUNSPELL_LIBRARIES})
 	endif()	
 endif()
+
+add_executable(
+	decompressor
+	src/decompressor.cpp
+)
+
+add_executable(
+	mfomt-ls
+	src/mfomt_ls.cpp
+)
