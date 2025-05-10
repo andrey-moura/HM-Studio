@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  
+  <!-- Declaration of the root element 'layout' -->
+  <xs:element name="layout">
+    <xs:complexType>
+      <xs:sequence minOccurs="0">
+        <!-- Reference to the global 'text' element -->
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="text"/>
+          <xs:element ref="layout"/>
+          <xs:element ref="input"/>
+        </xs:choice>
+      </xs:sequence>
+
+      <xs:attribute name="flex" type="xs:integer" use="optional" default="0"/>
+
+      <!-- Attributes of the 'layout' element -->
+      <xs:attribute name="type" use="optional" default="flexible">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Only 'flexible' is allowed as a value -->
+            <xs:enumeration value="flexible"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute name="direction" use="optional" default="vertical">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Allowed values for direction: 'vertical' and 'horizontal' -->
+            <xs:enumeration value="vertical"/>
+            <xs:enumeration value="horizontal"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute name="align" use="optional" default="start">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Allowed values for direction: 'vertical' and 'horizontal' -->
+            <xs:enumeration value="start"/>
+            <xs:enumeration value="center"/>
+            <xs:enumeration value="end"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute name="padding" use="optional" default="0px">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Pattern: a number followed by 'px' -->
+            <xs:pattern value="[0-9]+px"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <xs:attribute name="gap" use="optional" default="0px">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Pattern: a number followed by 'px' -->
+            <xs:pattern value="[0-9]+px"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+
+      <!-- Optional background-color attribute for the 'layout' element -->
+      <xs:attribute name="background-color" type="colorType" use="optional" default="#FFFFFF"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Global Declaration of the 'text' element -->
+  <xs:element name="text">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:string" use="optional"/>
+      <!-- Attributes of the 'text' element -->
+      <xs:attribute name="background-color" type="colorType" use="optional" default="#FFFFFF"/>
+      <xs:attribute name="font-size" use="optional" default="12px">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Pattern: a number followed by 'px' -->
+            <xs:pattern value="[0-9]+px"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="color" type="colorType" use="optional" default="#000000"/>
+      <xs:attribute name="flex" type="xs:integer" use="optional" default="0"/>
+      <xs:attribute name="cursor" type="cursorType" use="optional" default="default"/>
+      <xs:attribute name="border-radius" use="optional" default="0px">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Pattern: a number followed by 'px' -->
+            <xs:pattern value="[0-9]+px"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="vertical-align" use="optional" default="top">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Allowed values for vertical-align: 'top', 'middle' and 'bottom' -->
+            <xs:enumeration value="top"/>
+            <xs:enumeration value="middle"/>
+            <xs:enumeration value="bottom"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="horizontal-align" use="optional" default="left">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- Allowed values for horizontal-align: 'left', 'center' and 'right' -->
+            <xs:enumeration value="left"/>
+            <xs:enumeration value="center"/>
+            <xs:enumeration value="right"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Declaration of 'input' element -->
+  <xs:element name="input">
+    <xs:complexType mixed="true">
+      <xs:attribute name="background-color" type="colorType" use="optional" default="#FFFFFF"/>
+      <xs:attribute name="color" type="colorType" use="optional" default="#000000"/>
+      <xs:attribute name="flex" type="xs:integer" use="optional" default="0"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Custom data type for color (RGB in hexadecimal format) -->
+  <xs:simpleType name="colorType">
+    <xs:restriction base="xs:string">
+      <!-- Pattern: # followed by 6 hexadecimal characters -->
+      <xs:pattern value="#[0-9A-Fa-f]{6}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="cursorType">
+    <xs:restriction base="xs:string">
+      <!-- Allowed values for cursor: 'pointer' and 'default' -->
+      <xs:enumeration value="default"/>
+      <xs:enumeration value="pointer"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

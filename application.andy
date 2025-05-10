@@ -1,0 +1,19 @@
+import :ui
+
+#include 'frames/*.andy'
+
+module HMStudio
+    type Application extends UI.Application
+        var main_frame = null
+
+        fn new
+            super()
+        end
+
+        fn init
+	    out 'on init'
+            main_frame = new MainFrame()
+            main_frame.show(maximized: true)
+        end
+    end
+end

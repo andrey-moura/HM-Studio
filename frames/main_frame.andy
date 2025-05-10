@@ -1,0 +1,5 @@
+type MainFrame extends UI.Frame
+    fn new
+        super('HM Studio')
+    end
+end

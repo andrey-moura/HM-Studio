@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<layout direction="horizontal">
+    <layout
+        background-color="#FFFFFF"
+        flex="1">
+    </layout>
+    <layout
+        flex="1"
+        background-color="#FF0000">
+
+        <input
+            flex="1">
+        </input>
+    </layout>
+</layout>
