@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 uint32_t calls_to_decompressor[] = {
     0x08000cc8,
@@ -69,32 +70,23 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     for (size_t i = 0; i < sizeof(calls_to_decompressor) / sizeof(calls_to_decompressor[0]); ++i) {
-        uint32_t header;
-        input_file.seekg(calls_to_decompressor[i] - 0x08000000);
+        uint32_t offset = calls_to_decompressor[i] - 0x08000000;
+        uint32_t header = 0;
+        input_file.seekg(offset);
         input_file.read(reinterpret_cast<char*>(&header), sizeof(header));
         //std::cout << "Address 0x" << std::hex << std::setw(8) << std::setfill('0') << calls_to_decompressor[i] << ": " << std::endl;
         if(header > 0x08000000) {
             //std::cout << "Pointer to: 0x" << std::hex << std::setw(8) << std::setfill('0') << (int)header << std::endl;
-            input_file.seekg(header - 0x08000000);
-            input_file.read(reinterpret_cast<char*>(&header), sizeof(header));
+            offset = header - 0x08000000;
         }
         std::string output;
         std::stringstream ss;
-        ss << std::hex << std::setw(8) << std::setfill('0') << (int)header;
+        ss << std::hex << std::setw(6) << std::setfill('0') << (int)offset;
         output = ss.str();
         output += ".bin";
-        std::string command = "./decompressor '" + std::string(argv[1]) + "' " + std::to_string(calls_to_decompressor[i]) + " " + output;
-        //std::cout << "Command: " << command << std::endl;
+        std::string command = "decompressor \"" + std::string(argv[1]) + "\" " + std::to_string(offset) + " " + output;
+        std::cout << "Command: " << command << std::endl;
         system(command.c_str());
-        
-        // std::cout << "Header 0x" << std::hex << std::setw(8) << std::setfill('0') << (int)header << std::endl;
-        // uint32_t target_size = (header >> 8) / 2;
-        // std::cout << "Target size: " << std::dec << (int)target_size << " bytes " << std::endl;
-        // uint32_t next_word;
-        // input_file.read(reinterpret_cast<char*>(&next_word), sizeof(next_word));
-        // uint8_t byte = (next_word & 0xFF000000) >> 24;
-        // std::cout << "Byte: 0x" << std::hex << std::setw(2) << std::setfill('0') << (int)byte << std::endl;
-        // std::cout << std::endl;
     }
     return 0;
 }
